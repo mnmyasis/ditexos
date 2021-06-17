@@ -1,0 +1,67 @@
+{% extends 'index.html' %}
+{% block content %}
+<div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                         <a href="https://oauth.yandex.ru/authorize?response_type=code&client_id={{ client_id }}" class="btn btn-warning mt-4 mb-2">Yandex Direct</a>
+
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Tables</li>
+                        </ol>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-table me-1"></i>
+                                Yandex Direct
+                            </div>
+                            <div class="card-body">
+                                <table id="datatablesSimple">
+                                    <thead>
+                                        <tr>
+                                          {% for line in require.columns.tolist %}
+                                            <th scope="col">{{ line }}</th>
+                                          {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                          {% for line in require.columns.tolist %}
+                                            <th scope="col">{{ line }}</th>
+                                          {% endfor %}
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>
+                                    {% for line in require.iloc %}
+                                      <tr>
+                                        <th scope="row">{{line.Clicks}}</th>
+                                        <td>{{line.Cost}}</td>
+                                        <td>{{line.CampaignId}}</td>
+                                        <td>{{line.CampaignName}}</td>
+                                        <td>{{line.AdGroupName}}</td>
+                                        <td>{{line.AdGroupId}}</td>
+                                        <td>{{line.AdId}}</td>
+                                      <td>{{line.Criteria}}</td>
+                                      <td>{{line.CriteriaId}}</td>
+                                      </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">Copyright &copy; Ditexos.ru 2021</div>
+                            <div>
+                                <a href="#">Privacy Policy</a>
+                                &middot;
+                                <a href="#">Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+{% endblock %}

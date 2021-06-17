@@ -1,0 +1,20 @@
+{% extends 'index.html' %}
+{% block excel %}
+<div class="row mt-5">
+    <div class="col-6 offset-3 mt-5">
+        <div class="mb-3">
+            <form method="post" enctype="multipart/form-data" action="{% url 'excel:file_load' %}">
+              {% csrf_token %}
+              <label for="formFileSm" class="form-label">Small file input example</label>
+              <input class="form-control form-control-sm" id="formFileSm" type="file" name="file_crm">
+              <button type="submit" class="btn btn-primary mt-2">Submit</button>
+            </form>
+        </div>
+        {% if require %}
+            {% for column in require %}
+                <p>{{ column }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

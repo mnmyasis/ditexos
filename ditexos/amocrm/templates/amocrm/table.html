@@ -1,0 +1,72 @@
+{% extends 'index.html' %}
+{% block content %}
+<div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                        <h1 class="mt-4">Tables</h1>
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Tables</li>
+                        </ol>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-table me-1"></i>
+                                Сквозная аналитика
+                            </div>
+                            <div class="card-body">
+                                <table id="datatablesSimple">
+                                    <thead>
+                                        <tr>
+                                          <th scope="col">id</th>
+                                          <th>name</th>
+                                          <th>price</th>
+                                          <th>status_id</th>
+                                          <th>pipeline_id</th>
+                                          <th>contact_id</th>
+                                          <th>contact</th>
+                                      </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                          <th scope="col">id</th>
+                                          <th>name</th>
+                                          <th>price</th>
+                                          <th>status_id</th>
+                                          <th>pipeline_id</th>
+                                          <th>contact_id</th>
+                                          <th>contact</th>
+                                      </tr>
+                                    </tfoot>
+                                    <tbody>
+                                    {% for line in require.iloc %}
+                                          <tr>
+                                              <td scope="row">{{line.id}}</td>
+                                              <td>{{line.name}}</td>
+                                              <td>{{line.price}}</td>
+                                              <td>{{line.status_id}}</td>
+                                              <td>{{line.pipeline_id}}</td>
+                                              <td>{{line.link}}</td>
+                                              <td>{{line.contacts}}</td>
+                                          </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">Copyright &copy; Ditexos.ru 2021</div>
+                            <div>
+                                <a href="#">Privacy Policy</a>
+                                &middot;
+                                <a href="#">Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+{% endblock %}

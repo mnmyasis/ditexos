@@ -1,0 +1,72 @@
+{% extends 'index.html' %}
+{% block content %}
+            <div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                        <h1 class="mt-4">Graph</h1>
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Graph</li>
+                        </ol>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-table me-1"></i>
+                                Сквозная аналитика
+                            </div>
+                            <div class="card-body">
+                                <table id="datatablesSimple">
+                                    <thead>
+                                        <tr>
+                                            <th>Clicks</th>
+                                            <th>CampaignName</th>
+                                            <th>Cost</th>
+                                            <th>AdGroupName</th>
+                                            <th>utm_source</th>
+                                            <th>utm_campaign</th>
+                                            <th>caller</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                            <th>Clicks</th>
+                                            <th>CampaignName</th>
+                                            <th>Cost</th>
+                                            <th>AdGroupName</th>
+                                            <th>utm_source</th>
+                                            <th>utm_campaign</th>
+                                            <th>caller</th>
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>
+                                    {% for line in require %}
+                                        <tr>
+                                            <td>{{ line.Clicks }}</td>
+                                            <td>{{ line.CampaignName }}</td>
+                                            <td>{{ line.Cost }}</td>
+                                            <td>{{ line.AdGroupName }}</td>
+                                            <td>{{ line.utm_source }}</td>
+                                            <td>{{ line.utm_campaign }}</td>
+                                            <td>{{ line.caller }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">Copyright &copy; Ditexos.ru 2021</div>
+                            <div>
+                                <a href="#">Privacy Policy</a>
+                                &middot;
+                                <a href="#">Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+{% endblock %}

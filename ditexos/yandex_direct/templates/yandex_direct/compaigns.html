@@ -1,0 +1,21 @@
+{% extends 'index.html' %}
+{% block content %}
+<table class="table">
+  <thead class="table-light">
+    <tr>
+      <th scope="col">id campaign</th>
+      <th scope="col">name</th>
+      <th scope="col">status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for campaign in require.result.Campaigns %}
+    <tr>
+      <th scope="row">{{ campaign.Id }}</th>
+      <td>{{ campaign.Name }}</td>
+      <td>{{ campaign.Status }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

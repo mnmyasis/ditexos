@@ -1,0 +1,22 @@
+{% extends 'index.html' %}
+{% block content %}
+<table class="table">
+  <thead class="table-light">
+    <tr>
+      <th scope="col">id</th>
+      <th scope="col">Login</th>
+      <th scope="col">ClientInfo</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for client in require.result.Clients %}
+    <tr>
+      <th scope="row">{{ client.ClientId }}</th>
+      <td><a href="{% url 'yandex_direct:get_campaigns' login_client=client.Login %}">{{ client.Login }}</a></td>
+      <td>{{ client.ClientInfo }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

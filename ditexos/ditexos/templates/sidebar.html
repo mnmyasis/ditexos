@@ -1,0 +1,38 @@
+<div id="layoutSidenav_nav">
+    <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+        <div class="sb-sidenav-menu">
+            <div class="nav">
+                <div class="sb-sidenav-menu-heading">СКВОЗНАЯ АНАЛИТИКА</div>
+                <a class="nav-link" href="{% url 'dashboard:dash_board_page' %}">
+                    <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                    Dashboard
+                </a>
+                <div class="sb-sidenav-menu-heading">Systems</div>
+                <a class="nav-link" href="{% url 'yandex_direct:reports' %}">
+                    <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                    Yandex Direct
+                </a>
+                <a class="nav-link" href="{% url 'google_ads:test_ads' %}">
+                    <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                    Google Ads
+                </a>
+                <a class="nav-link" href="{% url 'calltouch:test_call' %}">
+                    <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                    CallTouch
+                </a>
+                <a class="nav-link" href="{% url 'amocrm:amo_table' %}">
+                    <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                    AmoCRM
+                </a>
+                <a class="nav-link" href="{% url 'excel:file_load' %}">
+                    <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
+                    Excel
+                </a>
+            </div>
+        </div>
+        <div class="sb-sidenav-footer">
+            <div class="small">Logged in as:</div>
+            {{ request.user }}
+        </div>
+    </nav>
+</div>
