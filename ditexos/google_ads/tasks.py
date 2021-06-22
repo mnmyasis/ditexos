@@ -1,9 +1,7 @@
 import json
 import os
 import pandas as pd
-
 from google.ads.googleads.client import GoogleAdsClient
-
 from .models import GoogleAdsToken, Clients, Campaigns, AdGroups, KeyWords, Metrics
 from celery import shared_task
 from .services.api import google_ads

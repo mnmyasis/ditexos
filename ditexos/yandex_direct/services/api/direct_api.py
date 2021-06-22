@@ -1,3 +1,4 @@
+from time import sleep
 from urllib.parse import urlencode
 import os
 
@@ -58,7 +59,9 @@ class YandexDirect:
             'Authorization': 'Bearer ' + self.TOKEN,
             'Client-Login': self.CLIENT_LOGIN,
             'Accept-Language': self.LANGUAGE,
-            'returnMoneyInMicros': 'false'
+            'returnMoneyInMicros': 'false',
+            'processingMode': 'auto',
+            'skipReportSummary': 'true'
         }
         self.HEADERS = headers
 
@@ -72,10 +75,64 @@ class YandexDirect:
         }
         self.BODY = body
 
+    def u(self, x):
+        if isinstance(x, bytes):
+            return x.decode('utf8')
+        else:
+            return x
+
     def send(self):
         json_body = json.dumps(self.BODY, ensure_ascii=False).encode('utf8')
-        result = post(self.API_URL, json_body, headers=self.HEADERS)
-        self.RESULT = result
+        while True:
+            try:
+                req = post(self.API_URL, json_body, headers=self.HEADERS)
+                req.encoding = 'utf-8'
+                if req.status_code == 200:
+                    self.RESULT = req
+                    break
+                elif req.status_code == 400:
+                    print("Параметры запроса указаны неверно или достигнут лимит отчетов в очереди")
+                    print("RequestId: {}".format(req.headers.get("RequestId", False)))
+                    print("JSON-код запроса: {}".format(self.BODY))
+                    print("JSON-код ответа сервера: \n{}".format(self.u(req.json())))
+                    return
+                elif req.status_code == 201:
+                    print("Отчет для аккаунта {} успешно поставлен в очередь в режиме offline")
+                    retry_in = int(req.headers.get("retryIn", 60))
+                    print("Повторная отправка запроса через {} секунд".format(retry_in))
+                    print("RequestId: {}".format(req.headers.get("RequestId", False)))
+                    sleep(retry_in)
+                elif req.status_code == 202:
+                    print("Отчет формируется в режиме офлайн")
+                    retry_in = int(req.headers.get("retryIn", 60))
+                    print("Повторная отправка запроса через {} секунд".format(retry_in))
+                    print("RequestId: {}".format(req.headers.get("RequestId", False)))
+                    sleep(retry_in)
+                elif req.status_code == 500:
+                    print("При формировании отчета произошла ошибка. Пожалуйста, попробуйте повторить запрос позднее.")
+                    print("RequestId: {}".format(req.headers.get("RequestId", False)))
+                    print("JSON-код ответа сервера: \n{}".format(self.u(req.json())))
+                    break
+                elif req.status_code == 502:
+                    print("Время формирования отчета превысило серверное ограничение.")
+                    print(
+                        "Пожалуйста, попробуйте изменить параметры запроса - уменьшить период и количество запрашиваемых данных.")
+                    print("JSON-код запроса: {}".format(self.BODY))
+                    print("RequestId: {}".format(req.headers.get("RequestId", False)))
+                    print("JSON-код ответа сервера: \n{}".format(self.u(req.json())))
+                    break
+                else:
+                    print("Произошла непредвиденная ошибка")
+                    print("RequestId: {}".format(req.headers.get("RequestId", False)))
+                    print("JSON-код запроса: {}".format(self.BODY))
+                    print("JSON-код ответа сервера: \n{}".format(self.u(req.json())))
+                    break
+            except ConnectionError:
+                print("Произошла ошибка соединения с сервером API")
+                break
+            except:
+                print("Произошла непредвиденная ошибка")
+                break
 
 
 class YandexDir:
@@ -141,16 +198,11 @@ class Reports(YandexDirect):
 
     def set_body(self, field_names, selection_criteria):
         selection_criteria = {
-            "Filter": [
-                {
-                    "Field": "CampaignId",
-                    "Operator": "IN",
-                    "Values": ["419108", "419107", "419106"]
-                }
-            ]
+            # "DateFrom": "2020-01-01",
+            # "DateTo": "2021-06-17"
         }
-        field_names = ["Clicks", "Cost", "CampaignId", "CampaignName", 'AdGroupName', 'AdGroupId', 'AdId', 'Criteria',
-                       'CriteriaId']
+        field_names = ["Clicks", "Cost", 'Ctr', 'Conversions', 'Impressions', "CampaignId", "CampaignName", 'AdGroupName', 'AdGroupId', 'AdId', 'Criteria',
+                       'CriteriaId', 'Date']
         self.FIELD_NAMES = field_names
         self.SELECTION_CRITERIA = selection_criteria
 
@@ -160,9 +212,10 @@ class Reports(YandexDirect):
             'params': {
                 'SelectionCriteria': self.SELECTION_CRITERIA,
                 'FieldNames': self.FIELD_NAMES,
-                "ReportName": "test",
+                "Page": {'Limit': 1},
+                "ReportName": "test5-{}".format(datetime.now()),
                 "ReportType": "CUSTOM_REPORT",
-                "DateRangeType": "LAST_5_DAYS",
+                "DateRangeType": "THIS_WEEK_MON_TODAY",
                 "Format": "TSV",
                 "IncludeVAT": "YES",
                 "IncludeDiscount": "YES"
@@ -171,8 +224,11 @@ class Reports(YandexDirect):
         self.BODY = body
 
     def get_result(self):
-        print(self.RESULT.text)
+        if not self.RESULT:
+            return False
+
         df = pd.read_csv(StringIO(self.RESULT.text), header=1, sep='\t')
+        print(df)
         return df
 
     def write_excel(self):

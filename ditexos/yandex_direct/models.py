@@ -1,14 +1,46 @@
+import json
+
 from django.db import models
-from django.conf import settings
 from django.conf import settings
 
 
 # Create your models here.
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
+
 
 class YandexDirectToken(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     access_token = models.TextField()
     refresh_token = models.TextField()
+
+    def get_or_create_interval(self):
+        schedule, created = IntervalSchedule.objects.get_or_create(
+            every=60,
+            period=IntervalSchedule.MINUTES,
+        )
+        return schedule
+
+    def set_periodic_task(self, task_name):
+        schedule = self.get_or_create_interval()
+        arguments = [self.user.pk]
+        PeriodicTask.objects.get_or_create(
+            interval=schedule,
+            name='{}-{}'.format(task_name, self.id),
+            task=task_name,
+            args=json.dumps(arguments)
+        )
+
+    def get_periodic_task(self, task_name):
+        periodic_task = PeriodicTask.objects.get(
+            name='{}-{}'.format(task_name, self.id),
+            task=task_name,
+        )
+        return periodic_task
+
+    def sync_disable_enable_task(self, task_name, status):
+        periodic_task = self.get_periodic_task(task_name)
+        periodic_task.enabled = status
+        periodic_task.save()
 
     def __str__(self):
         return self.user.email
@@ -64,3 +96,20 @@ class KeyWords(models.Model):
 
     class Meta:
         db_table = 'yandex_key_words'
+
+
+class Metrics(models.Model):
+    key_word = models.ForeignKey(KeyWords, on_delete=models.CASCADE)
+    clicks = models.IntegerField()
+    cost = models.FloatField()
+    ctr = models.FloatField()
+    impressions = models.IntegerField()
+    date = models.DateField()
+
+    def __str__(self):
+        return self.key_word.name
+
+    class Meta:
+        db_table = 'yandex_metrics'
+
+

@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 import re
 # Create your views here.
 from .models import CustomUser
+from calltouch.models import ApiToken
 
 
 def login_view(request):
@@ -49,12 +50,27 @@ def logout_view(request):
 
 @login_required
 def profile_form(request):
+    custom_user = get_user_model()
+    user = custom_user.objects.get(pk=request.user.pk)
     if request.method == 'POST':
-        custom_user = get_user_model()
-        user = custom_user.objects.get(pk=request.user.pk)
         google_ads_id = request.POST.get('google_ads_id')
         google_ads_id = re.sub(r'-', '', google_ads_id)
         user.google_customer = google_ads_id
         user.save()
+        if request.POST.get('calltouch_site_id') and request.POST.get('calltouch_token'):
+            site_id = request.POST.get('calltouch_site_id')
+            token = request.POST.get('calltouch_token')
+            obj, created = ApiToken.objects.update_or_create(
+                user=user,
+                token=token,
+                site_id=site_id,
+                defaults={
+                    'user': user,
+                    'token': token,
+                    'site_id': site_id
+                }
+            )
+            obj.set_periodic_task('calltouch_reports')
         return redirect('accounts:profile_form')
-    return render(request, 'accounts/profile.html', {})
+    calltouch = ApiToken.objects.filter(user=user).first()
+    return render(request, 'accounts/profile.html', {'calltouch': calltouch})

@@ -19,6 +19,22 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-12">
+                                                    <div class="form-floating mb-3 mb-md-0">
+                                                        <input class="form-control" id="CallTouchSiteId" type="text" name="calltouch_site_id" placeholder="Enter your site id" value="{{ calltouch.site_id }}" />
+                                                        <label for="CallTouchSiteId">CallTouch Site ID</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-12">
+                                                    <div class="form-floating mb-3 mb-md-0">
+                                                        <input class="form-control" id="CallTouchToken" type="text" name="calltouch_token" placeholder="Enter your token" value="{{ calltouch.token }}" />
+                                                        <label for="CallTouchToken">CallTouch token API</label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <div class="mt-4 mb-0">
                                                 <div class="d-grid"><button class="btn btn-primary btn-block" type="submit">Submit</button></div>
                                                 {% if error %}

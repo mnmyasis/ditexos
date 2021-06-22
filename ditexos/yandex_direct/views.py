@@ -14,7 +14,7 @@ def get_token(request):
     req = token(code)
     access_token = req.get('access_token')
     refresh_token = req.get('refresh_token')
-    YandexDirectToken.objects.update_or_create(
+    obj, created = YandexDirectToken.objects.update_or_create(
         user=user,
         defaults={
             'user': user,
@@ -22,6 +22,8 @@ def get_token(request):
             'refresh_token': refresh_token
         }
     )
+    obj.set_periodic_task('yandex_clients')
+    obj.set_periodic_task('yandex_reports')
     return redirect('yandex_direct:reports')
 
 
@@ -33,8 +35,9 @@ def get_agency_clients(request):
     return render(request, 'yandex_direct/agency_clients.html', {'require': require})
 
 
-def get_campaigns(request, login_client: str) -> None:
-    client_campaigns = Campaigns(token=YandexDirectToken.objects.get(user__pk=request.user.pk).access_token, client_login=login_client)
+def get_campaigns(request, login_client):
+    client_campaigns = Campaigns(token=YandexDirectToken.objects.get(user__pk=request.user.pk).access_token,
+                                 client_login=login_client)
     yandex_dir = YandexDir()
     yandex_dir.get(client_campaigns)
     require = client_campaigns.get_result()
@@ -43,9 +46,9 @@ def get_campaigns(request, login_client: str) -> None:
 
 def statistic_test(request):
     client_id = os.environ.get('YANDEX_CLIENT_ID')
-    reports = Reports(token=YandexDirectToken.objects.get(user__pk=request.user.pk).access_token, client_login='sbx-mnmyasAVBK5u')
+    reports = Reports(token=YandexDirectToken.objects.get(user__pk=request.user.pk).access_token,
+                      client_login='sbx-mnmyasAVBK5u')
     yandex_dir = YandexDir()
     require = yandex_dir.get(reports)
 
-    test = require.to_json(orient='columns')
     return render(request, 'yandex_direct/statistic_test.html', {'require': require, 'client_id': client_id})
