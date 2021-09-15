@@ -12,7 +12,7 @@ def clients(user_id=1):
     ag_clients = AgencyClients(token=access_token)
     director = YandexDir()
     director.get(ag_clients)
-    res, status = ag_clients.get_result()
+    res = ag_clients.get_result()
     df = pd.DataFrame(res.get('result').get('Clients'))
     for client in df.iloc:
         Clients.objects.update_or_create(
