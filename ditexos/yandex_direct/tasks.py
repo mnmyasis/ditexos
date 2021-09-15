@@ -12,7 +12,7 @@ def clients(user_id=1):
     ag_clients = AgencyClients(token=access_token)
     director = YandexDir()
     director.get(ag_clients)
-    res = ag_clients.get_result()
+    res, status = ag_clients.get_result()
     df = pd.DataFrame(res.get('result').get('Clients'))
     for client in df.iloc:
         Clients.objects.update_or_create(
@@ -37,8 +37,9 @@ def reports(user_id=1):
         director.get(report)
         result, status = report.get_result()
         if status is False:
-            if result.error_code == 8800:
+            if result['error']['error_code'] == '8800':
                 client.delete()
+                print(client, 'delete')
                 continue
         for rep in result.iloc:
             obj_campaign, created = Campaigns.objects.update_or_create(
