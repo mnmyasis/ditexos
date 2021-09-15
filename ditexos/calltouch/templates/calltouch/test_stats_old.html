@@ -1,0 +1,114 @@
+{% extends 'index.html' %}
+{% block content %}
+          <div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                        <h1 class="mt-4">Tables</h1>
+                        <ol class="breadcrumb mb-4">
+                            <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Tables</li>
+                        </ol>
+
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-table me-1"></i>
+                                CallTouch
+                            </div>
+                            <div class="card-body">
+                                <table id="datatablesSimple">
+                                    <thead>
+                                        <tr>
+                                          {% for line in require.columns.tolist %}
+                                            <th scope="col">{{ line }}</th>
+                                          {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                          {% for line in require.columns.tolist %}
+                                            <th scope="col">{{ line }}</th>
+                                          {% endfor %}
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>
+                                    {% for line in require.iloc %}
+                                        <tr>
+                                          <th scope="row">{{ line.callId }}</th>
+                                          <td>{{ line.callphase }}</td>
+                                          <td>{{ line.attribution }}</td>
+                                          <td>{{ line.callTags }}</td>
+                                          <td>{{ line.date }}</td>
+                                          <td>{{ line.duration }}</td>
+                                          <td>{{ line.callerNumber }}</td>
+                                          <td>{{ line.redirectNumber }}</td>
+                                          <td>{{ line.phoneNumber }}</td>
+                                          <td>{{ line.manager }}</td>
+                                          <td>{{ line.successful }}</td>
+                                          <td>{{ line.uniqueCall }}</td>
+                                          <td>{{ line.targetCall }}</td>
+                                          <td>{{ line.uniqTargetCall }}</td>
+                                          <td>{{ line.callbackCall }}</td>
+                                          <td>{{ line.city }}</td>
+                                          <td>{{ line.source }}</td>
+                                          <td>{{ line.medium }}</td>
+                                          <td>{{ line.keyword }}</td>
+                                          <td>{{ line.url }}</td>
+                                          <td>{{ line.callUrl }}</td>
+                                          <td>{{ line.ref }}</td>
+                                          <td>{{ line.hostname }}</td>
+                                          <td>{{ line.utmSource }}</td>
+                                          <td>{{ line.utmMedium }}</td>
+                                          <td>{{ line.utmCampaign }}</td>
+                                          <td>{{ line.utmContent }}</td>
+                                          <td>{{ line.utmTerm }}</td>
+                                          <td>{{ line.sessionId }}</td>
+                                          <td>{{ line.ctCallerId }}</td>
+                                          <td>{{ line.clientId }}</td>
+                                          <td>{{ line.yaClientId }}</td>
+                                          <td>{{ line.sipCallId }}</td>
+                                          <td>{{ line.userAgent }}</td>
+                                          <td>{{ line.ip }}</td>
+                                          <td>{{ line.waitingConnect }}</td>
+                                          <td>{{ line.callReferenceId }}</td>
+                                          <td>{{ line.mapVisits }}</td>
+                                          <td>{{ line.attrs }}</td>
+                                          <td>{{ line.comments }}</td>
+                                          <td>{{ line.phrases }}</td>
+                                          <td>{{ line.additionalTags }}</td>
+                                          <td>{{ line.callClientUniqueId }}</td>
+                                          <td>{{ line.device }}</td>
+                                          <td>{{ line.os }}</td>
+                                          <td>{{ line.browser }}</td>
+                                          <td>{{ line.timestamp }}</td>
+                                          <td>{{ line.sessionDate }}</td>
+                                          <td>{{ line.orders }}</td>
+                                          <td>{{ line.order }}</td>
+                                          <td>{{ line.yandexDirect }}</td>
+                                          <td>{{ line.googleAdWords }}</td>
+                                          <td>{{ line.siteId }}</td>
+                                          <td>{{ line.siteName }}</td>
+                                          <td>{{ line.callbackInfo }}</td>
+                                          <td>{{ line.ctClientId }}</td>
+                                          <td>{{ line.dcm }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                <footer class="py-4 bg-light mt-auto">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex align-items-center justify-content-between small">
+                            <div class="text-muted">Copyright &copy; Ditexos.ru 2021</div>
+                            <div>
+                                <a href="#">Privacy Policy</a>
+                                &middot;
+                                <a href="#">Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+{% endblock %}

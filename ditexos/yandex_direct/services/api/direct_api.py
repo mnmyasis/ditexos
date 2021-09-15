@@ -35,6 +35,7 @@ class YandexDirect:
 
     API_URL = ''
     RESULT = ''
+    ERROR = ''
 
     def set_api_url(self, url):
         if not url:
@@ -112,6 +113,7 @@ class YandexDirect:
                     print("При формировании отчета произошла ошибка. Пожалуйста, попробуйте повторить запрос позднее.")
                     print("RequestId: {}".format(req.headers.get("RequestId", False)))
                     print("JSON-код ответа сервера: \n{}".format(self.u(req.json())))
+                    self.ERROR = self.u(req.json())
                     break
                 elif req.status_code == 502:
                     print("Время формирования отчета превысило серверное ограничение.")
@@ -120,12 +122,14 @@ class YandexDirect:
                     print("JSON-код запроса: {}".format(self.BODY))
                     print("RequestId: {}".format(req.headers.get("RequestId", False)))
                     print("JSON-код ответа сервера: \n{}".format(self.u(req.json())))
+                    self.ERROR = self.u(req.json())
                     break
                 else:
                     print("Произошла непредвиденная ошибка")
                     print("RequestId: {}".format(req.headers.get("RequestId", False)))
                     print("JSON-код запроса: {}".format(self.BODY))
                     print("JSON-код ответа сервера: \n{}".format(self.u(req.json())))
+                    self.ERROR = self.u(req.json())
                     break
             except ConnectionError:
                 print("Произошла ошибка соединения с сервером API")
@@ -225,11 +229,10 @@ class Reports(YandexDirect):
 
     def get_result(self):
         if not self.RESULT:
-            return False
-
+            return self.ERROR, False
         df = pd.read_csv(StringIO(self.RESULT.text), header=1, sep='\t')
         print(df)
-        return df
+        return df, True
 
     def write_excel(self):
         df = pd.read_csv(StringIO(self.RESULT.text), header=1, sep='\t')

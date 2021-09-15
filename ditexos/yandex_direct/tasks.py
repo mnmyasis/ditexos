@@ -35,7 +35,11 @@ def reports(user_id=1):
         report = Reports(token=ya_dir_tok.access_token, client_login=client.name)
         director = YandexDir()
         director.get(report)
-        result = report.get_result()
+        result, status = report.get_result()
+        if status is False:
+            if result.error_code == 8800:
+                client.delete()
+                continue
         for rep in result.iloc:
             obj_campaign, created = Campaigns.objects.update_or_create(
                 client=client,

@@ -11,3 +11,15 @@ services:
       RABBITMQ_DEFAULT_VHOST: "/"
     ports:
       - 5675:5672
+  db:
+    build:
+      context: ./docker/db
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 12345
+    volumes:
+      - ./docker/databases:/var/lib/postgresql/data
+      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+    - 5432:5432

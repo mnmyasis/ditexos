@@ -3,7 +3,7 @@
 <div id="layoutSidenav_content">
                 <main>
                     <div class="container-fluid px-4">
-                         <a href="https://oauth.yandex.ru/authorize?response_type=code&client_id={{ client_id }}" class="btn btn-warning mt-4 mb-2">Yandex Direct</a>
+                         <a href="https://oauth.yandex.ru/authorize?response_type=code&client_id={{ client_id }}&state={{ request.user.email }}" class="btn btn-warning mt-4 mb-2">Yandex Direct</a>
 
                         <ol class="breadcrumb mb-4">
                             <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>

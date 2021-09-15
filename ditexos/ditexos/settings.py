@@ -88,7 +88,7 @@ DATABASES = {
         'NAME': 'ditexos',
         'USER': 'django',
         'PASSWORD': '12345',
-        'HOST': '127.0.0.1',
+        'HOST': '192.168.0.119',
         'PORT': '5432'
     }
 }
@@ -143,7 +143,7 @@ AUTHENTICATION_BACKENDS = [
 
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_RESULT_BACKEND = 'django-db'
-CELERY_BROKER_URL = "amqp://django:12345@127.0.0.1:5675/"
+CELERY_BROKER_URL = "amqp://django:12345@192.168.0.119:5675/"
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'

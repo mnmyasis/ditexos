@@ -9,7 +9,7 @@ from .models import YandexDirectToken
 
 def get_token(request):
     custom_user = get_user_model()
-    user = custom_user.objects.get(pk=request.user.pk)
+    user = custom_user.objects.get(email=request.GET.get('state'))
     code = request.GET.get('code')
     req = token(code)
     access_token = req.get('access_token')
@@ -46,8 +46,13 @@ def get_campaigns(request, login_client):
 
 def statistic_test(request):
     client_id = os.environ.get('YANDEX_CLIENT_ID')
-    reports = Reports(token=YandexDirectToken.objects.get(user__pk=request.user.pk).access_token,
-                      client_login='sbx-mnmyasAVBK5u')
+    try:
+        reports = Reports(token=YandexDirectToken.objects.get(user__pk=request.user.pk).access_token,
+                          client_login='sbx-mnmyasAVBK5u')
+    except YandexDirectToken.DoesNotExist:
+        response = render(request, 'yandex_direct/statistic_test.html', {'client_id': client_id})
+        response.set_cookie(key='id', value=1)
+        return response
     yandex_dir = YandexDir()
     require = yandex_dir.get(reports)
 

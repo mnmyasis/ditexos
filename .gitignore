@@ -48,4 +48,7 @@ Thumbs.db
 *.mov
 *.wmv
 client_secret.json
+venv
+databases
+linux_note_backup
 
