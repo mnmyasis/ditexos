@@ -207,9 +207,10 @@ class Reports(YandexDirect):
         self.fields_name = []
 
     def set_body(self, field_names, selection_criteria):
+        d = datetime.now()
         selection_criteria = {
-            # "DateFrom": "2020-01-01",
-            # "DateTo": "2021-06-17"
+             "DateFrom": "{}-01-01".format(d.year),
+             "DateTo": d.strftime('%Y-%m-%d')
         }
         field_names = ["Clicks", "Cost", 'Ctr', 'Conversions', 'Impressions', "CampaignId", "CampaignName", 'AdGroupName', 'AdGroupId', 'AdId', 'Criteria',
                        'CriteriaId', 'Date']
@@ -222,7 +223,7 @@ class Reports(YandexDirect):
             'params': {
                 'SelectionCriteria': self.SELECTION_CRITERIA,
                 'FieldNames': self.FIELD_NAMES,
-                "Page": {'Limit': 1},
+                "Page": {'Limit': 1000000},
                 "ReportName": "test5-{}".format(datetime.now()),
                 "ReportType": "CUSTOM_REPORT",
                 "DateRangeType": "THIS_WEEK_MON_TODAY",
