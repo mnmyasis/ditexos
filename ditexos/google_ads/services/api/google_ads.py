@@ -35,6 +35,21 @@ def report_default(client, customer_id):
                 AND segments.year > 2018
                 AND segments.year < {}
             """.format(customer_id, datetime.now().year)
+    query2 = """
+            SELECT campaign.name,
+                campaign.name,
+                campaign.status,
+                metrics.clicks,
+                metrics.cost_micros,
+                metrics.impressions,
+                metrics.average_cost,
+                segments.date
+              FROM campaign
+              WHERE 
+                customer.id = {}
+                AND segments.year > 2018
+                AND segments.year < {}
+    """.format(customer_id, datetime.now().year)
     search_request = client.get_type("SearchGoogleAdsStreamRequest")
     search_request.customer_id = customer_id
     search_request.query = query
@@ -123,17 +138,3 @@ def clients(client, customer_id):
         })
     return result
 
-
-if __name__ == '__main__':
-    developer_token = os.environ.get('GOOGLE_DEVELOPER_TOKEN')
-    client_id = os.environ.get('GOOGLE_CLIENT_ID')
-    client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')
-    credentials = {
-        "developer_token": developer_token,
-        "refresh_token": "1//0cpdyqt1j7wY-CgYIARAAGAwSNwF-L9IrRUpFayo7lDGL6wq9GkTmW6qlKsvMycOtRB2DCTVUFEhPZen22C1WCGdEvPhcZpRv6PQ",
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "login_customer_id": "7406582103"
-    }
-    googleads_client = GoogleAdsClient.load_from_dict(credentials)
-    report_default(googleads_client, '6597569511')

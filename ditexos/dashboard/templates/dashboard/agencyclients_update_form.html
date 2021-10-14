@@ -1,0 +1,21 @@
+{% extends 'index.html' %}
+{% block content %}
+<div id="layoutSidenav_content">
+    <main>
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="card shadow-lg border-0 rounded-lg mt-5">
+                    <div class="card-header"><h3 class="text-center font-weight-light my-4">
+                        Для заполнения данных коллтрекинга {{ object.get_call_tracker_type_display }} нажмите далее
+                    </h3></div>
+                    <div class="card-body">
+                        {% if object.call_tracker_type == 'cl' %}
+                            <div class="d-grid"><a class="btn btn-primary btn-block" href="{% url 'calltouch:create' agency_client_id=object.pk %}">Далее</a></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

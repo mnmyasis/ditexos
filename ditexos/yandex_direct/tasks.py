@@ -13,6 +13,7 @@ def clients(user_id=1):
     director = YandexDir()
     director.get(ag_clients)
     res = ag_clients.get_result()
+    print(res)
     df = pd.DataFrame(res.get('result').get('Clients'))
     for client in df.iloc:
         Clients.objects.update_or_create(
@@ -66,7 +67,7 @@ def reports(user_id=1):
                 defaults={
                     'ad_group': obj_ad_group,
                     'name': rep.Criteria,
-                    'key_word_id':rep.CriteriaId
+                    'key_word_id': rep.CriteriaId
                 }
             )
             Metrics.objects.update_or_create(
@@ -81,4 +82,59 @@ def reports(user_id=1):
                     'date': rep.Date
                 }
             )
+    return 'Success update yandex metrics for user {}'.format(ya_dir_tok.user.email)
+
+
+@shared_task(name='get_yandex_reports')
+def get_reports(user_id=1, yandex_client_id=None):
+    ya_dir_tok = YandexDirectToken.objects.get(user__pk=user_id)
+    client = Clients.objects.get(client_id=yandex_client_id)
+    report = Reports(token=ya_dir_tok.access_token, client_login=client.name)
+    director = YandexDir()
+    director.get(report)
+    result, status = report.get_result()
+    if status is False:
+        if result['error']['error_code'] == '8800':
+            client.delete()
+            return 'User delete'
+    for rep in result.iloc:
+        obj_campaign, created = Campaigns.objects.update_or_create(
+            client=client,
+            name=rep.CampaignName,
+            defaults={
+                'client': client,
+                'name': rep.CampaignName,
+                'campaign_id': rep.CampaignId
+            }
+        )
+        obj_ad_group, created = AdGroups.objects.update_or_create(
+            campaign=obj_campaign,
+            name=rep.AdGroupName,
+            defaults={
+                'campaign': obj_campaign,
+                'name': rep.AdGroupName,
+                'ad_group_id': rep.AdGroupId,
+            }
+        )
+        obj_key_word, created = KeyWords.objects.update_or_create(
+            ad_group=obj_ad_group,
+            name=rep.Criteria,
+            defaults={
+                'ad_group': obj_ad_group,
+                'name': rep.Criteria,
+                'key_word_id': rep.CriteriaId
+            }
+        )
+        Metrics.objects.update_or_create(
+            key_word=obj_key_word,
+            date=rep.Date,
+            defaults={
+                'key_word': obj_key_word,
+                'clicks': rep.Clicks,
+                'cost': rep.Cost,
+                'ctr': rep.Ctr,
+                'impressions': rep.Impressions,
+                'date': rep.Date
+            }
+        )
     return 'Success update yandex metrics for user {}'.format(ya_dir_tok.user.email)

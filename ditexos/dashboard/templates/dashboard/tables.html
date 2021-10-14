@@ -12,48 +12,84 @@
                         <div class="card mb-4">
                             <div class="card-header">
                                 <i class="fas fa-table me-1"></i>
-                                Сквозная аналитика
+                                Ключевые слова
                             </div>
                             <div class="card-body">
-                                <table id="datatablesSimple">
+                                <table class="datatable">
                                     <thead>
                                         <tr>
-                                            <th>Clicks</th>
                                             <th>CampaignName</th>
-                                            <th>Cost</th>
                                             <th>AdGroupName</th>
-                                            <th>utm_source</th>
-                                            <th>utm_campaign</th>
-                                            <th>caller</th>
+                                            <th>KeyWords</th>
+                                            <th>clicks</th>
+                                            <th>cost</th>
+                                            <th>count</th>
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr>
-                                            <th>Clicks</th>
                                             <th>CampaignName</th>
-                                            <th>Cost</th>
                                             <th>AdGroupName</th>
-                                            <th>utm_source</th>
-                                            <th>utm_campaign</th>
-                                            <th>caller</th>
+                                            <th>KeyWords</th>
+                                            <th>clicks</th>
+                                            <th>cost</th>
+                                            <th>count</th>
                                         </tr>
                                     </tfoot>
                                     <tbody>
-                                    {% for line in require %}
+                                    {% for line in key_words %}
                                         <tr>
-                                            <td>{{ line.Clicks }}</td>
-                                            <td>{{ line.CampaignName }}</td>
-                                            <td>{{ line.Cost }}</td>
-                                            <td>{{ line.AdGroupName }}</td>
-                                            <td>{{ line.utm_source }}</td>
-                                            <td>{{ line.utm_campaign }}</td>
-                                            <td>{{ line.caller }}</td>
+                                            <td>{{ line.ad_group.campaign.name }}</td>
+                                            <td>{{ line.ad_group.name }}</td>
+                                            <td>{{ line.name }}</td>
+                                            <td>{{ line.clicks }}</td>
+                                            <td>{{ line.cost }}</td>
+                                            <td>{{ line.count }}</td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>
                                 </table>
+
                             </div>
                         </div>
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <i class="fas fa-table me-1"></i>
+                                Кампании
+                            </div>
+                            <div class="card-body">
+                                <table class="datatable">
+                                    <thead>
+                                        <tr>
+                                            <th>CampaignName</th>
+                                            <th>clicks</th>
+                                            <th>cost</th>
+                                            <th>count</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                            <th>CampaignName</th>
+                                            <th>clicks</th>
+                                            <th>cost</th>
+                                            <th>count</th>
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>
+                                    {% for line in campaigns %}
+                                        <tr>
+                                            <td>{{ line.name }}</td>
+                                            <td>{{ line.clicks }}</td>
+                                            <td>{{ line.cost }}</td>
+                                            <td>{{ line.count }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+
+                            </div>
+                        </div>
+
                     </div>
                 </main>
                 <footer class="py-4 bg-light mt-auto">
@@ -69,4 +105,5 @@
                     </div>
                 </footer>
             </div>
+
 {% endblock %}

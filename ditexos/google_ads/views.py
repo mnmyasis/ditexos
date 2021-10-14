@@ -19,7 +19,7 @@ def test_ads(request):
             }
         )
         obj.set_periodic_task('google_clients')
-        obj.set_periodic_task('google_reports')
+        #obj.set_periodic_task('google_reports')
         return redirect('google_ads:test_ads')
     url, state = create_ads_client.get_auth_url()
     return render(request, 'google_ads/page.html', {'url': url})

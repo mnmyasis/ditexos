@@ -1,54 +1,110 @@
+from decimal import Decimal
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
-from django.db.models import Avg, Count
+from django.conf import settings
+from django.urls import reverse_lazy
+from django.db.models import Avg, Count, Sum, ExpressionWrapper, FloatField, F, DecimalField, IntegerField
 import yandex_direct
 import google_ads
 import calltouch
-
-
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
+import json
 # Create your models here.
+from django.db.models.functions import Cast
+
+
+class AgencyClients(models.Model):
+
+    def get_absolute_url(self):
+        return '{}'.format(reverse_lazy('dashboard:client',  kwargs={'client_id': self.pk}))
+
+    TRACKERS = (
+        ('cl', 'CallTouch'),
+    )
+    call_tracker_type = models.CharField(max_length=10, choices=TRACKERS, verbose_name='Тип коллтрекера')
+    call_tracker = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='call_tracker_content_type'
+                                     , blank=True, null=True)
+    call_tracker_object_id = models.PositiveIntegerField(blank=True, null=True)
+    call_tracker_object = GenericForeignKey(ct_field='call_tracker', fk_field='call_tracker_object_id')
+    CRMS = (
+        ('amo', 'AmoCrm'),
+        ('exc', 'Excel'),
+    )
+    crm_type = models.CharField(max_length=10, choices=CRMS, verbose_name='Тип crm системы', blank=True,
+                                null=True)
+    crm = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='crm_content_type', blank=True,
+                            null=True)
+    crm_object_id = models.PositiveIntegerField(blank=True, null=True)
+    crm_object = GenericForeignKey(ct_field='crm', fk_field='crm_id')
+    name = models.CharField(max_length=100, verbose_name='Название клиента')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    yandex_client = models.ForeignKey(yandex_direct.models.Clients, on_delete=models.CASCADE,
+                                      verbose_name='Логин клиента в yandex direct')
+    google_client = models.ForeignKey(google_ads.models.Clients, on_delete=models.CASCADE,
+                                      verbose_name='Логин клиента в google ads')
+
+    def get_or_create_interval(self):
+        schedule, created = IntervalSchedule.objects.get_or_create(
+            every=60,
+            period=IntervalSchedule.MINUTES,
+        )
+        return schedule
+
+    def set_periodic_task(self, task_name, client_id):
+        schedule = self.get_or_create_interval()
+        arguments = [self.user.pk, client_id]
+        PeriodicTask.objects.get_or_create(
+            interval=schedule,
+            name='{}-{}'.format(task_name, self.id),
+            task=task_name,
+            args=json.dumps(arguments)
+        )
+
+    def save(self, *args, **kwargs):
+        print(self.call_tracker_object)
+        self.set_periodic_task('get_google_reports-{}'.format(self.name), self.google_client.google_id)
+        self.set_periodic_task('get_yandex_reports-{}'.format(self.name), self.yandex_client.client_id)
+        super().save(args, kwargs)
+
+    class Meta:
+        db_table = 'agency_clients'
+
 
 class YandexClientsQuerySet(models.QuerySet):
-    def __custom(self):
-        result = []
-        clients = self.prefetch_related(
-            'campaigns_set',
-            'campaigns_set__adgroups_set',
-            'campaigns_set__adgroups_set__keywords_set',
-            'campaigns_set__adgroups_set__keywords_set__metrics_set',
-        ).all()
-        for client in clients:
-            for campaign in client.campaigns_set.all():
-                for ad_group in campaign.adgroups_set.all():
-                    for keyword in ad_group.keywords_set.all():
-                        for metric in keyword.metrics_set.all():
-                            print(metric.cost)
-
-    def avg_cost(self):
-        ss = self.prefetch_related(
-            'campaigns_set',
-            'campaigns_set__adgroups_set',
-            'campaigns_set__adgroups_set__keywords_set',
-            'campaigns_set__adgroups_set__keywords_set__metrics_set',
-        ).all().annotate(avg_cost=Avg('campaigns__adgroups__keywords__metrics__cost'))
-        return ss
-
-
-class YandexClientsManager(models.Manager):
-    def get_queryset(self):
-        return YandexClientsQuerySet(self.model, using=self._db)
-
-    def avg_cost(self):
-        return self.get_queryset().avg_cost()
+    pass
 
 
 class YandexClients(yandex_direct.models.Clients):
-    objects = YandexClientsManager()
+    class Meta:
+        proxy = True
+
+
+class GoogleCampaignsQuerySet(models.QuerySet):
+    def __cost(self, x):
+        x.cost = x.cost / 1000000
+        return x
+
+    def get_cost(self):
+        cost = self.annotate(
+            cost=Sum('metric__cost_micros'),
+            clicks=Sum('metric__clicks'),
+            count=Count('metric')
+        )
+        cost = [self.__cost(x) for x in cost]
+        return cost
+
+
+class GoogleCampaigns(google_ads.models.Campaigns):
+    objects = GoogleCampaignsQuerySet.as_manager()
 
     class Meta:
         proxy = True
 
 
-class GoogleClients(google_ads.models.Clients):
+class GoogleKeyWords(google_ads.models.KeyWords):
+    objects = GoogleCampaignsQuerySet.as_manager()
+
     class Meta:
         proxy = True
 

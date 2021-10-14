@@ -23,7 +23,7 @@ def get_token(request):
         }
     )
     obj.set_periodic_task('yandex_clients')
-    obj.set_periodic_task('yandex_reports')
+    #obj.set_periodic_task('yandex_reports')
     return redirect('yandex_direct:reports')
 
 

@@ -5,10 +5,14 @@ from django.conf import settings
 
 
 # Create your models here.
+from django.urls import reverse_lazy
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 
 class ApiToken(models.Model):
+    def get_absolute_url(self):
+        return '{}'.format(reverse_lazy('calltouch:client', kwargs={'client_id': self.pk}))
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     token = models.TextField()
     site_id = models.TextField()

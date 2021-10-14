@@ -23,7 +23,8 @@ def token(code):
 
 
 class YandexDirect:
-    YANDEX_API_URL = 'https://api-sandbox.direct.yandex.com/json/v5/'
+    YANDEX_API_URL_SANDBOX = 'https://api-sandbox.direct.yandex.com/json/v5/'
+    YANDEX_API_URL = 'https://api.direct.yandex.com/json/v5/'
     HEADERS = {}
     CLIENT_LOGIN = ''
     TOKEN = ''
@@ -96,7 +97,11 @@ class YandexDirect:
                     print("RequestId: {}".format(req.headers.get("RequestId", False)))
                     print("JSON-код запроса: {}".format(self.BODY))
                     print("JSON-код ответа сервера: \n{}".format(self.u(req.json())))
-                    return
+                    if self.u(req.json())['error']['error_code'] == 52:
+                        """'Сервер авторизации временно недоступен"""
+                        sleep(360)
+                    else:
+                        return
                 elif req.status_code == 201:
                     print("Отчет для аккаунта {} успешно поставлен в очередь в режиме offline")
                     retry_in = int(req.headers.get("retryIn", 60))
@@ -143,6 +148,7 @@ class YandexDir:
 
     def get(self, yandex_build):
         yandex_build.set_api_url(yandex_build.api_url)
+        print(yandex_build.client_login)
         yandex_build.set_headers(token=yandex_build.token, client_login=yandex_build.client_login)
         yandex_build.set_body(field_names=yandex_build.fields_name, selection_criteria=yandex_build.selection_criteria)
         yandex_build.get_body()
