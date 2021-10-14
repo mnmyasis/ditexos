@@ -56,15 +56,14 @@ class AgencyClients(models.Model):
         arguments = [self.user.pk, client_id]
         PeriodicTask.objects.get_or_create(
             interval=schedule,
-            name='{}-{}'.format(task_name, self.id),
+            name='{}-{}'.format(task_name, client_id),
             task=task_name,
             args=json.dumps(arguments)
         )
 
     def save(self, *args, **kwargs):
-        print(self.call_tracker_object)
-        self.set_periodic_task('get_google_reports-{}'.format(self.name), self.google_client.google_id)
-        self.set_periodic_task('get_yandex_reports-{}'.format(self.name), self.yandex_client.client_id)
+        self.set_periodic_task('get_google_reports', self.google_client.google_id)
+        self.set_periodic_task('get_yandex_reports', self.yandex_client.client_id)
         super().save(args, kwargs)
 
     class Meta:

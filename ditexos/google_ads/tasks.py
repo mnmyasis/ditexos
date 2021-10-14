@@ -143,7 +143,8 @@ def get_reports(user_id=1, client_google_id=None):
         "login_customer_id": user.google_customer
     }
     google_ads_client = GoogleAdsClient.load_from_dict(credentials)
-    df = google_ads.report_default(google_ads_client, client_google_id)
+    customer = Clients.objects.get(google_id=client_google_id)
+    df = google_ads.report_default(google_ads_client, customer.google_id)
     print(df)
     """Получение кампаний без дупликатов"""
     campaigns = df.drop_duplicates(
@@ -152,10 +153,10 @@ def get_reports(user_id=1, client_google_id=None):
     for campaign in campaigns.iloc:
         """Запись"""
         obj_campaign, created = Campaigns.objects.update_or_create(
-            client=client_google_id,
+            client=customer,
             name=campaign.campaign_name,
             defaults={
-                'client': client_google_id,
+                'client': customer,
                 'name': campaign.campaign_name,
                 'campaign_id': campaign.campaign_id
             }
