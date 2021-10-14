@@ -226,7 +226,7 @@ class Reports(YandexDirect):
                 "Page": {'Limit': 1000000},
                 "ReportName": "test5-{}".format(datetime.now()),
                 "ReportType": "CUSTOM_REPORT",
-                "DateRangeType": "THIS_WEEK_MON_TODAY",
+                "DateRangeType": "CUSTOM_DATE",
                 "Format": "TSV",
                 "IncludeVAT": "YES",
                 "IncludeDiscount": "YES"
