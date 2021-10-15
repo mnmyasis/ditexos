@@ -21,6 +21,7 @@ class AgencyClients(models.Model):
 
     TRACKERS = (
         ('cl', 'CallTouch'),
+        ('co_m', 'Comagic'),
     )
     call_tracker_type = models.CharField(max_length=10, choices=TRACKERS, verbose_name='Тип коллтрекера')
     call_tracker = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name='call_tracker_content_type'

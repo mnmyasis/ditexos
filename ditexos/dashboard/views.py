@@ -15,7 +15,6 @@ from .forms import AgencyClientsForm
 class AgencyClientsFormCreateView(CreateView):
     model = AgencyClients
     template_name = 'dashboard/agencyclients_form.html'
-    success_url = ''
     form_class = AgencyClientsForm
 
     def get_form(self, form_class=None):

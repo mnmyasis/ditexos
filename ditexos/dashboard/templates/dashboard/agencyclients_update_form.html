@@ -11,6 +11,8 @@
                     <div class="card-body">
                         {% if object.call_tracker_type == 'cl' %}
                             <div class="d-grid"><a class="btn btn-primary btn-block" href="{% url 'calltouch:create' agency_client_id=object.pk %}">Далее</a></div>
+                        {% elif object.call_tracker_type == 'co_m' %}
+                            <div class="d-grid"><a class="btn btn-primary btn-block" href="{% url 'comagic:create' agency_client_id=object.pk %}">Далее</a></div>
                         {% endif %}
                     </div>
                 </div>

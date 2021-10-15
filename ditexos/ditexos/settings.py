@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'amocrm',
     'excel',
     'dashboard',
+    'comagic'
 
 
 ]

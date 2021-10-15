@@ -26,6 +26,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('yandex/', include('yandex_direct.urls')),
     path('calltouch/', include('calltouch.urls')),
+    path('comagic/', include('comagic.urls')),
     path('google_ads/', include('google_ads.urls')),
     path('amocrm/', include('amocrm.urls')),
     path('excel/', include('excel.urls')),

@@ -38,3 +38,4 @@ def report(site_id, user_id=1):
             )
         page += 1
     return 'Success update reports for site_id {}'.format(api_token.site_id)
+
