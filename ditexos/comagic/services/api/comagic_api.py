@@ -50,7 +50,7 @@ def send(token='', hostname='', v='2.0', start_date=None, end_date=None):
     result = post(url, data)
     result = result.json()
     print(result)
-    df = pd.DataFrame(result['result']['data']) 
+    df = pd.DataFrame(result['result']['data'])
     return df
 
 

@@ -70,7 +70,7 @@ class AgencyClients(models.Model):
             interval=schedule,
             name='{}-{}'.format(name, self.pk),
             task=task_name,
-            args=json.dumps(arguments)
+            kwargs=json.dumps(arguments)
         )
         return task
 
