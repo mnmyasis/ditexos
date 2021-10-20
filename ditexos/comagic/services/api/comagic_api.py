@@ -61,7 +61,7 @@ def send(token='', hostname='', v='2.0', start_date=None, end_date=None, offset=
                     {
                         "field": "utm_source",
                         "operator": "!=",
-                        "value": 'null'
+                        "value": None
                     }
                 ],
                 "condition": "and"
