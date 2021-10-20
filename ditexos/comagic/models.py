@@ -17,7 +17,7 @@ class ApiToken(models.Model):
 
 class ComagicReport(models.Model):
     api_client = models.ForeignKey(ApiToken, on_delete=models.CASCADE)
-    contact_phone_number = models.CharField(max_length=50, verbose_name='Контактный номер')
+    contact_phone_number = models.CharField(max_length=50, blank=True, null=True, verbose_name='Контактный номер')
     gclid = models.CharField(max_length=255, blank=True, null=True, verbose_name='Google Click Identifier')
     yclid = models.CharField(max_length=255, blank=True, null=True, verbose_name='Yandex Click Identifier')
     ymclid = models.CharField(max_length=255, blank=True, null=True, verbose_name='Yandex Market Click Identifier')
