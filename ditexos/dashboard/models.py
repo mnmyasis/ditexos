@@ -76,7 +76,7 @@ class AgencyClients(models.Model):
 
     def history_report_one_off(self, task_name, arguments=dict):
         d = datetime.datetime.now()
-        start_date = (d - relativedelta(months=3)).strftime('%Y-%m-%d')
+        start_date = (d - relativedelta(months=2)).strftime('%Y-%m-%d')
         end_date = d.strftime('%Y-%m-%d')
 
         arguments.update(

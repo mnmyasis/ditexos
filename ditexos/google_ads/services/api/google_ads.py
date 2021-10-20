@@ -32,24 +32,9 @@ def report_default(client, customer_id, start_date, end_date):
             FROM keyword_view 
             WHERE
                 customer.id = {}
-                AND segments.date > {}
-                AND segments.date < {}
+                AND segments.date >= '{}'
+                AND segments.date < '{}'
             """.format(customer_id, start_date, end_date)
-    query2 = """
-            SELECT campaign.name,
-                campaign.name,
-                campaign.status,
-                metrics.clicks,
-                metrics.cost_micros,
-                metrics.impressions,
-                metrics.average_cost,
-                segments.date
-              FROM campaign
-              WHERE 
-                customer.id = {}
-                AND segments.year > 2018
-                AND segments.year < {}
-    """.format(customer_id, datetime.now().year)
     search_request = client.get_type("SearchGoogleAdsStreamRequest")
     search_request.customer_id = customer_id
     search_request.query = query
