@@ -27,7 +27,9 @@ class ComagicReport(models.Model):
     utm_medium = models.TextField(blank=True, null=True, verbose_name='Канал кампании')
     utm_term = models.TextField(blank=True, null=True, verbose_name='Ключевое слово кампании')
     utm_campaign = models.TextField(blank=True, null=True, verbose_name='Название кампании')
+    id_operation = models.BigIntegerField()
     date = models.DateField()
 
     class Meta:
         db_table = 'comagic_report'
+        ordering = ['-date']
