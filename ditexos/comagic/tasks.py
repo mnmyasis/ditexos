@@ -6,9 +6,15 @@ from .services.api import comagic_api
 
 
 @shared_task(name='comagic_reports')
-def get_report(comagic_id, v='2.0'):
-    api_token = ApiToken.objects.get(pk=comagic_id)
-    report = comagic_api.send(token=api_token.token, hostname=api_token.hostname, v=v)
+def get_report(api_token_id, v='2.0', start_date=None, end_date=None):
+    api_token = ApiToken.objects.get(pk=api_token_id)
+    report = comagic_api.send(
+        token=api_token.token,
+        hostname=api_token.hostname,
+        v=v,
+        start_date=start_date,
+        end_date=end_date
+    )
     print(report)
     for line in report.iloc:
         ComagicReport.objects.update_or_create(

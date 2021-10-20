@@ -130,7 +130,7 @@ def reports(user_id=1):
 
 
 @shared_task(name='get_google_reports')
-def get_reports(user_id=1, client_google_id=None):
+def get_reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
     custom_user = get_user_model()
     user = custom_user.objects.get(pk=user_id)
     print('started reports for user {}'.format(user.email))
@@ -144,7 +144,12 @@ def get_reports(user_id=1, client_google_id=None):
     }
     google_ads_client = GoogleAdsClient.load_from_dict(credentials)
     customer = Clients.objects.get(google_id=client_google_id)
-    df = google_ads.report_default(google_ads_client, customer.google_id)
+    df = google_ads.report_default(
+        google_ads_client,
+        customer.google_id,
+        start_date,
+        end_date
+    )
     print(df)
     """Получение кампаний без дупликатов"""
     campaigns = df.drop_duplicates(

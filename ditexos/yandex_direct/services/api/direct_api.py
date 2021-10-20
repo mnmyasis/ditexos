@@ -199,18 +199,19 @@ class AdGroups(YandexDirect):
 
 class Reports(YandexDirect):
 
-    def __init__(self, token, client_login):
+    def __init__(self, token, client_login, start_date, end_date):
         self.client_login = client_login
         self.token = token
         self.api_url = self.YANDEX_API_URL + 'reports'
         self.selection_criteria = {}
         self.fields_name = []
+        self.start_date = start_date
+        self.end_date = end_date
 
     def set_body(self, field_names, selection_criteria):
-        d = datetime.now()
         selection_criteria = {
-             "DateFrom": "{}-01-01".format(d.year),
-             "DateTo": d.strftime('%Y-%m-%d')
+             "DateFrom": self.start_date,
+             "DateTo": self.end_date
         }
         field_names = ["Clicks", "Cost", 'Ctr', 'Conversions', 'Impressions', "CampaignId", "CampaignName", 'AdGroupName', 'AdGroupId', 'AdId', 'Criteria',
                        'CriteriaId', 'Date']

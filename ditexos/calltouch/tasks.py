@@ -7,14 +7,14 @@ from .models import ApiToken, Reports
 
 
 @shared_task(name='calltouch_reports')
-def report(site_id, user_id=1):
-    api_token = ApiToken.objects.get(user__pk=user_id, site_id=site_id)
+def report(start_date, end_date, api_token_id=1):
+    api_token = ApiToken.objects.get(pk=api_token_id)
     token = api_token.token
     site_id = api_token.site_id
     page = 1
     page_total = 2
     while page <= page_total:
-        res, page_total = calltouch_api.send(token, site_id, page, 500)
+        res, page_total = calltouch_api.send(token, site_id, start_date, end_date, page, 500)
         print('{} из {}'.format(page, page_total))
         for line in res.iloc:
             line.date = datetime.strptime(line.date, "%d/%m/%Y %H:%M:%S")

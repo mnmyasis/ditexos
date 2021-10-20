@@ -86,10 +86,15 @@ def reports(user_id=1):
 
 
 @shared_task(name='get_yandex_reports')
-def get_reports(user_id=1, yandex_client_id=None):
+def get_reports(user_id=1, yandex_client_id=None, start_date=None, end_date=None):
     ya_dir_tok = YandexDirectToken.objects.get(user__pk=user_id)
     client = Clients.objects.get(client_id=yandex_client_id)
-    report = Reports(token=ya_dir_tok.access_token, client_login=client.name)
+    report = Reports(
+        token=ya_dir_tok.access_token,
+        client_login=client.name,
+        start_date=start_date,
+        end_date=end_date
+    )
     director = YandexDir()
     director.get(report)
     result, status = report.get_result()

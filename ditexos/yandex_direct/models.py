@@ -60,6 +60,7 @@ class Clients(models.Model):
 
     class Meta:
         db_table = 'yandex_clients'
+        ordering = ['name']
 
 
 class Campaigns(models.Model):

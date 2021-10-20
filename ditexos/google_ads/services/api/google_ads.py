@@ -7,7 +7,7 @@ import pandas as pd
 PAGE_SIZE = 100
 
 
-def report_default(client, customer_id):
+def report_default(client, customer_id, start_date, end_date):
     report = []
     ga_service = client.get_service("GoogleAdsService")
     query = """
@@ -32,9 +32,9 @@ def report_default(client, customer_id):
             FROM keyword_view 
             WHERE
                 customer.id = {}
-                AND segments.year > 2018
-                AND segments.year < {}
-            """.format(customer_id, datetime.now().year)
+                AND segments.date > {}
+                AND segments.date < {}
+            """.format(customer_id, start_date, end_date)
     query2 = """
             SELECT campaign.name,
                 campaign.name,

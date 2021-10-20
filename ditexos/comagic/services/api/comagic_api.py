@@ -1,9 +1,7 @@
 import random
-
 from requests import post
 import pandas as pd
-import json
-from datetime import datetime
+import json, datetime
 
 
 def test(hostname='comagic.ru', v='2.0'):
@@ -24,12 +22,10 @@ def test(hostname='comagic.ru', v='2.0'):
     print(result)
 
 
-def send(token='', hostname='',
-         v='2.0'):
-    end_date = datetime.now()
-    start_date = datetime(end_date.year, end_date.month, end_date.day - (end_date.day - 1)).strftime(
-        "%Y-%m-%d %H:%M:%S")
-    end_date = end_date.strftime("%Y-%m-%d %H:%M:%S")
+def send(token='', hostname='', v='2.0', start_date=None, end_date=None):
+    end_time = datetime.now().strftime('%H:%M:%S')
+    start_date = "{} 00:00:00".format(start_date)
+    end_date = "{} {}".format(end_date, end_time)
     data = {
         "jsonrpc": "2.0",
         "id": random.randint(23142643, 95647645734),
@@ -53,7 +49,8 @@ def send(token='', hostname='',
     url = 'https://dataapi.{}/v{}'.format(hostname, v)
     result = post(url, data)
     result = result.json()
-    df = pd.DataFrame(result['result']['data'])
+    print(result)
+    df = pd.DataFrame(result['result']['data']) 
     return df
 
 
