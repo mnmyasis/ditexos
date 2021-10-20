@@ -23,7 +23,7 @@ def test(hostname='comagic.ru', v='2.0'):
 
 
 def send(token='', hostname='', v='2.0', start_date=None, end_date=None):
-    end_time = datetime.now().strftime('%H:%M:%S')
+    end_time = datetime.datetime.now().strftime('%H:%M:%S')
     start_date = "{} 00:00:00".format(start_date)
     end_date = "{} {}".format(end_date, end_time)
     data = {

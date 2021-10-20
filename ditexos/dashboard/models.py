@@ -10,7 +10,7 @@ import google_ads
 import calltouch
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 import json, datetime
-
+from dateutil.relativedelta import relativedelta
 # Create your models here.
 
 
@@ -76,7 +76,7 @@ class AgencyClients(models.Model):
 
     def history_report_one_off(self, task_name, arguments=dict):
         d = datetime.datetime.now()
-        start_date = '{}-{}-00'.format(d.year, d.month - 3)
+        start_date = (d - relativedelta(months=3)).strftime('%Y-%m-%d')
         end_date = d.strftime('%Y-%m-%d')
 
         arguments.update(
