@@ -2,7 +2,7 @@ from django.views.generic.edit import FormMixin, FormView, CreateView, ModelForm
 from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.urls import reverse
-
+import datetime
 from .models import *
 from .forms import AgencyClientsForm
 
@@ -52,11 +52,28 @@ class ClientReportDetailView(DetailView):
     template_name = 'dashboard/board.html'
 
     def get_context_data(self, **kwargs):
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+        if start_date is None and end_date is None:
+            start_date = datetime.datetime.now().strftime('%Y-%m-%d')
+            end_date = datetime.datetime.now().strftime('%Y-%m-%d')
         context = super().get_context_data(**kwargs)
         client_id = self.kwargs.get(self.slug_url_kwarg)
-        print(client_id)
-        context['report_client_cabinet'] = Reports.objects.get_report_client_cabinet(agency_client_id=client_id)
-        print(context)
+        context['report_client_cabinet'] = Reports.objects.get_report_client_cabinet(
+            agency_client_id=client_id,
+            start_date=start_date,
+            end_date=end_date
+        )
+        context['report_client_channel'] = Reports.objects.get_client_channel(
+            agency_client_id=client_id,
+            start_date=start_date,
+            end_date=end_date
+        )
+        context['report_client_campaign'] = Reports.objects.get_client_campaign(
+            agency_client_id=client_id,
+            start_date=start_date,
+            end_date=end_date
+        )
         return context
 
 

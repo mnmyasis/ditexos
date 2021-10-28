@@ -10,7 +10,9 @@
             </div>
             <div class="row mt-2 mb-4">
                 <div class="col-md-2 offset-md-10">
-                    <input type="text" name="daterange" value="01/01/2018 - 01/15/2018" />
+                    <form method="get">
+                        <input type="text" name="daterange" value="" />
+                    </form>
                 </div>
             </div>
             <div class="card mb-4">
@@ -116,34 +118,22 @@
                                     </tr>
                                 </tfoot>
                                 <tbody>
+                                    {% for line in report_client_channel %}
                                     <tr>
-                                        <td>Yandex</td>
-                                        <td>Search</td>
-                                        <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
+                                        <td>{{ line.source }}</td>
+                                        <td>{{ line.channel }}</td>
+                                        <td>{{ line.cost_ }}</td>
+                                         <td>{{ line.impressions }}</td>
+                                         <td>{{ line.clicks }}</td>
+                                         <td>{{ line.ctr }}</td>
+                                         <td>{{ line.cpc }}</td>
+                                         <td>{{ line.cr }}</td>
+                                         <td>{{ line.cpl }}</td>
+                                         <td>{{ line.call_leads }}</td>
+                                         <td>{{ line.chat_leads }}</td>
+                                         <td>{{ line.site_leads }}</td>
                                     </tr>
-                                    <tr>
-                                        <td>Google</td>
-                                        <td>Network</td>
-                                        <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                    </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -192,48 +182,22 @@
                                     </tr>
                                 </tfoot>
                                 <tbody>
+                                    {% for line in report_client_campaign %}
                                     <tr>
-                                        <td>Yandex</td>
-                                        <td><a href="#" class="text-decoration-none text-body">brand_search</a></td>
-                                        <td>0</td>
-                                         <td>0</td>
-                                         <td>2</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
+                                        <td>{{ line.source }}</td>
+                                        <td><a href="#" class="text-decoration-none text-body">{{ line.campaign }}</a></td>
+                                        <td>{{ line.cost_ }}</td>
+                                         <td>{{ line.impressions }}</td>
+                                         <td>{{ line.clicks }}</td>
+                                         <td>{{ line.ctr }}</td>
+                                         <td>{{ line.cpc }}</td>
+                                         <td>{{ line.cr }}</td>
+                                         <td>{{ line.cpl }}</td>
+                                         <td>{{ line.call_leads }}</td>
+                                         <td>{{ line.chat_leads }}</td>
+                                         <td>{{ line.site_leads }}</td>
                                     </tr>
-                                    <tr>
-                                        <td>Yandex</td>
-                                        <td><a href="#" class="text-decoration-none text-body">brand_search</a></td>
-                                        <td>0</td>
-                                         <td>0</td>
-                                         <td>7</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Google</td>
-                                        <td><a href="#" class="text-decoration-none text-body">urolog_makarov_geo_search</a></td>
-                                        <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>3</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                    </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -382,6 +346,13 @@ $(function() {
   $('input[name="daterange"]').daterangepicker({
     opens: 'left'
   }, function(start, end, label) {
+    let currentLocation = window.location
+    let origin = currentLocation.origin
+    let path_name = currentLocation.pathname
+    start_date = start.format('YYYY-MM-DD')
+    end_date = end.format('YYYY-MM-DD')
+    url = origin + path_name + '?start_date='+start_date+'&end_date='+end_date+'/'
+    document.location.href = url
     console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
   });
 });

@@ -6,6 +6,7 @@ select
     agc_cl.call_tracker_object_id call_tracker_id,
     yandex.id yandex_client_id,
     yandex.campaign campaign,
+    yandex.campaign_id campaign_id,
     yandex.key_word key_word,
     yandex.cost cost_,
     yandex.clicks clicks,
@@ -16,6 +17,7 @@ left join (
      select
             ya_cl.id id,
             yc.name campaign,
+            yc.campaign_id,
             ykw.name key_word,
             round(cast(sum(ym.cost) as numeric), 2) as cost,
             sum(ym.clicks) clicks,
@@ -26,7 +28,7 @@ left join (
             left join yandex_ad_groups yag on yc.id = yag.campaign_id
             left join yandex_key_words ykw on yag.id = ykw.ad_group_id
             left join yandex_metrics ym on ykw.id = ym.key_word_id
-        group by ya_cl.id, yc.name, ykw.name, ym.date
+        group by ya_cl.id, yc.name, yc.campaign_id, ykw.name, ym.date
     ) as yandex on agc_cl.yandex_client_id = yandex.id;
 
 create view google_report_view
@@ -36,16 +38,19 @@ select
        agc_cl.name agency_client_name,
        google.google_client_id google_client_id,
        google.campaign campaign,
+       google.campaign_id campaign_id,
        google.key_word key_word,
        google.cost cost_,
        google.clicks clicks,
        google.impressions impressions,
        google.date date
+
 from agency_clients agc_cl
 left join (
     select
            gog_cl.id google_client_id,
            gc.name campaign,
+           gc.campaign_id,
            gkw.name key_word,
            sum(gm.cost_micros * 0.000001) as cost,
            sum(gm.clicks) clicks,
@@ -56,5 +61,5 @@ left join (
              left join google_ad_groups gag on gc.id = gag.campaign_id
              left join google_key_words gkw on gag.id = gkw.ad_group_id
              left join google_metrics gm on gkw.id = gm.key_word_id
-    group by gog_cl.id, gm.date, gc.name, gkw.name
+    group by gog_cl.id, gm.date, gc.name, gc.campaign_id, gkw.name
 ) google on google.google_client_id = agc_cl.google_client_id;

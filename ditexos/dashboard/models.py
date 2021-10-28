@@ -232,7 +232,6 @@ class ReportsQuerySet(models.QuerySet):
              """.format(user_id)
         cursor.execute(sql)
         report = self._dictfetchall(cursor)
-        print(report)
         return report
 
     def get_report_client_cabinet(self, agency_client_id, start_date='2021-10-01', end_date='2021-10-20'):
@@ -247,10 +246,10 @@ class ReportsQuerySet(models.QuerySet):
                        round({source}.cost_, 2) cost_,
                        {source}.clicks,
                        {source}.impressions,
-                       round({source}.clicks / {source}.impressions, 2) ctr,
+                       round({source}.clicks / {source}.impressions * 100, 2) ctr,
                        round({source}.cost_ / {source}.clicks, 2) cpc,
-                       round(((call.leads + chat.leads + site.leads) / {source}.clicks), 2) cr,
-                       round(({source}.cost_ / (call.leads + chat.leads + site.leads) ), 2) cpl,
+                       round(((COALESCE(call.leads, 0) + COALESCE(chat.leads, 0) + COALESCE(site.leads, 0)) / {source}.clicks * 100), 2) cr,
+                       round({source}.cost_ / NULLIF((COALESCE(call.leads, 0) + COALESCE(chat.leads, 0) + COALESCE(site.leads, 0)),0), 2) cpl,
                        call.leads call_leads,
                        chat.leads chat_leads,
                        site.leads site_leads
@@ -285,8 +284,160 @@ class ReportsQuerySet(models.QuerySet):
                     and cr.date between '{start_date}' and '{end_date}'
                     group by co_api.id
                     ) site on ag_cl.call_tracker_object_id = site.id
-                where ag_cl.id = {agency_client_id}
-            """.format(source=source, agency_client_id=agency_client_id, start_date=start_date, end_date=end_date)
+                where {source}.cost_ > 0 and ag_cl.id = {agency_client_id}
+            """
+            cursor.execute(sql)
+            report += self._dictfetchall(cursor)
+        return report
+
+    def get_client_channel(self, agency_client_id, start_date='2021-10-01', end_date='2021-10-20'):
+        sources = ['yandex', 'google']
+        channels = [{'name': 'search', 'search': '%_search'},
+                    {'name': 'network', 'search': '%_network'}]
+        report = []
+        cursor = connection.cursor()
+        for source in sources:
+            for channel in channels:
+                sql = f"""
+                    select
+                           '{source}' source,
+                           '{channel['name']}' channel,
+                           ag_cl.name,
+                           round({source}.cost_, 2) cost_,
+                           {source}.clicks,
+                           {source}.impressions,
+                           round({source}.clicks / {source}.impressions * 100, 2) ctr,
+                           round({source}.cost_ / {source}.clicks, 2) cpc,
+                           round((COALESCE(call.leads, 0) + COALESCE(chat.leads, 0) + COALESCE(site.leads, 0)) / {source}.clicks * 100, 2) cr,
+                           round({source}.cost_ / NULLIF((COALESCE(call.leads, 0) + COALESCE(chat.leads, 0) + COALESCE(site.leads, 0)), 0), 2) cpl,
+                           call.leads call_leads,
+                           chat.leads chat_leads,
+                           site.leads site_leads
+                    from agency_clients ag_cl
+                    left join (
+                        select id,
+                               sum(cost_) cost_,
+                               sum(clicks) clicks,
+                               sum(impressions) impressions
+                        from {source}_report_view
+                        where date between '{start_date}' and '{end_date}'
+                        and campaign LIKE '{channel['search']}'
+                        group by id
+                    ) {source} on {source}.id = ag_cl.id
+                    left join (
+                        select
+                               co_api.id id,
+                               count(cr.utm_campaign) leads
+                        from comagic_api_token co_api
+                        join comagic_report cr on co_api.id = cr.api_client_id
+                        where cr.date between '{start_date}' and '{end_date}' and
+                              cr.utm_source = '{source}' and
+                              cr.source_type = 'call' and
+                              cr.utm_campaign LIKE '{channel['search']}'
+                        group by co_api.id
+                        ) call on call.id = ag_cl.call_tracker_object_id
+                    left join (
+                        select
+                               co_api.id id,
+                               count(cr.utm_campaign) leads
+                        from comagic_api_token co_api
+                        join comagic_report cr on co_api.id = cr.api_client_id
+                        where cr.date between '{start_date}' and '{end_date}' and
+                              cr.utm_source = '{source}' and
+                              cr.source_type = 'chat' and
+                              cr.utm_campaign LIKE '{channel['search']}'
+                        group by co_api.id
+                        ) chat on chat.id = ag_cl.call_tracker_object_id
+                    left join (
+                        select
+                               co_api.id id,
+                               count(cr.utm_campaign) leads
+                        from comagic_api_token co_api
+                        join comagic_report cr on co_api.id = cr.api_client_id
+                        where cr.date between '{start_date}' and '{end_date}' and
+                              cr.utm_source = '{source}' and
+                              cr.source_type = 'site' and
+                              cr.utm_campaign LIKE '{channel['search']}'
+                        group by co_api.id
+                        ) site on site.id = ag_cl.call_tracker_object_id
+                    where {source}.cost_ > 0 and ag_cl.id = {agency_client_id}
+                """
+                cursor.execute(sql)
+                report += self._dictfetchall(cursor)
+        print(report)
+        return report
+
+    def get_client_campaign(self, agency_client_id, start_date='2021-10-01', end_date='2021-10-20'):
+        sources = ['yandex', 'google']
+        cursor = connection.cursor()
+        report = []
+        for source in sources:
+            sql = f"""
+                select
+                       '{source}' source,
+                       ag_cl.name,
+                       {source}.campaign,
+                       {source}.campaign_id,
+                       round({source}.cost_, 2) cost_,
+                       {source}.clicks,
+                       {source}.impressions,
+                       round({source}.clicks / {source}.impressions * 100, 2) ctr,
+                       round({source}.cost_ / {source}.clicks, 2) cpc,
+                       round((COALESCE(call.leads, 0) + COALESCE(chat.leads, 0) + COALESCE(site.leads, 0)) / {source}.clicks * 100, 2) cr,
+                       round({source}.cost_ / NULLIF((COALESCE(call.leads,0) + COALESCE(chat.leads, 0) + COALESCE(site.leads, 0)),0), 2) cpl,
+                       call.leads call_leads,
+                       chat.leads chat_leads,
+                       site.leads site_leads
+                from agency_clients ag_cl
+                left join (
+                    select id,
+                           campaign,
+                           campaign_id,
+                           sum(cost_) cost_,
+                           sum(clicks) clicks,
+                           sum(impressions) impressions
+                    from {source}_report_view
+                    where date between '{start_date}' and '{end_date}'
+                    group by id, campaign, campaign_id
+                ) {source} on {source}.id = ag_cl.id
+                left join (
+                    select
+                           cr.utm_campaign,
+                           count(cr.utm_campaign) leads
+                    from comagic_report cr
+                    where
+                          cr.utm_source = '{source}' and
+                          cr.source_type = 'call' and
+                          cr.date between '{start_date}' and '{end_date}' and
+                          cr.api_client_id = (select call_tracker_object_id from agency_clients where call_tracker_object_id = cr.api_client_id)
+                    group by cr.utm_campaign
+                    ) as call on call.utm_campaign = {source}.campaign
+                left join (
+                    select
+                           cr.utm_campaign,
+                           count(cr.utm_campaign) leads
+                    from comagic_report cr
+                    where
+                          cr.utm_source = '{source}' and
+                          cr.source_type = 'chat' and
+                          cr.date between '{start_date}' and '{end_date}' and
+                          cr.api_client_id = (select call_tracker_object_id from agency_clients where call_tracker_object_id = cr.api_client_id)
+                    group by cr.utm_campaign
+                    ) as chat on chat.utm_campaign = {source}.campaign
+                left join (
+                    select
+                           cr.utm_campaign,
+                           count(cr.utm_campaign) leads
+                    from comagic_report cr
+                    where
+                          cr.utm_source = '{source}' and
+                          cr.source_type = 'site' and
+                          cr.date between '{start_date}' and '{end_date}' and
+                          cr.api_client_id = (select call_tracker_object_id from agency_clients where call_tracker_object_id = cr.api_client_id)
+                    group by cr.utm_campaign
+                    ) as site on site.utm_campaign = {source}.campaign
+                where {source}.cost_ > 0 and ag_cl.id = {agency_client_id} ;
+            """
             cursor.execute(sql)
             report += self._dictfetchall(cursor)
         return report
