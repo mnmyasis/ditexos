@@ -155,7 +155,7 @@ class YandexDir:
         yandex_build.get_headers()
         yandex_build.send()
         result = yandex_build.get_result()
-        # yandex_build.write_excel()
+        #  yandex_build.write_excel()
         return result
 
 
@@ -213,7 +213,7 @@ class Reports(YandexDirect):
              "DateFrom": self.start_date,
              "DateTo": self.end_date
         }
-        field_names = ["Clicks", "Cost", 'Ctr', 'Conversions', 'Impressions', "CampaignId", "CampaignName", 'AdGroupName', 'AdGroupId', 'AdId', 'Criteria',
+        field_names = ["Clicks", "Cost", 'Ctr', 'Conversions', 'Impressions', "CampaignId", "CampaignName", 'AdGroupName', 'AdGroupId', 'Criteria',
                        'CriteriaId', 'Date']
         self.FIELD_NAMES = field_names
         self.SELECTION_CRITERIA = selection_criteria
@@ -224,7 +224,9 @@ class Reports(YandexDirect):
             'params': {
                 'SelectionCriteria': self.SELECTION_CRITERIA,
                 'FieldNames': self.FIELD_NAMES,
-                "Page": {'Limit': 1000000},
+                "Page": {
+                    'Limit': 1000000,
+                },
                 "ReportName": "test5-{}".format(datetime.now()),
                 "ReportType": "CUSTOM_REPORT",
                 "DateRangeType": "CUSTOM_DATE",
@@ -244,7 +246,7 @@ class Reports(YandexDirect):
 
     def write_excel(self):
         df = pd.read_csv(StringIO(self.RESULT.text), header=1, sep='\t')
-        df.to_excel('direct_{}.xlsx'.format(datetime.now()))
+        df.to_excel('direct_{}.xlsx'.format(datetime.now().strftime('%Y_%m_%d')))
 
 
 if __name__ == '__main__':

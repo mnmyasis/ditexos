@@ -4,20 +4,22 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
 from django.conf import settings
 from django.urls import reverse_lazy
-from django.db.models import Count, Sum
+from django.db import connection
 import yandex_direct
 import google_ads
 import calltouch
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 import json, datetime
 from dateutil.relativedelta import relativedelta
+
+
 # Create your models here.
 
 
 class AgencyClients(models.Model):
 
     def get_absolute_url(self):
-        return '{}'.format(reverse_lazy('dashboard:client',  kwargs={'client_id': self.pk}))
+        return '{}'.format(reverse_lazy('dashboard:client', kwargs={'client_id': self.pk}))
 
     TRACKERS = (
         ('cl', 'CallTouch'),
@@ -65,7 +67,6 @@ class AgencyClients(models.Model):
 
     def set_periodic_task(self, task_name, name, arguments):
         schedule = self.get_or_create_interval()
-        # arguments = [self.user.pk, client_id, start_date, end_date]
         task, is_create = PeriodicTask.objects.get_or_create(
             interval=schedule,
             name='{}-{}'.format(name, self.pk),
@@ -133,21 +134,23 @@ class AgencyClients(models.Model):
                 )
             elif self.call_tracker_type == 'co_m':
                 """Одноразовый сбор статастики за 3 месяца(comagic)"""
-                self.history_report_one_off(
-                    task_name='comagic_reports',
-                    arguments={
-                        'api_token_id': self.call_tracker_object.pk,
-                        'v': '2.0'
-                    }
-                )
-                """Переодинческие задачи для обновления статистики(comagic)"""
-                self.update_report(
-                    task_name='comagic_reports',
-                    arguments={
-                        'api_token_id': self.call_tracker_object.pk,
-                        'v': '2.0'
-                    }
-                )
+                comagic_tasks = ['comagic_call_reports', 'comagic_chat_reports', 'comagic_site_reports']
+                for cm_task in comagic_tasks:
+                    self.history_report_one_off(
+                        task_name=cm_task,
+                        arguments={
+                            'api_token_id': self.call_tracker_object.pk,
+                            'v': '2.0'
+                        }
+                    )
+                    """Переодинческие задачи для обновления статистики(comagic)"""
+                    self.update_report(
+                        task_name=cm_task,
+                        arguments={
+                            'api_token_id': self.call_tracker_object.pk,
+                            'v': '2.0'
+                        }
+                    )
 
         """Создание задач для рекламных кабинетов"""
 
@@ -187,47 +190,110 @@ class AgencyClients(models.Model):
         db_table = 'agency_clients'
 
     def __str__(self):
-        return '{} - {}'.format(self.name, self.user)
+        return '{} - {} - {}'.format(self.name, self.user, self.pk)
 
 
-class YandexClientsQuerySet(models.QuerySet):
-    pass
+class ReportsQuerySet(models.QuerySet):
+
+    def _dictfetchall(self, cursor):
+        """Returns all rows from a cursor as a dict"""
+        desc = cursor.description
+        return [
+            dict(zip([col[0] for col in desc], row))
+            for row in cursor.fetchall()
+        ]
+
+    def get_clients_report(self, user_id):
+        cursor = connection.cursor()
+        sql = """
+            select
+                   ag_cl.id pk,
+                   ag_cl.name,
+                   comagic.leads,
+                   yandex.ya_cost yandex_cost,
+                   round(google.go_cost, 2) google_cost
+            from agency_clients ag_cl
+            left join (
+                select co_api.id id, count(*) leads from comagic_api_token co_api
+                join comagic_report cr on co_api.id = cr.api_client_id
+                where cr.utm_source='yandex' or cr.utm_source='google'
+                group by co_api.id
+                ) comagic on call_tracker_object_id = comagic.id
+            left join (
+                select id, agency_client_name, sum(cost_) ya_cost from yandex_report_view
+                group by id, agency_client_name
+            ) yandex on yandex.id = ag_cl.id
+            left join (
+                select id, sum(cost_) as go_cost
+                from google_report_view
+                group by id
+                ) google on ag_cl.id = google.id
+            where ag_cl.user_id = {}
+             """.format(user_id)
+        cursor.execute(sql)
+        report = self._dictfetchall(cursor)
+        print(report)
+        return report
+
+    def get_report_client_cabinet(self, agency_client_id, start_date='2021-10-01', end_date='2021-10-20'):
+        sources = ['yandex', 'google']
+        cursor = connection.cursor()
+        report = []
+        for source in sources:
+            sql = f"""
+                select
+                       '{source}' source,
+                       ag_cl.name,
+                       round({source}.cost_, 2) cost_,
+                       {source}.clicks,
+                       {source}.impressions,
+                       round({source}.clicks / {source}.impressions, 2) ctr,
+                       round({source}.cost_ / {source}.clicks, 2) cpc,
+                       round(((call.leads + chat.leads + site.leads) / {source}.clicks), 2) cr,
+                       round(({source}.cost_ / (call.leads + chat.leads + site.leads) ), 2) cpl,
+                       call.leads call_leads,
+                       chat.leads chat_leads,
+                       site.leads site_leads
+                from agency_clients ag_cl
+                left join (
+                    select id,
+                           sum(cost_) cost_,
+                           sum(clicks) clicks,
+                           sum(impressions) impressions
+                    from {source}_report_view
+                    where date between '{start_date}' and '{end_date}'
+                    group by id
+                ) {source} on {source}.id = ag_cl.id
+                left join (
+                    select co_api.id id, count(*) leads from comagic_api_token co_api
+                    join comagic_report cr on co_api.id = cr.api_client_id
+                    where cr.utm_source='{source}' and cr.source_type = 'call'
+                    and cr.date between '{start_date}' and '{end_date}'
+                    group by co_api.id
+                    ) call on ag_cl.call_tracker_object_id = call.id
+                left join (
+                    select co_api.id id, count(*) leads from comagic_api_token co_api
+                    join comagic_report cr on co_api.id = cr.api_client_id
+                    where cr.utm_source='{source}' and cr.source_type = 'chat'
+                    and cr.date between '{start_date}' and '{end_date}'
+                    group by co_api.id
+                    ) chat on ag_cl.call_tracker_object_id = chat.id
+                left join (
+                    select co_api.id id, count(*) leads from comagic_api_token co_api
+                    join comagic_report cr on co_api.id = cr.api_client_id
+                    where cr.utm_source='{source}' and cr.source_type = 'site'
+                    and cr.date between '{start_date}' and '{end_date}'
+                    group by co_api.id
+                    ) site on ag_cl.call_tracker_object_id = site.id
+                where ag_cl.id = {agency_client_id}
+            """.format(source=source, agency_client_id=agency_client_id, start_date=start_date, end_date=end_date)
+            cursor.execute(sql)
+            report += self._dictfetchall(cursor)
+        return report
 
 
-class YandexClients(yandex_direct.models.Clients):
-    class Meta:
-        proxy = True
+class Reports(AgencyClients):
+    objects = ReportsQuerySet.as_manager()
 
-
-class GoogleCampaignsQuerySet(models.QuerySet):
-    def __cost(self, x):
-        x.cost = x.cost / 1000000
-        return x
-
-    def get_cost(self):
-        cost = self.annotate(
-            cost=Sum('metric__cost_micros'),
-            clicks=Sum('metric__clicks'),
-            count=Count('metric')
-        )
-        cost = [self.__cost(x) for x in cost]
-        return cost
-
-
-class GoogleCampaigns(google_ads.models.Campaigns):
-    objects = GoogleCampaignsQuerySet.as_manager()
-
-    class Meta:
-        proxy = True
-
-
-class GoogleKeyWords(google_ads.models.KeyWords):
-    objects = GoogleCampaignsQuerySet.as_manager()
-
-    class Meta:
-        proxy = True
-
-
-class CallTouchReports(calltouch.models.Reports):
     class Meta:
         proxy = True

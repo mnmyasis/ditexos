@@ -1,0 +1,389 @@
+{% extends 'index.html' %}
+{% block content %}
+<div id="layoutSidenav_content">
+    <main>
+        <div class="container-fluid px-4">
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <h3 class="text-center">{{ context.name }}</h3>
+                </div>
+            </div>
+            <div class="row mt-2 mb-4">
+                <div class="col-md-2 offset-md-10">
+                    <input type="text" name="daterange" value="01/01/2018 - 01/15/2018" />
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                   Общая статистика
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="mini-table" >
+                                <thead>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Cost</th>
+                                        <th>Impressions</th>
+                                        <th>Clicks</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                        <th>CR</th>
+                                        <th>CPL</th>
+                                        <th>Call</th>
+                                        <th>Chat</th>
+                                        <th>Site</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Cost</th>
+                                        <th>Impressions</th>
+                                        <th>Clicks</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                        <th>CR</th>
+                                        <th>CPL</th>
+                                        <th>Call</th>
+                                        <th>Chat</th>
+                                        <th>Site</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                    {% for line in report_client_cabinet %}
+                                    <tr>
+                                        <td>{{ line.source }}</td>
+                                        <td>{{ line.cost_ }}</td>
+                                         <td>{{ line.impressions }}</td>
+                                         <td>{{ line.clicks }}</td>
+                                         <td>{{ line.ctr }}</td>
+                                         <td>{{ line.cpc }}</td>
+                                         <td>{{ line.cr }}</td>
+                                         <td>{{ line.cpl }}</td>
+                                         <td>{{ line.call_leads }}</td>
+                                         <td>{{ line.chat_leads }}</td>
+                                         <td>{{ line.site_leads }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                   Статистика по каналам
+                </div>
+                 <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Source of impressions</th>
+                                        <th>Cost</th>
+                                        <th>Impressions</th>
+                                        <th>Clicks</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                        <th>CR</th>
+                                        <th>CPL</th>
+                                        <th>Call</th>
+                                        <th>Chat</th>
+                                        <th>Site</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Source of impressions</th>
+                                        <th>Cost</th>
+                                        <th>Impressions</th>
+                                        <th>Clicks</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                        <th>CR</th>
+                                        <th>CPL</th>
+                                        <th>Call</th>
+                                        <th>Chat</th>
+                                        <th>Site</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                    <tr>
+                                        <td>Yandex</td>
+                                        <td>Search</td>
+                                        <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Google</td>
+                                        <td>Network</td>
+                                        <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                   Статистика по кампаниям
+                </div>
+                 <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Campaign</th>
+                                        <th>Cost</th>
+                                        <th>Impressions</th>
+                                        <th>Clicks</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                        <th>CR</th>
+                                        <th>CPL</th>
+                                        <th>Call</th>
+                                        <th>Chat</th>
+                                        <th>Site</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Campaign</th>
+                                        <th>Cost</th>
+                                        <th>Impressions</th>
+                                        <th>Clicks</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                        <th>CR</th>
+                                        <th>CPL</th>
+                                        <th>Call</th>
+                                        <th>Chat</th>
+                                        <th>Site</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                    <tr>
+                                        <td>Yandex</td>
+                                        <td><a href="#" class="text-decoration-none text-body">brand_search</a></td>
+                                        <td>0</td>
+                                         <td>0</td>
+                                         <td>2</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Yandex</td>
+                                        <td><a href="#" class="text-decoration-none text-body">brand_search</a></td>
+                                        <td>0</td>
+                                         <td>0</td>
+                                         <td>7</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Google</td>
+                                        <td><a href="#" class="text-decoration-none text-body">urolog_makarov_geo_search</a></td>
+                                        <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>3</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                   Статистика по направлениям
+                </div>
+                 <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="datatable">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="1">Date</th>
+                                        <th colspan="2">brand</th>
+                                        <th colspan="2">huend</th>
+                                    </tr>
+                                    <tr>
+                                        <th></th>
+                                        <th>Cost</th>
+                                        <th>Leads</th>
+                                        <th>Cost</th>
+                                        <th>Leads</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th></th>
+                                        <th>Cost</th>
+                                        <th>Leads</th>
+                                        <th>Cost</th>
+                                        <th>Leads</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                    <tr>
+                                        <td>2021-10-01</td>
+                                        <td>0</td>
+                                         <td>0</td>
+                                        <td>0</td>
+                                         <td>0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2021-10-02</td>
+                                        <td>0</td>
+                                         <td>0</td>
+                                        <td>0</td>
+                                         <td>0</td>
+
+                                    </tr>
+                                    <tr>
+                                        <td>2021-10-03</td>
+                                        <td>0</td>
+                                         <td>0</td>
+                                        <td>0</td>
+                                         <td>0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                   Статистика по периодам
+                </div>
+                 <div class="card-body">
+                     <div class="row mt-2 mb-4">
+                        <div class="col-md-2 offset-md-8">
+                            <input type="text" name="daterange" value="01/01/2018 - 01/15/2018" />
+                        </div>
+                         <div class="col-md-2">
+                            <input type="text" name="daterange" value="01/01/2018 - 01/15/2018" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table  class="datatable display">
+                                <thead>
+                                     </tr>
+                                        <th>Period</th>
+                                        <th>Campaign</th>
+                                        <th>Cost</th>
+                                        <th>Impressions</th>
+                                        <th>Clicks</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                        <th>CR</th>
+                                        <th>CPL</th>
+                                        <th>Call</th>
+                                        <th>Chat</th>
+                                        <th>Site</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <tr>
+                                        <td>2021-10-01 - 2021-10-19</td>
+                                        <td><a href="#" class="text-decoration-none text-body">brand_search</a></td>
+                                        <td>0</td>
+                                         <td>3</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2021-9-19 - 2021-10-01</td>
+                                        <td><a href="#" class="text-decoration-none text-body">brand_search</a></td>
+                                        <td>0</td>
+                                         <td>7</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                         <td>0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block script %}
+
+<script>
+$(function() {
+  $('input[name="daterange"]').daterangepicker({
+    opens: 'left'
+  }, function(start, end, label) {
+    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+  });
+});
+</script>
+{% endblock %}

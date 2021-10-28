@@ -105,7 +105,7 @@ def get_reports(user_id=1, yandex_client_id=None, start_date=None, end_date=None
     for rep in result.iloc:
         obj_campaign, created = Campaigns.objects.update_or_create(
             client=client,
-            name=rep.CampaignName,
+            campaign_id=rep.CampaignId,
             defaults={
                 'client': client,
                 'name': rep.CampaignName,
@@ -114,7 +114,7 @@ def get_reports(user_id=1, yandex_client_id=None, start_date=None, end_date=None
         )
         obj_ad_group, created = AdGroups.objects.update_or_create(
             campaign=obj_campaign,
-            name=rep.AdGroupName,
+            ad_group_id=rep.AdGroupId,
             defaults={
                 'campaign': obj_campaign,
                 'name': rep.AdGroupName,
@@ -123,7 +123,7 @@ def get_reports(user_id=1, yandex_client_id=None, start_date=None, end_date=None
         )
         obj_key_word, created = KeyWords.objects.update_or_create(
             ad_group=obj_ad_group,
-            name=rep.Criteria,
+            key_word_id=rep.CriteriaId,
             defaults={
                 'ad_group': obj_ad_group,
                 'name': rep.Criteria,

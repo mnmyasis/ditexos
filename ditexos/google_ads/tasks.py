@@ -35,112 +35,15 @@ def clients(user_id):
     return 'Success clients update for user: {}'.format(user.email)
 
 
-@shared_task(name='google_reports')
-def reports(user_id=1):
-    custom_user = get_user_model()
-    user = custom_user.objects.get(pk=user_id)
-    print('started reports for user {}'.format(user.email))
-    refresh_token = GoogleAdsToken.objects.get(user=user).refresh_token
-    credentials = {
-        "developer_token": os.environ.get('GOOGLE_DEVELOPER_TOKEN'),
-        "refresh_token": refresh_token,
-        "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
-        "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET'),
-        "login_customer_id": user.google_customer
-    }
-    google_ads_client = GoogleAdsClient.load_from_dict(credentials)
-
-    customers = Clients.objects.filter(user=user)
-    for customer in customers:
-        df = google_ads.report_default(google_ads_client, customer.google_id)
-        print(df)
-        """Получение кампаний без дупликатов"""
-        campaigns = df.drop_duplicates(
-            subset='campaign_name',
-            keep='last')[['campaign_name', 'campaign_id']]
-        for campaign in campaigns.iloc:
-            """Запись"""
-            obj_campaign, created = Campaigns.objects.update_or_create(
-                client=customer,
-                name=campaign.campaign_name,
-                defaults={
-                    'client': customer,
-                    'name': campaign.campaign_name,
-                    'campaign_id': campaign.campaign_id
-                }
-            )
-            obj_campaign.metric.clear()
-            """Получение групп объявлений без дупликатов"""
-            ad_groups = df[df['campaign_name'] == campaign.campaign_name]
-            ad_group_names = ad_groups.drop_duplicates(
-                subset='ad_group_name',
-                keep='last')[['ad_group_name', 'ad_group_id']]
-            for ad_group_name in ad_group_names.iloc:
-                """Запись"""
-                obj_ad_group, created = AdGroups.objects.update_or_create(
-                    campaign=obj_campaign,
-                    name=ad_group_name.ad_group_name,
-                    defaults={
-                        'campaign': obj_campaign,
-                        'name': ad_group_name.ad_group_name,
-                        'ad_group_id': ad_group_name.ad_group_id
-                    }
-                )
-                obj_ad_group.metric.clear()
-                """Получение ключевых слов без дупликатов"""
-                keywords_text = df[df['ad_group_name'] == ad_group_name.ad_group_name]
-                keywords_text = keywords_text.drop_duplicates(
-                    subset='ad_group_criterion_keyword_text',
-                    keep='last')[['ad_group_criterion_keyword_text', 'ad_group_criterion_criterion_id']]
-                for keyword in keywords_text.iloc:
-                    """Запись"""
-                    obj_key_word, created = KeyWords.objects.update_or_create(
-                        ad_group=obj_ad_group,
-                        name=keyword.ad_group_criterion_keyword_text,
-                        defaults={
-                            'ad_group': obj_ad_group,
-                            'name': keyword.ad_group_criterion_keyword_text,
-                            'key_word_id': keyword.ad_group_criterion_criterion_id
-                        }
-                    )
-                    obj_key_word.metric.clear()
-                    """Получение метрики без удаления дупликатов"""
-                    metrics = df[df['ad_group_criterion_criterion_id'] == keyword.ad_group_criterion_criterion_id]
-                    for metric in metrics.iloc:
-                        """Запись"""
-                        metric, updated = Metrics.objects.update_or_create(
-                            key_word=obj_key_word,
-                            date=metric.segments_date,
-                            defaults={
-                                'key_word': obj_key_word,
-                                'average_cost': metric.metrics_average_cost,
-                                'clicks': metric.metrics_clicks,
-                                'conversions': metric.metrics_conversions,
-                                'cost_micros': metric.metrics_cost_micros,
-                                'ctr': metric.metrics_ctr,
-                                'impressions': metric.metrics_impressions,
-                                'search_rank_lost_impression_share': metric.metrics_search_rank_lost_impression_share,
-                                'date': metric.segments_date
-                            }
-                        )
-                        obj_key_word.metric.add(metric)
-                        obj_ad_group.metric.add(metric)
-                        obj_campaign.metric.add(metric)
-    return 'Success metric update for user: {}'.format(user.email)
-
-
 @shared_task(name='get_google_reports')
-def get_reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
-    custom_user = get_user_model()
-    user = custom_user.objects.get(pk=user_id)
-    print('started reports for user {}'.format(user.email))
-    refresh_token = GoogleAdsToken.objects.get(user=user).refresh_token
+def get_reports_test(user_id=1, client_google_id=None, start_date=None, end_date=None):
+    google_ads_token = GoogleAdsToken.objects.get(user__pk=user_id)
     credentials = {
         "developer_token": os.environ.get('GOOGLE_DEVELOPER_TOKEN'),
-        "refresh_token": refresh_token,
+        "refresh_token": google_ads_token.refresh_token,
         "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
         "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET'),
-        "login_customer_id": user.google_customer
+        "login_customer_id": google_ads_token.user.google_customer
     }
     google_ads_client = GoogleAdsClient.load_from_dict(credentials)
     customer = Clients.objects.get(google_id=client_google_id)
@@ -152,79 +55,52 @@ def get_reports(user_id=1, client_google_id=None, start_date=None, end_date=None
     )
     print(df)
     """Получение кампаний без дупликатов"""
-    campaigns = df.drop_duplicates(
-        subset='campaign_name',
-        keep='last')[['campaign_name', 'campaign_id']]
-    for campaign in campaigns.iloc:
+    for res in df.iloc:
         """Запись"""
         obj_campaign, created = Campaigns.objects.update_or_create(
             client=customer,
-            name=campaign.campaign_name,
+            campaign_id=res.campaign_id,
             defaults={
                 'client': customer,
-                'name': campaign.campaign_name,
-                'campaign_id': campaign.campaign_id
+                'name': res.campaign_name,
+                'campaign_id': res.campaign_id
             }
         )
-        obj_campaign.metric.clear()
-        """Получение групп объявлений без дупликатов"""
-        ad_groups = df[df['campaign_name'] == campaign.campaign_name]
-        ad_group_names = ad_groups.drop_duplicates(
-            subset='ad_group_name',
-            keep='last')[['ad_group_name', 'ad_group_id']]
-        for ad_group_name in ad_group_names.iloc:
-            """Запись"""
-            obj_ad_group, created = AdGroups.objects.update_or_create(
-                campaign=obj_campaign,
-                name=ad_group_name.ad_group_name,
-                defaults={
-                    'campaign': obj_campaign,
-                    'name': ad_group_name.ad_group_name,
-                    'ad_group_id': ad_group_name.ad_group_id
-                }
-            )
-            obj_ad_group.metric.clear()
-            """Получение ключевых слов без дупликатов"""
-            keywords_text = df[df['ad_group_name'] == ad_group_name.ad_group_name]
-            keywords_text = keywords_text.drop_duplicates(
-                subset='ad_group_criterion_keyword_text',
-                keep='last')[['ad_group_criterion_keyword_text', 'ad_group_criterion_criterion_id']]
-            for keyword in keywords_text.iloc:
-                """Запись"""
-                obj_key_word, created = KeyWords.objects.update_or_create(
-                    ad_group=obj_ad_group,
-                    name=keyword.ad_group_criterion_keyword_text,
-                    defaults={
-                        'ad_group': obj_ad_group,
-                        'name': keyword.ad_group_criterion_keyword_text,
-                        'key_word_id': keyword.ad_group_criterion_criterion_id
-                    }
-                )
-                obj_key_word.metric.clear()
-                """Получение метрики без удаления дупликатов"""
-                metrics = df[df['ad_group_criterion_criterion_id'] == keyword.ad_group_criterion_criterion_id]
-                for metric in metrics.iloc:
-                    """Запись"""
-                    metric, updated = Metrics.objects.update_or_create(
-                        key_word=obj_key_word,
-                        date=metric.segments_date,
-                        defaults={
-                            'key_word': obj_key_word,
-                            'average_cost': metric.metrics_average_cost,
-                            'clicks': metric.metrics_clicks,
-                            'conversions': metric.metrics_conversions,
-                            'cost_micros': metric.metrics_cost_micros,
-                            'ctr': metric.metrics_ctr,
-                            'impressions': metric.metrics_impressions,
-                            'search_rank_lost_impression_share': metric.metrics_search_rank_lost_impression_share,
-                            'date': metric.segments_date
-                        }
-                    )
-                    obj_key_word.metric.add(metric)
-                    obj_ad_group.metric.add(metric)
-                    obj_campaign.metric.add(metric)
-    return 'Success metric update for user: {}'.format(user.email)
+        obj_ad_group, created = AdGroups.objects.update_or_create(
+            campaign=obj_campaign,
+            ad_group_id=res.ad_group_id,
+            defaults={
+                'campaign': obj_campaign,
+                'name': res.ad_group_name,
+                'ad_group_id': res.ad_group_id
+            }
+        )
+        obj_key_word, created = KeyWords.objects.update_or_create(
+            ad_group=obj_ad_group,
+            key_word_id=res.ad_group_criterion_criterion_id,
+            defaults={
+                'ad_group': obj_ad_group,
+                'name': res.ad_group_criterion_keyword_text,
+                'key_word_id': res.ad_group_criterion_criterion_id
+            }
+        )
+        metric, updated = Metrics.objects.update_or_create(
+            key_word=obj_key_word,
+            date=res.segments_date,
+            defaults={
+                'key_word': obj_key_word,
+                'average_cost': res.metrics_average_cost,
+                'clicks': res.metrics_clicks,
+                'conversions': res.metrics_conversions,
+                'cost_micros': res.metrics_cost_micros,
+                'ctr': res.metrics_ctr,
+                'impressions': res.metrics_impressions,
+                'search_rank_lost_impression_share': res.metrics_search_rank_lost_impression_share,
+                'date': res.segments_date
+            }
+        )
+    return 'Success metric update for user: {}'.format(customer.pk)
 
 
 if __name__ == '__main__':
-    reports()
+    pass

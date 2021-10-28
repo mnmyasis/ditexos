@@ -1,8 +1,5 @@
-from django.forms import modelform_factory
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.views import View
 from django.views.generic.edit import FormMixin, FormView, CreateView, ModelFormMixin, UpdateView
+from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.urls import reverse
 
@@ -38,12 +35,32 @@ class AgencyClientDetailView(DetailView):
         return reverse('dashboard:client', kwargs={'pk': self.object.pk})
 
 
-@login_required
-def dash_board_page(request):
-    cm = GoogleKeyWords.objects.filter(ad_group__campaign__client__google_id=3838709593).get_cost()
-    ss = GoogleCampaigns.objects.filter(client__google_id=3838709593).get_cost()
-    context = {
-        'key_words': cm,
-        'campaigns': ss
-    }
-    return render(request, 'dashboard/tables.html', context)
+class ClientsView(ListView):
+    template_name = 'dashboard/clients.html'
+    context_object_name = 'clients'
+
+    def get_queryset(self):
+        context = Reports.objects.get_clients_report(user_id=self.request.user.pk)
+        return context
+
+
+class ClientReportDetailView(DetailView):
+    slug_field = 'pk'
+    slug_url_kwarg = 'client_id'
+    context_object_name = 'context'
+    model = AgencyClients
+    template_name = 'dashboard/board.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        client_id = self.kwargs.get(self.slug_url_kwarg)
+        print(client_id)
+        context['report_client_cabinet'] = Reports.objects.get_report_client_cabinet(agency_client_id=client_id)
+        print(context)
+        return context
+
+
+class KeyWordsView(ListView):
+    model = AgencyClients
+    template_name = 'dashboard/key_words.html'
+

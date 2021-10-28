@@ -2,10 +2,6 @@ import json
 
 from django.db import models
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
-# Create your models here.
-from django.db.models import Sum, Q
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 
@@ -57,7 +53,7 @@ class Clients(models.Model):
     last_update = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return '{} - {}'.format(self.name, self.last_update)
+        return self.name
 
     class Meta:
         db_table = 'google_clients'
@@ -65,7 +61,6 @@ class Clients(models.Model):
 
 class Campaigns(models.Model):
     client = models.ForeignKey(Clients, on_delete=models.CASCADE)
-    metric = models.ManyToManyField('Metrics')
     name = models.TextField()
     campaign_id = models.TextField()
     last_update = models.DateTimeField(auto_now=True)
@@ -79,7 +74,6 @@ class Campaigns(models.Model):
 
 class AdGroups(models.Model):
     campaign = models.ForeignKey(Campaigns, on_delete=models.CASCADE)
-    metric = models.ManyToManyField('Metrics')
     name = models.TextField()
     ad_group_id = models.TextField()
 
@@ -92,7 +86,6 @@ class AdGroups(models.Model):
 
 class KeyWords(models.Model):
     ad_group = models.ForeignKey(AdGroups, on_delete=models.CASCADE)
-    metric = models.ManyToManyField('Metrics')
     name = models.TextField()
     key_word_id = models.TextField()
 

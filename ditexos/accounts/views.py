@@ -19,7 +19,7 @@ def login_view(request):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                return redirect('dashboard:dash_board_page')
+                return redirect('/')
             else:
                 error['error'] = 'Учетная зпись неактивна'
         else:
