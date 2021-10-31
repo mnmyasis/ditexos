@@ -74,6 +74,11 @@ class ClientReportDetailView(DetailView):
             start_date=start_date,
             end_date=end_date
         )
+        context['report_client_direction'] = Reports.objects.get_client_direction(
+            agency_client_id=client_id,
+            start_date=start_date,
+            end_date=end_date
+        )
         return context
 
 
