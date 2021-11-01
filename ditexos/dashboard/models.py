@@ -13,6 +13,7 @@ import json, datetime
 from dateutil.relativedelta import relativedelta
 import pandas as pd
 
+
 # Create your models here.
 
 
@@ -134,7 +135,11 @@ class AgencyClients(models.Model):
                 )
             elif self.call_tracker_type == 'co_m':
                 """Одноразовый сбор статастики за 3 месяца(comagic)"""
-                comagic_tasks = ['comagic_call_reports', 'comagic_chat_reports', 'comagic_site_reports']
+                comagic_tasks = ['comagic_call_reports',
+                                 'comagic_chat_reports',
+                                 'comagic_site_reports',
+                                 'comagic_cutaways_reports',
+                                 'comagic_other_reports']
                 for cm_task in comagic_tasks:
                     self.history_report_one_off(
                         task_name=cm_task,
@@ -234,7 +239,7 @@ class ReportsQuerySet(models.QuerySet):
         report = self._dictfetchall(cursor)
         return report
 
-    def get_report_client_cabinet(self, agency_client_id, start_date='2021-10-01', end_date='2021-10-20'):
+    def get_report_client_cabinet(self, agency_client_id, start_date, end_date):
         cursor = connection.cursor()
         sql = f"""
             select source,
@@ -273,7 +278,7 @@ class ReportsQuerySet(models.QuerySet):
         report = self._dictfetchall(cursor)
         return report
 
-    def get_client_channel(self, agency_client_id, start_date='2021-10-01', end_date='2021-10-20'):
+    def get_client_channel(self, agency_client_id, start_date, end_date):
         cursor = connection.cursor()
         sql = f"""
             select source,
@@ -313,11 +318,13 @@ class ReportsQuerySet(models.QuerySet):
         report = self._dictfetchall(cursor)
         return report
 
-    def get_client_campaign(self, agency_client_id, start_date='2021-10-01', end_date='2021-10-20'):
+    def get_client_campaign(self, agency_client_id, start_date, end_date):
         cursor = connection.cursor()
         sql = f"""
             select source,
+                   agency_client_id,
                    campaign,
+                   campaign_id,
                    round(sum(cost_), 2) cost_,
                    sum(clicks) clicks,
                    sum(impressions) impressions,
@@ -347,7 +354,7 @@ class ReportsQuerySet(models.QuerySet):
             from cabinet_for_comagic_campaign_report
             where date between '{start_date}' and '{end_date}' and
                   agency_client_id = {agency_client_id}
-            group by agency_client_id, source, campaign
+            group by agency_client_id, source, campaign, campaign_id
         """
         cursor.execute(sql)
         report = self._dictfetchall(cursor)
@@ -368,21 +375,283 @@ class ReportsQuerySet(models.QuerySet):
         """
         cursor.execute(sql)
         report = self._dictfetchall(cursor)
-        df = pd.DataFrame(report)
-        df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
-        df_cost = df.pivot_table(index=['date'], columns=['direction'], values='cost_', aggfunc='sum')
-        df_leads = df.pivot_table(index=['date'], columns=['direction'], values='leads', aggfunc='sum')
-        print(df)
-        df_leads = df_leads.to_json(orient="split", date_format='iso')
-        df_cost = df_cost.to_json(orient="split", date_format='iso')
-        df_cost = json.loads(df_cost)
-        df_leads = json.loads(df_leads)
-        print(json.dumps(df_cost, indent=4) )
-        cost_and_leads = []
-        for d_cost, d_leads in zip(df_cost['data'], df_leads['data']):
-            cost_and_leads.append(zip(d_cost, d_leads))
-        df_cost['context'] = zip(df_cost['index'], cost_and_leads)
-        return df_cost
+        if report:
+            df = pd.DataFrame(report)
+            df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+            df_cost = df.pivot_table(index=['date'], columns=['direction'], values='cost_', aggfunc='sum')
+            df_leads = df.pivot_table(index=['date'], columns=['direction'], values='leads', aggfunc='sum')
+            df_leads = df_leads.to_json(orient="split", date_format='iso')
+            df_cost = df_cost.to_json(orient="split", date_format='iso')
+            df_cost = json.loads(df_cost)
+            df_leads = json.loads(df_leads)
+            cost_and_leads = []
+            for d_cost, d_leads in zip(df_cost['data'], df_leads['data']):
+                cost_and_leads.append(zip(d_cost, d_leads))
+            df_cost['context'] = zip(df_cost['index'], cost_and_leads)
+            return df_cost
+        else:
+            return None
+
+    def get_client_period_campaign(self, agency_client_id, p1_start_date, p1_end_date, p2_start_date, p2_end_date):
+        p1 = '{} - {}'.format(p1_start_date, p1_end_date)
+        p2 = '{} - {}'.format(p2_start_date, p2_end_date)
+        cursor = connection.cursor()
+        sql = f"""
+            select
+                period_1.p1,
+                period_2.p2,
+                period_1.campaign,
+                period_1.cost_ p1_cost_,
+                period_2.cost_ p2_cost_,
+                period_1.impressions p1_impressions,
+                period_2.impressions p2_impressions,
+                period_1.clicks p1_clicks,
+                period_2.clicks p2_clicks,
+                period_1.ctr p1_ctr,
+                period_2.ctr p2_ctr,
+                period_1.cpc p1_cpc,
+                period_2.cpc p2_cpc,
+                period_1.cr p1_cr,
+                period_2.cr p2_cr,
+                period_1.cpl p1_cpl,
+                period_2.cpl p2_cpl,
+                period_1.leads p1_leads,
+                period_2.leads p2_leads,
+                round((period_1.cost_ -
+                case
+                    when period_2.cost_ = 0 then 1
+                    else period_2.cost_
+                end) /
+                case
+                    when period_1.cost_ = 0 then 1
+                    else period_1.cost_
+                end * 100, 2) change_cost_,
+                round((period_1.impressions -
+                case
+                    when period_2.impressions = 0 then 1
+                    else period_2.impressions
+                end) /
+                case
+                    when period_1.impressions = 0 then 1
+                    else period_1.impressions
+                end * 100, 2) change_impressions,
+                round((period_1.clicks -
+                case
+                    when period_2.clicks = 0 then 1
+                    else period_2.clicks
+                end) /
+                case
+                    when period_1.clicks = 0 then 1
+                    else period_1.clicks
+                end * 100, 2) change_clicks,
+                period_1.ctr - period_2.ctr change_ctr,
+                round((period_1.cpc -
+                case
+                    when period_2.cpc = 0 then 1
+                    else period_2.cpc
+                end) /
+                case
+                    when period_1.cpc = 0 then 1
+                    else period_1.cpc
+                end * 100, 2) change_cpc,
+                period_1.cr - period_2.cr change_cr,
+                round((period_1.cpl -
+                case
+                    when period_2.cpl = 0 then 1
+                    else period_2.cpl
+                end) /
+                case
+                    when period_1.cpl = 0 then 1
+                    else period_1.cpl
+                end * 100, 2) change_cpl,
+                round((period_1.leads -
+                case
+                    when period_2.leads = 0 then 1
+                    else period_2.leads
+                end) /
+                case
+                    when period_1.leads = 0 then 1
+                    else period_1.leads
+                end * 100, 2) change_leads 
+            from
+            (
+            select
+                   '{p1}' p1,
+                   campaign,
+                   round(sum(cost_), 2) cost_,
+                   sum(clicks) clicks,
+                   sum(impressions) impressions,
+                   sum(call_leads) + sum(chat_leads) + sum(site_leads) leads,
+                   round(sum(clicks) /
+                   case
+                       when sum(impressions) = 0 then 1
+                       else sum(impressions)
+                   end * 100, 2) ctr,
+                   round(sum(cost_) /
+                   case
+                       when sum(clicks) = 0 then 1
+                       else sum(clicks)
+                   end, 2) cpc,
+                   round((sum(call_leads) + sum(chat_leads) + sum(site_leads)) /
+                   case
+                       when sum(clicks) = 0 then 1
+                       else sum(clicks)
+                   end * 100, 2) cr,
+                   round(sum(cost_) /
+                   case
+                       when (sum(call_leads) + sum(chat_leads) + sum(site_leads)) = 0 then 1
+                       else (sum(call_leads) + sum(chat_leads) + sum(site_leads))
+                   end, 2) cpl
+            from cabinet_for_comagic_campaign_report
+            where date between '{p1_start_date}' and '{p1_end_date}' and
+                  agency_client_id = {agency_client_id}
+            group by agency_client_id, campaign
+            ) period_1
+                JOIN
+            (select
+                   '{p2}' p2,
+                   campaign,
+                   round(sum(cost_), 2) cost_,
+                   sum(clicks) clicks,
+                   sum(impressions) impressions,
+                   sum(call_leads) + sum(chat_leads) + sum(site_leads) leads,
+                   round(sum(clicks) /
+                   case
+                       when sum(impressions) = 0 then 1
+                       else sum(impressions)
+                   end * 100, 2) ctr,
+                   round(sum(cost_) /
+                   case
+                       when sum(clicks) = 0 then 1
+                       else sum(clicks)
+                   end, 2) cpc,
+                   round((sum(call_leads) + sum(chat_leads) + sum(site_leads)) /
+                   case
+                       when sum(clicks) = 0 then 1
+                       else sum(clicks)
+                   end * 100, 2) cr,
+                   round(sum(cost_) /
+                   case
+                       when (sum(call_leads) + sum(chat_leads) + sum(site_leads)) = 0 then 1
+                       else (sum(call_leads) + sum(chat_leads) + sum(site_leads))
+                   end, 2) cpl
+            from cabinet_for_comagic_campaign_report
+            where date between '{p2_start_date}' and '{p2_end_date}' and
+                  agency_client_id = {agency_client_id}
+            group by agency_client_id, campaign
+            ) period_2 on period_1.campaign = period_2.campaign
+        """
+        cursor.execute(sql)
+        report = self._dictfetchall(cursor)
+        return report
+
+    def get_client_campaign_keyword(self, agency_client_id, source, campaign_id, start_date, end_date):
+        cursor = connection.cursor()
+        sql = f"""
+            select
+                   key_word,
+                   round(sum(cost_), 2) cost_,
+                   sum(clicks) clicks,
+                   sum(impressions) impressions,
+                   sum(call_leads) call_leads,
+                   sum(chat_leads) chat_leads,
+                   sum(site_leads) site_leads,
+                   round(sum(clicks) /
+                   case
+                       when sum(impressions) = 0 then 1
+                       else sum(impressions)
+                   end * 100, 2) ctr,
+                   round(sum(cost_) /
+                   case
+                       when sum(clicks) = 0 then 1
+                       else sum(clicks)
+                   end, 2) cpc,
+                   round((sum(call_leads) + sum(chat_leads) + sum(site_leads)) /
+                   case
+                       when sum(clicks) = 0 then 1
+                       else sum(clicks)
+                   end * 100, 2) cr,
+                   round(sum(cost_) /
+                   case
+                       when (sum(call_leads) + sum(chat_leads) + sum(site_leads)) = 0 then 1
+                       else (sum(call_leads) + sum(chat_leads) + sum(site_leads))
+                   end, 2) cpl
+            from cabinet_for_comagic_keyword_report
+            where date between '{start_date}' and '{end_date}' and
+                  agency_client_id = {agency_client_id} and
+                  source = '{source}' and
+                  campaign_id = '{campaign_id}'
+            group by agency_client_id, key_word
+        """
+        cursor.execute(sql)
+        report = self._dictfetchall(cursor)
+        sql = f"""
+            select distinct campaign from cabinet_for_comagic_keyword_report where
+              campaign_id = '{campaign_id}' and                                                                 
+              agency_client_id = {agency_client_id} and
+              source = '{source}'
+            """
+        cursor.execute(sql)
+        campaign_name = cursor.fetchone()[0]
+        return report, campaign_name
+
+    def get_comagic_other_report(self, agency_client_id, start_date, end_date):
+        cursor = connection.cursor()
+        sql = f"""
+            select
+                   other_leads.agency_client_id,
+                   other_leads.domain_,
+                   case
+                       when sum(other_leads.go_leads) is NULL then 0
+                       else sum(other_leads.go_leads)
+                   end go_leads,
+                   case
+                       when sum(other_leads.ya_leads) is NULL then 0
+                       else sum(other_leads.ya_leads)
+                   end ya_leads,
+                   case
+                       when sum(other_leads.other_leads) is NULL then 0
+                       else sum(other_leads.other_leads)
+                   end other_leads
+            from (
+                select
+                       co_other.agency_client_id,
+                       co_other.domain_,
+                       co_other.source_type,
+                       case
+                           when co_other.campaign = 'Визитка Google' then count(co_other.campaign)
+                       end go_leads,
+                       case
+                           when co_other.campaign = 'Визитка Яндекс' then count(co_other.campaign)
+                       end ya_leads,
+                       case
+                           when co_other.source_type = 'other' then count(co_other.source_type)
+                       end other_leads,
+                       co_other.date
+                from
+                (
+                select ag_cl.id agency_client_id,
+                       cdr.site_domain_name domain_,
+                       case
+                           when cr.campaign_name = 'Визитка Googke' then 'Визитка Google'
+                           else cr.campaign_name
+                       end campaign,
+                       cr.source_type,
+                       cr.date
+                from agency_clients ag_cl
+                left join comagic_api_token co_api on ag_cl.call_tracker_object_id = co_api.id
+                left join comagic_report cr on co_api.id = cr.api_client_id
+                left join comagic_domain_report cdr on cr.site_domain_name_id = cdr.id
+                where cr.source_type in ('cutaways', 'other')
+                ) co_other
+                group by co_other.agency_client_id, co_other.domain_, co_other.source_type, co_other.campaign, co_other.date
+            ) other_leads
+            where other_leads.date between '{start_date}' and '{end_date}' and other_leads.agency_client_id = {agency_client_id}
+            group by other_leads.agency_client_id, other_leads.domain_
+        """
+        cursor.execute(sql)
+        report = self._dictfetchall(cursor)
+        return report
 
 
 class Reports(AgencyClients):

@@ -185,7 +185,8 @@
                                     {% for line in report_client_campaign %}
                                     <tr>
                                         <td>{{ line.source }}</td>
-                                        <td><a href="#" class="text-decoration-none text-body">{{ line.campaign }}</a></td>
+                                        <td><a href="{% url 'dashboard:report_keyword_view' client_id=line.agency_client_id campaign_id=line.campaign_id src=line.source start_date=start_date end_date=end_date %}"
+                                               class="text-decoration-none text-body">{{ line.campaign }}</a></td>
                                         <td>{{ line.cost_ }}</td>
                                          <td>{{ line.impressions }}</td>
                                          <td>{{ line.clicks }}</td>
@@ -238,11 +239,40 @@
                                                 <td>{{ costs }}</td>
                                                 <td>{{ leads|floatformat }}</td>
                                         {% endfor %}
-
-
-
                                     </tr>
                                  {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                   Статистика "Comagic other"
+                </div>
+                 <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Domain</th>
+                                        <th>Визитка Yandex</th>
+                                        <th>Визитка Google</th>
+                                        <th>Other</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for line in comagic_other_report %}
+                                        <tr>
+                                            <td>{{ line.domain_ }}</td>
+                                            <td>{{ line.ya_leads }}</td>
+                                            <td>{{ line.go_leads }}</td>
+                                            <td>{{ line.other_leads }}</td>
+                                        </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -256,62 +286,104 @@
                 </div>
                  <div class="card-body">
                      <div class="row mt-2 mb-4">
-                        <div class="col-md-2 offset-md-8">
-                            <input type="text" name="daterange" value="01/01/2018 - 01/15/2018" />
+                        <div class="col-md-2">
+                            <input type="text" name="period1" value="" />
                         </div>
                          <div class="col-md-2">
-                            <input type="text" name="daterange" value="01/01/2018 - 01/15/2018" />
+                            <input type="text" name="period2" value="" />
                         </div>
+                         <div class="col-md-1">
+                             <button class="btn btn-primary btn-sm" id="period-button">Применить</button>
+                         </div>
                     </div>
-                    <div class="row">
+                    <div class="row mb-4">
                         <div class="col-md-12">
-                            <table  class="datatable display">
+                            <table class="period-table">
                                 <thead>
-                                     </tr>
-                                        <th>Period</th>
-                                        <th>Campaign</th>
-                                        <th>Cost</th>
-                                        <th>Impressions</th>
-                                        <th>Clicks</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                        <th>Call</th>
-                                        <th>Chat</th>
-                                        <th>Site</th>
+                                     <tr style="background-color: rgba(51, 51, 51, 0.2)">
+                                        <th data-sortable="false">Campaign</th>
+                                        <th data-sortable="false">Period</th>
+                                        <th data-sortable="false">Cost</th>
+                                        <th data-sortable="false">Impressions</th>
+                                        <th data-sortable="false">Clicks</th>
+                                        <th data-sortable="false">CTR</th>
+                                        <th data-sortable="false">CPC</th>
+                                        <th data-sortable="false">CR</th>
+                                        <th data-sortable="false">CPL</th>
+                                        <th data-sortable="false">Leads</th>
                                     </tr>
                                 </thead>
 
                                 <tbody>
-                                    <tr>
-                                        <td>2021-10-01 - 2021-10-19</td>
-                                        <td><a href="#" class="text-decoration-none text-body">brand_search</a></td>
-                                        <td>0</td>
-                                         <td>3</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
+                                    {% for line in report_client_period_campaign %}
+                                    <tr style="background-color: rgba(204, 204, 204, 0.2)">
+                                        <td rowspan="2">{{ line.campaign }}</td>
+                                        <td>{{ line.p1 }}</td>
+                                        <td>{{ line.p1_cost_ }}</td>
+                                        <td>{{ line.p1_impressions }}</td>
+                                        <td>{{ line.p1_clicks }}</td>
+                                        <td>{{ line.p1_ctr }}%</td>
+                                        <td>{{ line.p1_cpc }}</td>
+                                        <td>{{ line.p1_cr }}%</td>
+                                        <td>{{ line.p1_cpl }}</td>
+                                        <td>{{ line.p1_leads }}</td>
                                     </tr>
-                                    <tr>
-                                        <td>2021-9-19 - 2021-10-01</td>
-                                        <td><a href="#" class="text-decoration-none text-body">brand_search</a></td>
-                                        <td>0</td>
-                                         <td>7</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
+                                    <tr style="background-color: rgba(153, 153, 153, 0.2)">
+                                        <td>{{ line.p2 }}</td>
+                                        <td>{{ line.p2_cost_ }}</td>
+                                        <td>{{ line.p2_impressions }}</td>
+                                        <td>{{ line.p2_clicks }}</td>
+                                        <td>{{ line.p2_ctr }}%</td>
+                                        <td>{{ line.p2_cpc }}</td>
+                                        <td>{{ line.p2_cr }}%</td>
+                                        <td>{{ line.p2_cpl }}</td>
+                                        <td>{{ line.p2_leads }}</td>
                                     </tr>
+                                    <tr style="background-color: rgba(153, 204, 153, 0.2)" >
+                                        <td></td>
+                                        <td></td>
+                                        {% if line.change_cost_ < 0 %}
+                                            <td class="text-danger">{{ line.change_cost_ }}%</td>
+                                        {% else %}
+                                            <td>{{ line.change_cost_ }}%</td>
+                                        {% endif %}
+                                        {% if line.change_impressions < 0 %}
+                                            <td class="text-danger">{{ line.change_impressions }}%</td>
+                                        {% else %}
+                                            <td>{{ line.change_impressions }}%</td>
+                                        {% endif %}
+                                        {% if line.change_clicks < 0 %}
+                                            <td class="text-danger">{{ line.change_clicks }}%</td>
+                                        {% else %}
+                                            <td>{{ line.change_clicks }}%</td>
+                                        {% endif %}
+                                        {% if line.change_ctr < 0 %}
+                                            <td class="text-danger">{{ line.change_ctr }}%</td>
+                                        {% else %}
+                                            <td>{{ line.change_ctr }}%</td>
+                                        {% endif %}
+                                        {% if line.change_cpc < 0 %}
+                                            <td class="text-danger">{{ line.change_cpc }}%</td>
+                                        {% else %}
+                                            <td>{{ line.change_cpc }}%</td>
+                                        {% endif %}
+                                        {% if line.change_cr < 0 %}
+                                            <td class="text-danger">{{ line.change_cr }}%</td>
+                                        {% else %}
+                                            <td>{{ line.change_cr }}%</td>
+                                        {% endif %}
+                                        {% if line.change_cpl < 0 %}
+                                            <td class="text-danger">{{ line.change_cpl }}%</td>
+                                        {% else %}
+                                            <td>{{ line.change_cpl }}%</td>
+                                        {% endif %}
+                                        {% if line.change_leads < 0 %}
+                                            <td class="text-danger">{{ line.change_leads }}%</td>
+                                        {% else %}
+                                            <td>{{ line.change_leads }}%</td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -335,10 +407,55 @@ $(function() {
     let path_name = currentLocation.pathname
     start_date = start.format('YYYY-MM-DD')
     end_date = end.format('YYYY-MM-DD')
-    url = origin + path_name + '?start_date='+start_date+'&end_date='+end_date+'/'
+    url = origin + path_name + '?start_date='+start_date+'&end_date='+end_date
     document.location.href = url
-    console.log("A new date selection was made: " + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
   });
 });
+$(function() {
+    let p1_start_date = ''
+    let p2_start_date = ''
+    let p1_end_date = ''
+    let p2_end_date = ''
+  $('input[name="period1"]').daterangepicker({
+    opens: 'center',
+    drops: 'up'
+  }, function(start, end, label) {
+        p1_start_date = start
+        p1_end_date = end
+  });
+
+  $('input[name="period2"]').daterangepicker({
+    opens: 'center',
+    drops: 'up'
+  }, function(start, end, label) {
+        p2_start_date = start
+        p2_end_date = end
+  });
+  document.getElementById("period-button").addEventListener("click", function(e){
+    console.log(p1_start_date)
+    console.log(p2_start_date)
+    if(new Date(p1_start_date) >= new Date(p2_start_date)){
+        alert('Период 1 не может быть больше либо равен период 2')
+        return;
+    }
+
+    let currentLocation = window.location
+    const url_old = new URL(currentLocation.href)
+    st_date = 'start_date=' + url_old.searchParams.get('start_date') + '&'
+    en_date = 'end_date=' + url_old.searchParams.get('end_date')
+    console.log(st_date)
+    let origin = currentLocation.origin
+    let path_name = currentLocation.pathname
+    const url = new URL(
+        origin + path_name + '?' + st_date + en_date +
+        '&p1_start_date=' + p1_start_date.format('YYYY-MM-DD') +
+        '&p1_end_date=' + p1_end_date.format('YYYY-MM-DD') +
+        '&p2_start_date=' + p2_start_date.format('YYYY-MM-DD') +
+        '&p2_end_date=' + p2_end_date.format('YYYY-MM-DD')
+    )
+    document.location.href = url
+    })
+});
+
 </script>
 {% endblock %}

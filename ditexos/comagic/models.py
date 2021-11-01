@@ -42,6 +42,8 @@ class ComagicReport(models.Model):
         ('call', 'Звонок'),
         ('chat', 'Чат'),
         ('site', 'Сайт'),
+        ('cutaways', 'Визитки'),
+        ('other', 'Другие лиды'),
     )
     source_type = models.CharField(max_length=10, choices=SOURCE, verbose_name='Источник заявки')
     api_client = models.ForeignKey(ApiToken, on_delete=models.CASCADE)

@@ -5,7 +5,14 @@
         <div class="container-fluid px-4">
             <div class="row mt-4">
                 <div class="col-md-12">
-                    <h3 class="text-center">brand_search</h3>
+                    <h3 class="text-center">{{ campaign_name }}</h3>
+                </div>
+            </div>
+            <div class="row mt-2 mb-4">
+                <div class="col-md-2 offset-md-10">
+                    <form method="get">
+                        <input type="text" name="daterange" value="" />
+                    </form>
                 </div>
             </div>
             <div class="card mt-4">
@@ -30,61 +37,22 @@
                                         <th>Site</th>
                                     </tr>
                                 </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>KeyWord</th>
-                                        <th>Cost</th>
-                                        <th>Impressions</th>
-                                        <th>Clicks</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                        <th>Call</th>
-                                        <th>Chat</th>
-                                        <th>Site</th>
-                                    </tr>
-                                </tfoot>
                                 <tbody>
-                                    <tr>
-                                        <td>hjfasdgf+ dsfsdf+ sddf</td>
-                                        <td>0</td>
-                                         <td>0</td>
-                                         <td>2</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                    </tr>
-                                    <tr>
-                                        <td>weqrweqr + dsfsdf</td>
-                                        <td>0</td>
-                                         <td>0</td>
-                                         <td>7</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                    </tr>
-                                    <tr>
-                                        <td>weqrqwerq + gfdsg</td>
-                                        <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>3</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                         <td>0</td>
-                                    </tr>
+                                    {% for line in client_campaign_keyword %}
+                                        <tr>
+                                            <td>{{ line.key_word }}</td>
+                                            <td>{{ line.cost_ }}</td>
+                                            <td>{{ line.impressions }}</td>
+                                            <td>{{ line.clicks }}</td>
+                                            <td>{{ line.ctr }}</td>
+                                            <td>{{ line.cpc }}</td>
+                                            <td>{{ line.cr }}</td>
+                                            <td>{{ line.cpl }}</td>
+                                            <td>{{ line.call_leads }}</td>
+                                            <td>{{ line.chat_leads }}</td>
+                                            <td>{{ line.site_leads }}</td>
+                                        </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                 </div>
@@ -92,4 +60,25 @@
         </div>
     </main>
 </div>
+{% endblock %}
+{% block script %}
+<script>
+$(function() {
+  $('input[name="daterange"]').daterangepicker({
+    opens: 'left'
+  }, function(start, end, label) {
+    let currentLocation = window.location
+    let origin = currentLocation.origin
+    let path_name = currentLocation.pathname
+    start_date = start.format('YYYY-MM-DD')
+    end_date = end.format('YYYY-MM-DD')
+    path_name = path_name.replace(/&start_date=\d+-\d+-\d+&/, '');
+    path_name = path_name.replace(/end_date=\d+-\d+-\d+/, '');
+    const url = new URL(
+        origin + path_name + '&' + 'start_date=' + start_date + '&end_date=' + end_date
+    )
+    document.location.href = url
+  });
+});
+</script>
 {% endblock %}

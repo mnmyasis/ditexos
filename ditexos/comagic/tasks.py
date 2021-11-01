@@ -182,3 +182,123 @@ def get_site_report(api_token_id, v='2.0', start_date=None, end_date=None):
             )
             obj.attributes.set(attrs, clear=True)
     return 'Success update site_reports for id {}'.format(api_token.pk)
+
+
+@shared_task(name='comagic_cutaways_reports')
+def get_cutaways_report(api_token_id, v='2.0', start_date=None, end_date=None):
+    api_token = ApiToken.objects.get(pk=api_token_id)
+    offset = 0
+    limit = 10000
+    end = True
+    while end:
+        report, offset, end = comagic_api.send_cutaways_report(
+            token=api_token.token,
+            hostname=api_token.hostname,
+            v=v,
+            start_date=start_date,
+            end_date=end_date,
+            offset=offset,
+            limit=limit
+        )
+        for line in report.iloc:
+            attrs = []
+            for attr in line.attributes:
+                obj, status = AttributesReport.objects.get_or_create(
+                    name=attr,
+                    defaults={
+                        'name': attr
+                    }
+                )
+                attrs.append(obj)
+            obj_site_domain_name, status = DomainReport.objects.get_or_create(
+                site_id=line.site_id,
+                defaults={
+                    'site_id': line.site_id,
+                    'site_domain_name': line.site_domain_name
+                }
+            )
+            obj, created = ComagicReport.objects.update_or_create(
+                api_client=api_token,
+                id_operation=line.id,
+                site_domain_name=obj_site_domain_name,
+                defaults={
+                    'api_client': api_token,
+                    'contact_phone_number': line.contact_phone_number,
+                    'gclid': line.gclid,
+                    'yclid': line.yclid,
+                    'ymclid': line.ymclid,
+                    'campaign_name': line.campaign_name,
+                    'campaign_id': line.campaign_id,
+                    'utm_source': line.utm_source,
+                    'utm_medium': line.utm_medium,
+                    'utm_term': line.utm_term,
+                    'utm_campaign': line.utm_campaign,
+                    'id_operation': line.id,
+                    'source_type': 'cutaways',
+                    'site_domain_name': obj_site_domain_name,
+                    'date': datetime.datetime.strptime(line.start_time, '%Y-%m-%d %H:%M:%S').strftime("%Y-%m-%d")
+                }
+
+            )
+            obj.attributes.set(attrs, clear=True)
+    return 'Success update cutaways_reports for id {}'.format(api_token.pk)
+
+
+@shared_task(name='comagic_other_reports')
+def get_other_report(api_token_id, v='2.0', start_date=None, end_date=None):
+    api_token = ApiToken.objects.get(pk=api_token_id)
+    offset = 0
+    limit = 10000
+    end = True
+    while end:
+        report, offset, end = comagic_api.send_other_report(
+            token=api_token.token,
+            hostname=api_token.hostname,
+            v=v,
+            start_date=start_date,
+            end_date=end_date,
+            offset=offset,
+            limit=limit
+        )
+        for line in report.iloc:
+            attrs = []
+            for attr in line.attributes:
+                obj, status = AttributesReport.objects.get_or_create(
+                    name=attr,
+                    defaults={
+                        'name': attr
+                    }
+                )
+                attrs.append(obj)
+            obj_site_domain_name, status = DomainReport.objects.get_or_create(
+                site_id=line.site_id,
+                defaults={
+                    'site_id': line.site_id,
+                    'site_domain_name': line.site_domain_name
+                }
+            )
+            obj, created = ComagicReport.objects.update_or_create(
+                api_client=api_token,
+                id_operation=line.id,
+                site_domain_name=obj_site_domain_name,
+                defaults={
+                    'api_client': api_token,
+                    'contact_phone_number': line.contact_phone_number,
+                    'gclid': line.gclid,
+                    'yclid': line.yclid,
+                    'ymclid': line.ymclid,
+                    'campaign_name': line.campaign_name,
+                    'campaign_id': line.campaign_id,
+                    'utm_source': line.utm_source,
+                    'utm_medium': line.utm_medium,
+                    'utm_term': line.utm_term,
+                    'utm_campaign': line.utm_campaign,
+                    'id_operation': line.id,
+                    'source_type': 'other',
+                    'site_domain_name': obj_site_domain_name,
+                    'date': datetime.datetime.strptime(line.start_time, '%Y-%m-%d %H:%M:%S').strftime("%Y-%m-%d")
+                }
+
+            )
+            obj.attributes.set(attrs, clear=True)
+    return 'Success update other_reports for id {}'.format(api_token.pk)
