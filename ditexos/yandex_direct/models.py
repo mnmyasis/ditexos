@@ -9,7 +9,7 @@ from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 
 class YandexDirectToken(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='yandex_token_user')
     access_token = models.TextField()
     refresh_token = models.TextField()
 
@@ -25,22 +25,10 @@ class YandexDirectToken(models.Model):
         arguments = [self.user.pk]
         PeriodicTask.objects.get_or_create(
             interval=schedule,
-            name='{}-{}'.format(task_name, self.id),
+            name='{}-{}'.format(task_name, self.user.pk),
             task=task_name,
             args=json.dumps(arguments)
         )
-
-    def get_periodic_task(self, task_name):
-        periodic_task = PeriodicTask.objects.get(
-            name='{}-{}'.format(task_name, self.id),
-            task=task_name,
-        )
-        return periodic_task
-
-    def sync_disable_enable_task(self, task_name, status):
-        periodic_task = self.get_periodic_task(task_name)
-        periodic_task.enabled = status
-        periodic_task.save()
 
     def __str__(self):
         return self.user.email

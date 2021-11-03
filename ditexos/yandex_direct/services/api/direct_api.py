@@ -115,6 +115,12 @@ class YandexDirect:
                     print("RequestId: {}".format(req.headers.get("RequestId", False)))
                     sleep(retry_in)
                 elif req.status_code == 500:
+                    print("Нет прав для доступа в агентский сервис")
+                    print("RequestId: {}".format(req.headers.get("RequestId", False)))
+                    print("JSON-код ответа сервера: \n{}".format(self.u(req.json())))
+                    self.ERROR = self.u(req.json())
+                    break
+                elif req.status_code == 54:
                     print("При формировании отчета произошла ошибка. Пожалуйста, попробуйте повторить запрос позднее.")
                     print("RequestId: {}".format(req.headers.get("RequestId", False)))
                     print("JSON-код ответа сервера: \n{}".format(self.u(req.json())))
@@ -148,7 +154,6 @@ class YandexDir:
 
     def get(self, yandex_build):
         yandex_build.set_api_url(yandex_build.api_url)
-        print(yandex_build.client_login)
         yandex_build.set_headers(token=yandex_build.token, client_login=yandex_build.client_login)
         yandex_build.set_body(field_names=yandex_build.fields_name, selection_criteria=yandex_build.selection_criteria)
         yandex_build.get_body()
@@ -167,6 +172,9 @@ class AgencyClients(YandexDirect):
         self.token = token
         self.fields_name = ["ClientId", "ClientInfo", "Login"]
         self.api_url = self.YANDEX_API_URL + 'agencyclients'
+
+    def set_sandbox(self):
+        self.api_url = self.YANDEX_API_URL_SANDBOX + 'agencyclients'
 
     def get_result(self):
         return self.RESULT.json()

@@ -36,7 +36,7 @@ def clients(user_id):
 
 
 @shared_task(name='get_google_reports')
-def get_reports_test(user_id=1, client_google_id=None, start_date=None, end_date=None):
+def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
     google_ads_token = GoogleAdsToken.objects.get(user__pk=user_id)
     credentials = {
         "developer_token": os.environ.get('GOOGLE_DEVELOPER_TOKEN'),

@@ -1,4 +1,5 @@
 {% extends 'index.html' %}
+{% load static %}
 {% block content %}
 <div id="layoutSidenav_content">
     <main>
@@ -8,6 +9,7 @@
                     <h3 class="text-center">Клиенты агентства</h3>
                 </div>
             </div>
+            {% if clients %}
             <div class="card mt-4">
                 <div class="card-header">
                     <i class="fas fa-table me-1"></i>
@@ -28,10 +30,18 @@
                                 <tbody>
                                     {% for client in clients %}
                                     <tr>
-                                        <td><a href="{% url 'dashboard:client_detail_report_view' client_id=client.pk %}" class="text-decoration-none text-body">{{ client.name }}</a></td>
+                                        <td>
+                                            <a href="{% url 'dashboard:client_detail_report_view' client_id=client.pk %}"
+                                               class="text-decoration-none text-body">{{ client.name }}</a>
+                                        </td>
                                         <td>{{ client.google_cost }}</td>
                                         <td>{{ client.yandex_cost }}</td>
                                         <td>{{ client.leads }}</td>
+                                        <td class="d-flex justify-content-center">
+                                            <a class="btn btn-outline-danger" href="{% url 'dashboard:client_delete' pk=client.pk %}">
+                                                <img src="{% static 'images/svg/trash.svg' %}">
+                                            </a>
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -40,6 +50,19 @@
                     </div>
                 </div>
             </div>
+            {% else %}
+                <div class="card text-center mt-4">
+                  <div class="card-header">
+                  </div>
+                  <div class="card-body">
+                    <h5 class="card-title">У вас еще не создано не одного клиента</h5>
+                    <p class="card-text">Чтобы создать клиента для сквозной аналитики перейдите по ссылке</p>
+                    <a href="{% url 'dashboard:add_client' %}" class="btn btn-primary">Перейти</a>
+                  </div>
+                  <div class="card-footer text-muted">
+                  </div>
+                </div>
+            {% endif %}
         </div>
     </main>
 </div>

@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.urls import reverse
+
 from .services.api.calltouch_api import send
 from .models import Reports, ApiToken
 from django.views.generic.edit import CreateView, UpdateView
@@ -7,18 +9,6 @@ from dashboard.models import AgencyClients
 
 
 # Create your views here.
-def test_call(request):
-    rep = Reports.objects.all()
-    context = {'context': rep}
-    return render(request, 'calltouch/test_stats.html', context)
-
-
-def test(request):
-    call = ApiToken.objects.get(user=request.user.pk)
-    require, page = send(token=call.token, site_id=call.site_id)
-    return render(request, 'calltouch/test_stats_old.html', {'require': require})
-
-
 class CallTouchFormCreateView(CreateView):
     model = ApiToken
     template_name = 'calltouch/calltouch_create_form.html'
@@ -39,6 +29,9 @@ class CallTouchFormCreateView(CreateView):
         ac.call_tracker_object = self.object
         ac.save()
         return f
+
+    def get_success_url(self):
+        return reverse('dashboard:report_clients_view')
 
 
 class CallTouchFormUpdateView(UpdateView):

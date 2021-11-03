@@ -1,6 +1,8 @@
 import os
 from django.contrib.auth import get_user_model
 from django.shortcuts import render, redirect
+from django.views.generic import DeleteView
+
 from .services.api.direct_api import YandexDir, AgencyClients, Campaigns, Reports, token
 from .models import YandexDirectToken
 
@@ -9,51 +11,38 @@ from .models import YandexDirectToken
 
 def get_token(request):
     custom_user = get_user_model()
-    user = custom_user.objects.get(email=request.GET.get('state'))
+    user_email = custom_user.objects.get(email=request.GET.get('state'))
     code = request.GET.get('code')
     req = token(code)
     access_token = req.get('access_token')
     refresh_token = req.get('refresh_token')
     obj, created = YandexDirectToken.objects.update_or_create(
-        user=user,
+        user=user_email,
         defaults={
-            'user': user,
+            'user': user_email,
             'access_token': access_token,
             'refresh_token': refresh_token
         }
     )
     obj.set_periodic_task('yandex_clients')
-    #obj.set_periodic_task('yandex_reports')
-    return redirect('yandex_direct:reports')
+    return redirect('yandex_direct:allow_access')
 
 
-def get_agency_clients(request):
-    agency_clients = AgencyClients(token=YandexDirectToken.objects.get(user__pk=request.user.pk).access_token)
-    yandex_dir = YandexDir()
-    yandex_dir.get(agency_clients)
-    require = agency_clients.get_result()
-    return render(request, 'yandex_direct/agency_clients.html', {'require': require})
-
-
-def get_campaigns(request, login_client):
-    client_campaigns = Campaigns(token=YandexDirectToken.objects.get(user__pk=request.user.pk).access_token,
-                                 client_login=login_client)
-    yandex_dir = YandexDir()
-    yandex_dir.get(client_campaigns)
-    require = client_campaigns.get_result()
-    return render(request, 'yandex_direct/compaigns.html', {'require': require})
-
-
-def statistic_test(request):
+def allow_access(request):
     client_id = os.environ.get('YANDEX_CLIENT_ID')
-    try:
-        reports = Reports(token=YandexDirectToken.objects.get(user__pk=request.user.pk).access_token,
-                          client_login='sbx-mnmyasAVBK5u')
-    except YandexDirectToken.DoesNotExist:
-        response = render(request, 'yandex_direct/statistic_test.html', {'client_id': client_id})
-        response.set_cookie(key='id', value=1)
-        return response
-    yandex_dir = YandexDir()
-    require = yandex_dir.get(reports)
+    context = {
+        'is_token': request.user.yandex_token_user.all().first().pk,
+        'client_id': client_id
+    }
+    response = render(request, 'yandex_direct/allow_access.html', context)
+    #response.set_cookie(key='id', value=1)
+    return response
 
-    return render(request, 'yandex_direct/statistic_test.html', {'require': require, 'client_id': client_id})
+
+class DeleteTokenView(DeleteView):
+    model = YandexDirectToken
+    template_name = 'yandex_direct/delete.html'
+    context_object_name = 'context'
+
+    def get_success_url(self):
+        return redirect('yandex_direct:allow_access')

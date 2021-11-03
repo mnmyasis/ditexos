@@ -7,7 +7,11 @@ from django.urls import reverse_lazy
 from django.db import connection
 import yandex_direct
 import google_ads
-import calltouch
+from calltouch import tasks as calltouch_task
+from yandex_direct import tasks as yandex_task
+from google_ads import tasks as google_task
+from comagic import tasks as comagic_task
+
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 import json, datetime
 from dateutil.relativedelta import relativedelta
@@ -59,6 +63,9 @@ class AgencyClients(models.Model):
                                       on_delete=models.CASCADE,
                                       verbose_name='Логин клиента в google ads')
 
+    def __get_user_id(self):
+        return self.pk
+
     def get_or_create_interval(self):
         schedule, created = IntervalSchedule.objects.get_or_create(
             every=60,
@@ -76,7 +83,7 @@ class AgencyClients(models.Model):
         )
         return task
 
-    def history_report_one_off(self, task_name, arguments=dict):
+    def history_report_one_off(self, task_func, arguments=dict):
         d = datetime.datetime.now()
         start_date = (d - relativedelta(months=2)).strftime('%Y-%m-%d')
         end_date = d.strftime('%Y-%m-%d')
@@ -87,13 +94,14 @@ class AgencyClients(models.Model):
                 'end_date': end_date
             }
         )
-        task = self.set_periodic_task(
+        '''task = self.set_periodic_task(
             task_name=task_name,
             name='{}-history-report'.format(task_name),
             arguments=arguments
         )
         task.one_off = True
-        task.save()
+        task.save()'''
+        task_func.delay(**arguments)
 
     def update_report(self, task_name, arguments=dict):
         d = datetime.datetime.now()
@@ -121,7 +129,7 @@ class AgencyClients(models.Model):
             if self.call_tracker_type == 'cl':
                 """Одноразовый сбор статастики за 3 месяца(колточа)"""
                 self.history_report_one_off(
-                    task_name='calltouch_reports',
+                    task_func=calltouch_task.report,
                     arguments={
                         'api_token_id': self.call_tracker_object.pk
                     }
@@ -135,14 +143,19 @@ class AgencyClients(models.Model):
                 )
             elif self.call_tracker_type == 'co_m':
                 """Одноразовый сбор статастики за 3 месяца(comagic)"""
-                comagic_tasks = ['comagic_call_reports',
-                                 'comagic_chat_reports',
-                                 'comagic_site_reports',
-                                 'comagic_cutaways_reports',
-                                 'comagic_other_reports']
-                for cm_task in comagic_tasks:
+                comagic_tasks = [comagic_task.get_call_report,
+                                 comagic_task.get_chat_report,
+                                 comagic_task.get_site_report,
+                                 comagic_task.get_cutaways_report,
+                                 comagic_task.get_other_report]
+                comagic_name = ['comagic_call_reports',
+                                'comagic_chat_reports',
+                                'comagic_site_reports',
+                                'comagic_cutaways_reports',
+                                'comagic_other_reports']
+                for cm_task, cm_name in zip(comagic_tasks, comagic_name):
                     self.history_report_one_off(
-                        task_name=cm_task,
+                        task_func=cm_task,
                         arguments={
                             'api_token_id': self.call_tracker_object.pk,
                             'v': '2.0'
@@ -150,7 +163,7 @@ class AgencyClients(models.Model):
                     )
                     """Переодинческие задачи для обновления статистики(comagic)"""
                     self.update_report(
-                        task_name=cm_task,
+                        task_name=cm_name,
                         arguments={
                             'api_token_id': self.call_tracker_object.pk,
                             'v': '2.0'
@@ -161,14 +174,14 @@ class AgencyClients(models.Model):
 
         """Одноразовый запуск для сбора статистики за 3 месяца(яндекс, гугл)"""
         self.history_report_one_off(
-            task_name='get_yandex_reports',
+            task_func=yandex_task.get_reports,
             arguments={
                 'user_id': self.user.pk,
                 'yandex_client_id': self.yandex_client.client_id
             }
         )
         self.history_report_one_off(
-            task_name='get_google_reports',
+            task_func=google_task.reports,
             arguments={
                 'user_id': self.user.pk,
                 'client_google_id': self.google_client.google_id
@@ -190,6 +203,10 @@ class AgencyClients(models.Model):
                 'client_google_id': self.google_client.google_id
             }
         )
+
+    def delete(self, using=None, keep_parents=False):
+        PeriodicTask.objects.filter(name__regex=f'-{self.pk}').delete()
+        super().delete(using, keep_parents)
 
     class Meta:
         db_table = 'agency_clients'
@@ -389,6 +406,30 @@ class ReportsQuerySet(models.QuerySet):
                 cost_and_leads.append(zip(d_cost, d_leads))
             df_cost['context'] = zip(df_cost['index'], cost_and_leads)
             return df_cost
+        else:
+            return None
+
+    def get_direction_for_export(self, agency_client_id, start_date, end_date):
+        cursor = connection.cursor()
+        sql = f"""
+            select
+                   direction,
+                   date,
+                   round(sum(cost_), 2) cost_,
+                   sum(call_leads) + sum(chat_leads) + sum(site_leads) leads
+            from cabinet_for_comagic_campaign_report
+            where date between '{start_date}' and '{end_date}' and
+                  agency_client_id = {agency_client_id}
+            group by agency_client_id, date, direction
+        """
+        cursor.execute(sql)
+        report = self._dictfetchall(cursor)
+        if report:
+            df = pd.DataFrame(report)
+            df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+            df_direction = df.pivot_table(index=['date'], columns=['direction'], values=['cost_', 'leads'],
+                                          aggfunc='sum')
+            return df_direction.swaplevel(0, 1, axis=1).sort_index(axis=1)
         else:
             return None
 

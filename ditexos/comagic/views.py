@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
 from .models import ApiToken, ComagicReport
 from .forms import ComagicCreateForm
@@ -27,6 +28,9 @@ class ComagicFormCreateView(CreateView):
         ac.call_tracker_object = self.object
         ac.save()
         return f
+
+    def get_success_url(self):
+        return reverse_lazy('dashboard:report_clients_view')
 
 
 class ComagicFormUpdateView(UpdateView):

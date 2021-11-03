@@ -47,7 +47,7 @@ class ApiToken(models.Model):
         periodic_task.save()
 
     def __str__(self):
-        return '{} - {}'.format(self.user.email, self.site_id)
+        return '{} - {} - {}'.format(self.user.email, self.site_id, self.pk)
 
     class Meta:
         db_table = 'calltouch_api_token'

@@ -6,7 +6,7 @@ from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 
 class GoogleAdsToken(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='google_token_user')
     access_token = models.TextField()
     refresh_token = models.TextField()
 
@@ -25,29 +25,17 @@ class GoogleAdsToken(models.Model):
         arguments = [self.user.pk]
         PeriodicTask.objects.get_or_create(
             interval=schedule,
-            name='{}-{}'.format(task_name, self.pk),
+            name='{}-{}'.format(task_name, self.user.pk),
             task=task_name,
             args=json.dumps(arguments)
         )
-
-    def get_periodic_task(self, task_name):
-        periodic_task = PeriodicTask.objects.get(
-            name='{}-{}'.format(task_name, self.pk),
-            task=task_name,
-        )
-        return periodic_task
-
-    def sync_disable_enable_task(self, task_name, status):
-        periodic_task = self.get_periodic_task(task_name)
-        periodic_task.enabled = status
-        periodic_task.save()
 
     class Meta:
         db_table = 'google_ads_token'
 
 
 class Clients(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='google_clients')
     name = models.CharField(max_length=250)
     google_id = models.CharField(max_length=250)
     last_update = models.DateTimeField(auto_now=True)

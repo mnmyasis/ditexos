@@ -9,9 +9,13 @@
                 </div>
             </div>
             <div class="row mt-2 mb-4">
-                <div class="col-md-2 offset-md-10">
+                <div class="col-md-2">
+                    <button type="submit"  class="btn btn-success" id="btn-export-excel">
+                        EXPORT EXCEL</button>
+                </div>
+                <div class="col-md-2 offset-md-8">
                     <form method="get">
-                        <input type="text" name="daterange" value="" />
+                        <input type="text" name="daterange" value="{{start_date}} - {{end_date}}" />
                     </form>
                 </div>
             </div>
@@ -287,10 +291,10 @@
                  <div class="card-body">
                      <div class="row mt-2 mb-4">
                         <div class="col-md-2">
-                            <input type="text" name="period1" value="" />
+                            <input type="text" name="period1" value="{{p1_start_date}} - {{p1_end_date}}" />
                         </div>
                          <div class="col-md-2">
-                            <input type="text" name="period2" value="" />
+                            <input type="text" name="period2" value="{{p2_start_date}} - {{p2_end_date}}" />
                         </div>
                          <div class="col-md-1">
                              <button class="btn btn-primary btn-sm" id="period-button">Применить</button>
@@ -400,7 +404,10 @@
 <script>
 $(function() {
   $('input[name="daterange"]').daterangepicker({
-    opens: 'left'
+    opens: 'left',
+    locale: {
+            format: 'YYYY-MM-DD'
+        }
   }, function(start, end, label) {
     let currentLocation = window.location
     let origin = currentLocation.origin
@@ -418,23 +425,29 @@ $(function() {
     let p2_end_date = ''
   $('input[name="period1"]').daterangepicker({
     opens: 'center',
-    drops: 'up'
+    drops: 'up',
+    locale: {
+            format: 'YYYY-MM-DD'
+        }
   }, function(start, end, label) {
-        p1_start_date = start
-        p1_end_date = end
+        p1_start_date = start.format('YYYY-MM-DD')
+        p1_end_date = end.format('YYYY-MM-DD')
   });
 
   $('input[name="period2"]').daterangepicker({
     opens: 'center',
-    drops: 'up'
+    drops: 'up',
+    locale: {
+            format: 'YYYY-MM-DD'
+        }
   }, function(start, end, label) {
-        p2_start_date = start
-        p2_end_date = end
+        p2_start_date = start.format('YYYY-MM-DD')
+        p2_end_date = end.format('YYYY-MM-DD')
   });
   document.getElementById("period-button").addEventListener("click", function(e){
     console.log(p1_start_date)
     console.log(p2_start_date)
-    if(new Date(p1_start_date) >= new Date(p2_start_date)){
+    if(new Date(p1_end_date) >= new Date(p2_start_date)){
         alert('Период 1 не может быть больше либо равен период 2')
         return;
     }
@@ -448,14 +461,19 @@ $(function() {
     let path_name = currentLocation.pathname
     const url = new URL(
         origin + path_name + '?' + st_date + en_date +
-        '&p1_start_date=' + p1_start_date.format('YYYY-MM-DD') +
-        '&p1_end_date=' + p1_end_date.format('YYYY-MM-DD') +
-        '&p2_start_date=' + p2_start_date.format('YYYY-MM-DD') +
-        '&p2_end_date=' + p2_end_date.format('YYYY-MM-DD')
+        '&p1_start_date=' + p1_start_date +
+        '&p1_end_date=' + p1_end_date +
+        '&p2_start_date=' + p2_start_date +
+        '&p2_end_date=' + p2_end_date
     )
     document.location.href = url
     })
 });
+document.getElementById("btn-export-excel").addEventListener("click", function(e){
+    let currentLocation = window.location
+    url = currentLocation.href + '&export=' + 1
+    document.location.href = url
 
+})
 </script>
 {% endblock %}

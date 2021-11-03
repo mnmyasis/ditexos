@@ -23,6 +23,7 @@ def response_not_found(request, exception=None, template_name='404.html'):
 
 
 urlpatterns = [
+    path(r'', include('dashboard.urls')),
     path('admin/', admin.site.urls),
     path('yandex/', include('yandex_direct.urls')),
     path('calltouch/', include('calltouch.urls')),

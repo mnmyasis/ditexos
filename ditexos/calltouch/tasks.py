@@ -7,7 +7,7 @@ from .models import ApiToken, Reports
 
 
 @shared_task(name='calltouch_reports')
-def report(start_date, end_date, api_token_id=1):
+def report(start_date=None, end_date=None, api_token_id=1):
     api_token = ApiToken.objects.get(pk=api_token_id)
     token = api_token.token
     site_id = api_token.site_id
@@ -38,4 +38,3 @@ def report(start_date, end_date, api_token_id=1):
             )
         page += 1
     return 'Success update reports for site_id {}'.format(api_token.site_id)
-

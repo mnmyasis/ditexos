@@ -1,4 +1,5 @@
 {% extends 'index.html' %}
+{% load static %}
 {% block content %}
     <div id="layoutSidenav_content">
             <div id="layoutAuthentication_content">
@@ -19,30 +20,48 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="row mb-3">
-                                                <div class="col-md-12">
-                                                    <div class="form-floating mb-3 mb-md-0">
-                                                        <input class="form-control" id="CallTouchSiteId" type="text" name="calltouch_site_id" placeholder="Enter your site id" value="{{ calltouch.site_id }}" />
-                                                        <label for="CallTouchSiteId">CallTouch Site ID</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row mb-3">
-                                                <div class="col-md-12">
-                                                    <div class="form-floating mb-3 mb-md-0">
-                                                        <input class="form-control" id="CallTouchToken" type="text" name="calltouch_token" placeholder="Enter your token" value="{{ calltouch.token }}" />
-                                                        <label for="CallTouchToken">CallTouch token API</label>
-                                                    </div>
-                                                </div>
-                                            </div>
                                             <div class="mt-4 mb-0">
-                                                <div class="d-grid"><button class="btn btn-primary btn-block" type="submit">Submit</button></div>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                                                          Где взять Google Ads ID?
+                                                        </button>
+
+                                                    </div>
+                                                    <div class="col-md-2 offset-md-5">
+                                                        <button class="btn btn-primary float-right" type="submit">Применить</button>
+                                                    </div>
+                                                </div>
                                                 {% if error %}
                                                     <p class="text-danger text-center mt-3">{{ error }}</p>
                                                 {% endif %}
                                             </div>
+
                                         </form>
                                     </div>
+                                </div>
+                                <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h5 class="modal-title" id="staticBackdropLabel"></h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                      </div>
+                                      <div class="modal-body">
+                                        <div class="card mb-3">
+                                              <img src="{% static 'images/go_5.png' %}" class="card-img-top" alt="...">
+                                              <div class="card-body">
+                                                <h5 class="card-title">Рекламный кабинет Google Ads</h5>
+                                                <p class="card-text">В левом верхнем углу, как на изображении сверху.</p>
+                                                <p class="card-text"><small class="text-muted"></small></p>
+                                              </div>
+                                        </div>
+                                      </div>
+                                      <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                             </div>
                         </div>

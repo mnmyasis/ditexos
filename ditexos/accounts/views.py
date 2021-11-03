@@ -19,7 +19,7 @@ def login_view(request):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                return redirect('/')
+                return redirect('dashboard:report_clients_view')
             else:
                 error['error'] = 'Учетная зпись неактивна'
         else:
@@ -71,6 +71,6 @@ def profile_form(request):
                 }
             )
             obj.set_periodic_task('calltouch_reports')
-        return redirect('accounts:profile_form')
+        return redirect('dashboard:report_clients_view')
     calltouch = ApiToken.objects.filter(user=user).first()
     return render(request, 'accounts/profile.html', {'calltouch': calltouch})
