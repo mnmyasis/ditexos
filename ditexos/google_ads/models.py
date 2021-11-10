@@ -25,7 +25,7 @@ class GoogleAdsToken(models.Model):
         arguments = [self.user.pk]
         PeriodicTask.objects.get_or_create(
             interval=schedule,
-            name='{}-{}'.format(task_name, self.user.pk),
+            name='{}-{}'.format(task_name, self.pk),
             task=task_name,
             args=json.dumps(arguments)
         )

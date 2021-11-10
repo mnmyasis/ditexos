@@ -12,12 +12,12 @@
                         <p class="card-text"></p>
                         <div class="row mt-4">
                             <div class="col-md-1 offset-md-4">
-                                <a href="{% url 'yandex_direct:allow_access' %}" class="btn btn-primary">Назад</a>
+                                <a href="{% url 'yandex_direct:allow_access' %}" class="btn btn-primary">Нет</a>
                             </div>
                             <div class="col-md-1 offset-md-2">
                                 <form method="post">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">Удалить</button>
+                                    <button type="submit" class="btn btn-danger">Да</button>
                                 </form>
                             </div>
                         </div>

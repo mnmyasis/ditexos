@@ -24,6 +24,7 @@ def get_token(code):
         scopes=[oauth2.GetAPIScope('adwords')])
     flow.redirect_uri = 'http://ditexos.ru/google_ads/allow'
     flow.fetch_token(code=code)
+    print(flow.credentials)
     token = flow.credentials.token
     refresh_token = flow.credentials.refresh_token
     return token, refresh_token

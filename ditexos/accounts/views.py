@@ -1,11 +1,11 @@
 from django.contrib.auth.decorators import login_required
+from django.forms import modelform_factory
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from .forms import UserRegistrationForm
 from django.contrib.auth import logout
 from django.contrib.auth import get_user_model
 import re
-# Create your views here.
 from .models import CustomUser
 from calltouch.models import ApiToken
 
@@ -25,6 +25,7 @@ def login_view(request):
         else:
             error['error'] = 'Неверный логин или пароль'
     return render(request, 'accounts/login.html', error)
+
 
 
 def register(request):

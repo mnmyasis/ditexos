@@ -1,5 +1,6 @@
 from django import forms
 from .models import CustomUser
+from django.contrib.auth import get_user_model
 
 
 class UserRegistrationForm(forms.ModelForm):
@@ -23,3 +24,5 @@ class UserRegistrationForm(forms.ModelForm):
             name=self.cleaned_data['name']
         )
         return user
+
+

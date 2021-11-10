@@ -18,7 +18,7 @@
                                             <p class="card-text"><small class="text-muted"></small></p>
                                               {% if is_token %}
                                                     <a href="#" class="btn btn-warning mt-4 mb-2 disabled">Разрешить</a>
-                                                    <a href="{% url 'yandex_direct:delete_token' pk=is_token %}" class="btn btn-warning mt-4 mb-2">Отвязать</a>
+                                                    <a href="{% url 'yandex_direct:delete_token' pk=is_token.pk %}" class="btn btn-warning mt-4 mb-2">Отвязать</a>
                                                {% else %}
                                                     <a href="https://oauth.yandex.ru/authorize?response_type=code&client_id={{ client_id }}&state={{ request.user.email }}"
                                                        class="btn btn-warning mt-4 mb-2">Разрешить</a>

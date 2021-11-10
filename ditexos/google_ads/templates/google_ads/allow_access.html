@@ -19,7 +19,7 @@
                                 <p class="card-text"><small class="text-muted"></small></p>
                                   {% if is_token %}
                                      <a href="#" class="btn btn-primary disabled">Разрешить</a>
-                                     <a href="{% url 'google_ads:delete_token' pk=is_token %}" class="btn btn-primary">Отвязать</a>
+                                     <a href="{% url 'google_ads:delete_token' pk=is_token.pk %}" class="btn btn-primary">Отвязать</a>
                                   {% else %}
                                     <a href="{{ url }}" class="btn btn-primary">Разрешить</a>
                                   {% endif %}

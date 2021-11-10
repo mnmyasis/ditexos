@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
@@ -8,7 +9,7 @@ from dashboard.models import AgencyClients
 
 # Create your views here.
 
-class ComagicFormCreateView(CreateView):
+class ComagicFormCreateView(LoginRequiredMixin, CreateView):
     model = ApiToken
     template_name = 'create_form.html'
     form_class = ComagicCreateForm
@@ -33,7 +34,7 @@ class ComagicFormCreateView(CreateView):
         return reverse_lazy('dashboard:report_clients_view')
 
 
-class ComagicFormUpdateView(UpdateView):
+class ComagicFormUpdateView(LoginRequiredMixin, UpdateView):
     slug_field = 'pk'
     slug_url_kwarg = 'client_id'
     model = ApiToken

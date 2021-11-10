@@ -1,4 +1,6 @@
 from io import BytesIO
+
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.views.generic.edit import FormMixin, FormView, CreateView, ModelFormMixin, UpdateView, DeleteView
@@ -14,7 +16,7 @@ from .forms import AgencyClientsForm
 
 # Create your views here.
 
-class AgencyClientsFormCreateView(CreateView):
+class AgencyClientsFormCreateView(LoginRequiredMixin, CreateView):
     model = AgencyClients
     template_name = 'dashboard/agencyclients_form.html'
     form_class = AgencyClientsForm
@@ -34,7 +36,7 @@ class AgencyClientsFormCreateView(CreateView):
         return reverse('dashboard:client', kwargs={'pk': self.object.pk})
 
 
-class AgencyClientDetailView(DetailView):
+class AgencyClientDetailView(LoginRequiredMixin, DetailView):
     model = AgencyClients
     template_name = 'dashboard/agencyclients_update_form.html'
     form_class = AgencyClientsForm
@@ -43,7 +45,7 @@ class AgencyClientDetailView(DetailView):
         return reverse('dashboard:client', kwargs={'pk': self.object.pk})
 
 
-class AgencyClientDeleteView(DeleteView):
+class AgencyClientDeleteView(LoginRequiredMixin, DeleteView):
     model = AgencyClients
     context_object_name = 'context'
     template_name = 'dashboard/client_delete.html'
@@ -52,7 +54,7 @@ class AgencyClientDeleteView(DeleteView):
         return reverse('dashboard:report_clients_view')
 
 
-class ClientsView(ListView):
+class ClientsView(LoginRequiredMixin, ListView):
     template_name = 'dashboard/clients.html'
     context_object_name = 'clients'
 
@@ -71,7 +73,7 @@ class ClientsView(ListView):
         return response_class
 
 
-class ClientReportDetailView(DetailView):
+class ClientReportDetailView(LoginRequiredMixin, DetailView):
     slug_field = 'pk'
     slug_url_kwarg = 'client_id'
     context_object_name = 'context'
@@ -177,7 +179,7 @@ class ClientReportDetailView(DetailView):
             return super().render_to_response(context, **response_kwargs)
 
 
-class KeyWordsView(ListView):
+class KeyWordsView(LoginRequiredMixin, ListView):
     slug_field = 'pk'
     slug_url_kwarg = 'client_id'
     context_object_name = 'context'

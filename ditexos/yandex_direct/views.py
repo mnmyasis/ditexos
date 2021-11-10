@@ -1,14 +1,17 @@
 import os
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
-from django.views.generic import DeleteView
+from django.urls import reverse
+from django.views.generic import DeleteView, TemplateView
 
-from .services.api.direct_api import YandexDir, AgencyClients, Campaigns, Reports, token
+from .services.api.direct_api import YandexDir, token
 from .models import YandexDirectToken
 
 
 # Create your views here.
-
+@login_required
 def get_token(request):
     custom_user = get_user_model()
     user_email = custom_user.objects.get(email=request.GET.get('state'))
@@ -28,21 +31,21 @@ def get_token(request):
     return redirect('yandex_direct:allow_access')
 
 
-def allow_access(request):
-    client_id = os.environ.get('YANDEX_CLIENT_ID')
-    context = {
-        'is_token': request.user.yandex_token_user.all().first().pk,
-        'client_id': client_id
-    }
-    response = render(request, 'yandex_direct/allow_access.html', context)
-    #response.set_cookie(key='id', value=1)
-    return response
+class AllowAccessView(LoginRequiredMixin, TemplateView):
+    template_name = 'yandex_direct/allow_access.html'
+
+    def get_context_data(self, **kwargs):
+        client_id = os.environ.get('YANDEX_CLIENT_ID')
+        context = super().get_context_data(**kwargs)
+        context['is_token'] = self.request.user.yandex_token_user.all().values('pk').first()
+        context['client_id'] = client_id
+        return context
 
 
-class DeleteTokenView(DeleteView):
+class DeleteTokenView(LoginRequiredMixin, DeleteView):
     model = YandexDirectToken
     template_name = 'yandex_direct/delete.html'
     context_object_name = 'context'
 
     def get_success_url(self):
-        return redirect('yandex_direct:allow_access')
+        return reverse('yandex_direct:allow_access')

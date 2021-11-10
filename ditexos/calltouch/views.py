@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.urls import reverse
 
@@ -9,7 +10,7 @@ from dashboard.models import AgencyClients
 
 
 # Create your views here.
-class CallTouchFormCreateView(CreateView):
+class CallTouchFormCreateView(LoginRequiredMixin, CreateView):
     model = ApiToken
     template_name = 'calltouch/calltouch_create_form.html'
     form_class = CallTouchCreateForm
@@ -34,7 +35,7 @@ class CallTouchFormCreateView(CreateView):
         return reverse('dashboard:report_clients_view')
 
 
-class CallTouchFormUpdateView(UpdateView):
+class CallTouchFormUpdateView(LoginRequiredMixin, UpdateView):
     slug_field = 'pk'
     slug_url_kwarg = 'client_id'
     model = ApiToken

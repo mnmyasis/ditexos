@@ -3,7 +3,7 @@ from .views import *
 
 app_name = 'dashboard'
 urlpatterns = [
-    path('', ClientsView.as_view(), name='report_clients_view'),  # времянка
+    path('', ClientsView.as_view(), name='main'),  # времянка
     path('add-client', AgencyClientsFormCreateView.as_view(), name='add_client'),
     path('client/<slug:pk>', AgencyClientDetailView.as_view(), name='client'),
     path('client/delete/client_id=<int:pk>', AgencyClientDeleteView.as_view(), name='client_delete'),
