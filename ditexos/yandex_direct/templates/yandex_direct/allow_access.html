@@ -20,7 +20,7 @@
                                                     <a href="#" class="btn btn-warning mt-4 mb-2 disabled">Разрешить</a>
                                                     <a href="{% url 'yandex_direct:delete_token' pk=is_token.pk %}" class="btn btn-warning mt-4 mb-2">Отвязать</a>
                                                {% else %}
-                                                    <a href="https://oauth.yandex.ru/authorize?response_type=code&client_id={{ client_id }}&state={{ request.user.email }}"
+                                                    <a href="https://oauth.yandex.ru/authorize?response_type=code&client_id={{ client_id }}&state={{ request.user.email }}&redirect_uri={{redirect_uri}}"
                                                        class="btn btn-warning mt-4 mb-2">Разрешить</a>
                                                {% endif %}
                                           </div>

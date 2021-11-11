@@ -39,6 +39,7 @@ class AllowAccessView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['is_token'] = self.request.user.yandex_token_user.all().values('pk').first()
         context['client_id'] = client_id
+        context['redirect_uri'] = os.environ.get('YANDEX_REDIRECT_URI')
         return context
 
 

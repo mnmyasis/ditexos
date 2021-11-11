@@ -45,6 +45,8 @@ services:
       BROKER_URL: ${BROKER_URL}
     volumes:
       - ./:/home/www/
+    ports:
+      - 127.0.0.1:8000:8000
     depends_on:
       - db
       - rabbitmq
@@ -61,6 +63,7 @@ services:
       - 443:443
     volumes:
       - ./ditexos/static/:/static
+      - /etc/ssl/:/etc/ssl/
   celery_worker:
     restart: always
     build: ./docker/celery_worker
