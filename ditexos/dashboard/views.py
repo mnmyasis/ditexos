@@ -59,7 +59,9 @@ class ClientsView(LoginRequiredMixin, ListView):
     context_object_name = 'clients'
 
     def get_queryset(self):
-        context = Reports.objects.get_clients_report(user_id=self.request.user.pk)
+        context = dict
+        if self.request.user.agency_clients_user.all().first():
+            context = Reports.objects.get_clients_report(user_id=self.request.user.pk)
         return context
 
     def render_to_response(self, context, **response_kwargs):

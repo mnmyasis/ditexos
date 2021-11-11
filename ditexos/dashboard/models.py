@@ -55,7 +55,7 @@ class AgencyClients(models.Model):
     crm_object_id = models.PositiveIntegerField(blank=True, null=True)
     crm_object = GenericForeignKey(ct_field='crm', fk_field='crm_id')
     name = models.CharField(max_length=100, verbose_name='Название клиента')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='agency_clients_user')
     yandex_client = models.ForeignKey(yandex_direct.models.Clients,
                                       on_delete=models.CASCADE,
                                       verbose_name='Логин клиента в yandex direct')

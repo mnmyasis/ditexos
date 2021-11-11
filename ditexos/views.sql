@@ -30,12 +30,12 @@ left join (
             left join yandex_metrics ym on ykw.id = ym.key_word_id
         group by ya_cl.id, yc.name, yc.campaign_id, ykw.name, ym.date
     ) as yandex on agc_cl.yandex_client_id = yandex.id;
-
 create view google_report_view
 as
 select
        agc_cl.id id,
        agc_cl.name agency_client_name,
+       agc_cl.call_tracker_object_id call_tracker_id,
        google.google_client_id google_client_id,
        google.campaign campaign,
        google.campaign_id campaign_id,
@@ -63,39 +63,6 @@ left join (
              left join google_metrics gm on gkw.id = gm.key_word_id
     group by gog_cl.id, gm.date, gc.name, gc.campaign_id, gkw.name
 ) google on google.google_client_id = agc_cl.google_client_id;
-
-
-create view cabinet_report_view
-as
-select * from (
-    select * from (
-    select id,
-        'yandex' source,
-        campaign,
-        call_tracker_id,
-        campaign_id,
-        sum(cost_) cost_,
-        sum(clicks) clicks,
-        sum(impressions) impressions,
-        date
-    from yandex_report_view
-    group by id, call_tracker_id, campaign, campaign_id, date
-    ) ads
-    union all
-    (select id,
-        'google' source,
-        campaign,
-        call_tracker_id,
-        campaign_id,
-        sum(cost_) cost_,
-        sum(clicks) clicks,
-        sum(impressions) impressions,
-        date
-    from google_report_view
-    group by id, call_tracker_id, campaign, campaign_id, date
-    )
-) cabinet;
-
 create view cabinet_for_comagic_campaign_report
 as
 select
@@ -239,8 +206,7 @@ from (
                   cabinet.source = site.utm_source and
                   cabinet.date = site.date and
                   cabinet.campaign = site.utm_campaign
-) cab_report
-
+) cab_report;
 create view cabinet_for_comagic_keyword_report
 as
 select
@@ -394,4 +360,4 @@ from (
                   cabinet.date = site.date and
                   cabinet.campaign = site.utm_campaign and
                   cabinet.key_word = site.utm_term
-) cab_report
+) cab_report;

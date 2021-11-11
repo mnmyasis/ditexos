@@ -6,20 +6,83 @@ services:
     environment:
       RABBITMQ_NODENAME: "django@localhost"
       RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
-      RABBITMQ_DEFAULT_USER: "django"
-      RABBITMQ_DEFAULT_PASS: "12345"
+      RABBITMQ_DEFAULT_USER: ${DB_USER}
+      RABBITMQ_DEFAULT_PASS: ${DB_PASSWORD}
       RABBITMQ_DEFAULT_VHOST: "/"
     ports:
-      - 5675:5672
+      - 127.0.0.1:5675:5672
   db:
+    image: postgres:12.6
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./docker/databases:/var/lib/postgresql/data
+    ports:
+    - 127.0.0.1:5432:5432
+  ditexos:
     build:
-      context: ./docker/db
+      context: ./
       dockerfile: Dockerfile
     restart: always
     environment:
-      POSTGRES_PASSWORD: 12345
+      SECRET_KEY: ${SECRET_KEY}
+      CALLTOUCH_TOKEN: ${CALLTOUCH_TOKEN}
+      GOOGLE_DEVELOPER_TOKEN: ${GOOGLE_DEVELOPER_TOKEN}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID}
+      YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET}
+      AMO_CLIENT_SECRET: ${AMO_CLIENT_SECRET}
+      AMO_CLIENT_ID: ${AMO_CLIENT_ID}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      BROKER_URL: ${BROKER_URL}
     volumes:
-      - ./docker/databases:/var/lib/postgresql/data
-      - ./docker/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./:/home/www/
+    depends_on:
+      - db
+      - rabbitmq
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - ditexos
+      - db
     ports:
-    - 5432:5432
+      - 80:80
+    volumes:
+      - ./ditexos/static/:/static
+  celery_worker:
+    restart: always
+    build: ./docker/celery_worker
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      CALLTOUCH_TOKEN: ${CALLTOUCH_TOKEN}
+      GOOGLE_DEVELOPER_TOKEN: ${GOOGLE_DEVELOPER_TOKEN}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID}
+      YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET}
+      AMO_CLIENT_SECRET: ${AMO_CLIENT_SECRET}
+      AMO_CLIENT_ID: ${AMO_CLIENT_ID}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      BROKER_URL: ${BROKER_URL}
+    command: celery -A ditexos worker --beat --scheduler ${DB_USER} --loglevel=info
+    depends_on:
+      - rabbitmq
+      - db
+      - ditexos
+    volumes:
+      - ./ditexos/.:/home/

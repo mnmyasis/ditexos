@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -124,12 +124,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-# MEDIA_ROOT = os.path.join(BASE_DIR, 'ditexos', 'media')
-# STATIC_ROOT = os.path.join(BASE_DIR, 'django_static')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-STATICFILES_DIRS = (
+'''STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
-)
+)'''
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
@@ -194,7 +194,15 @@ LOGGING = {
             'maxBytes': 1048576,
             'backupCount': 10,
             'formatter': 'simple'
-        }
+        },
+        'celery': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/celery.log',
+            'formatter': 'simple',
+            'maxBytes': 1048576,
+            'backupCount': 10,
+        },
     },
     'loggers': {
         'django': {
@@ -204,6 +212,12 @@ LOGGING = {
             'handlers': ['file'],
             'level': 'INFO',
             'propagate': True
-        }
+        },
+        'celery': {
+            'handlers': ['celery', 'console_dev'],
+            'level': 'INFO',
+        },
     }
 }
+from logging.config import dictConfig
+dictConfig(LOGGING)
