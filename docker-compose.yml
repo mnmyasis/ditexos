@@ -58,6 +58,7 @@ services:
       - db
     ports:
       - 80:80
+      - 443:443
     volumes:
       - ./ditexos/static/:/static
   celery_worker:
