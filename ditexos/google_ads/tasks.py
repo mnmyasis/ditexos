@@ -6,6 +6,7 @@ from .models import GoogleAdsToken, Clients, Campaigns, AdGroups, KeyWords, Metr
 from celery import shared_task
 from .services.api import google_ads
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 
 @shared_task(name='google_clients')
@@ -15,10 +16,10 @@ def clients(user_id):
     customer_id = user.google_customer
     refresh_token = GoogleAdsToken.objects.get(user=user).refresh_token
     credentials = {
-        "developer_token": os.environ.get('GOOGLE_DEVELOPER_TOKEN'),
+        "developer_token": settings.GOOGLE_DEVELOPER_TOKEN,
         "refresh_token": refresh_token,
-        "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
-        "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET'),
+        "client_id": settings.GOOGLE_APP_ID,
+        "client_secret": settings.GOOGLE_APP_PASSWORD,
         "login_customer_id": customer_id
     }
     google_ads_client = GoogleAdsClient.load_from_dict(credentials)
@@ -39,10 +40,10 @@ def clients(user_id):
 def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
     google_ads_token = GoogleAdsToken.objects.get(user__pk=user_id)
     credentials = {
-        "developer_token": os.environ.get('GOOGLE_DEVELOPER_TOKEN'),
+        "developer_token": settings.GOOGLE_DEVELOPER_TOKEN,
         "refresh_token": google_ads_token.refresh_token,
-        "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
-        "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET'),
+        "client_id": settings.GOOGLE_APP_ID,
+        "client_secret": settings.GOOGLE_APP_PASSWORD,
         "login_customer_id": google_ads_token.user.google_customer
     }
     google_ads_client = GoogleAdsClient.load_from_dict(credentials)

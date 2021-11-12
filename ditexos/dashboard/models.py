@@ -94,13 +94,6 @@ class AgencyClients(models.Model):
                 'end_date': end_date
             }
         )
-        '''task = self.set_periodic_task(
-            task_name=task_name,
-            name='{}-history-report'.format(task_name),
-            arguments=arguments
-        )
-        task.one_off = True
-        task.save()'''
         task_func.delay(**arguments)
 
     def update_report(self, task_name, arguments=dict):
@@ -187,7 +180,6 @@ class AgencyClients(models.Model):
                 'client_google_id': self.google_client.google_id
             }
         )
-
         """Переодинческие задачи для обновления статистики(яндекс,гугл)"""
         self.update_report(
             task_name='get_yandex_reports',

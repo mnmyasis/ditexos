@@ -217,6 +217,9 @@ class Reports(YandexDirect):
         self.start_date = start_date
         self.end_date = end_date
 
+    def set_sandbox(self):
+        self.api_url = self.YANDEX_API_URL_SANDBOX + 'reports'
+
     def set_body(self, field_names, selection_criteria):
         selection_criteria = {
              "DateFrom": self.start_date,

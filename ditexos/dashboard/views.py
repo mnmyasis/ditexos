@@ -24,10 +24,6 @@ class AgencyClientsFormCreateView(LoginRequiredMixin, CreateView):
     def get_initial(self):
         return {'user': self.request.user.pk}
 
-    def get_form(self, form_class=None):
-        self.object = super().get_form(form_class)
-        return self.object
-
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
@@ -40,9 +36,6 @@ class AgencyClientDetailView(LoginRequiredMixin, DetailView):
     model = AgencyClients
     template_name = 'dashboard/agencyclients_update_form.html'
     form_class = AgencyClientsForm
-
-    def get_success_url(self):
-        return reverse('dashboard:client', kwargs={'pk': self.object.pk})
 
 
 class AgencyClientDeleteView(LoginRequiredMixin, DeleteView):
