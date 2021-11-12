@@ -11,9 +11,10 @@ from .models import GoogleAdsToken
 # Create your views here.
 @login_required
 def allow_access(request):
+    """Страница доступа к API и ловля callback google"""
     code = request.GET.get('code')
     if code:
-        token, refresh_token = create_ads_client.get_token(code)
+        token, refresh_token = create_ads_client.get_token(code)  # Получение токенов пользователя
         if not refresh_token:
             return redirect('google_ads:allow_error')
         obj, status = GoogleAdsToken.objects.update_or_create(
@@ -26,7 +27,7 @@ def allow_access(request):
         )
         obj.set_periodic_task('google_clients')
         return redirect('google_ads:allow_access')
-    url, state = create_ads_client.get_auth_url()
+    url, state = create_ads_client.get_auth_url()  # Получение урла для разрешения пользователя
     context = {
         'is_token': request.user.google_token_user.all().values('pk').first(),
         'url': url

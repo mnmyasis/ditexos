@@ -10,7 +10,6 @@ def clients(user_id=1):
     ya_dir_tok = YandexDirectToken.objects.get(user__pk=user_id)
     access_token = ya_dir_tok.access_token
     ag_clients = AgencyClients(token=access_token)
-    ag_clients.set_sandbox()
     director = YandexDir()
     director.get(ag_clients)
     res = ag_clients.get_result()

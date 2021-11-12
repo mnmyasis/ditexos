@@ -1,30 +1,42 @@
 import google_auth_oauthlib.flow
-import os
 from googleads import oauth2
+from django.conf import settings
+
+CLIENT_CONFIG = {
+    'web': {
+        'client_id': settings.GOOGLE_APP_ID,
+        'project_id': settings.GOOGLE_PROJECT_ID,
+        'auth_uri': 'https://accounts.google.com/o/oauth2/auth',
+        'token_uri': 'https://oauth2.googleapis.com/token',
+        'auth_provider_x509_cert_url': 'https://www.googleapis.com/oauth2/v1/certs',
+        'client_secret': settings.GOOGLE_APP_PASSWORD,
+        'redirect_uris': settings.GOOGLE_REDIRECT_URIS
+    }
+}
 
 
 def get_auth_url():
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        '{}/client_secret.json'.format(os.getcwd()),
-        scopes=[oauth2.GetAPIScope('adwords')])
-
-    flow.redirect_uri = os.environ.get('GOOGLE_REDIRECT_URI')
+    """Формирование урла для разрешния пользователя"""
+    flow = google_auth_oauthlib.flow.Flow.from_client_config(
+        client_config=CLIENT_CONFIG,
+        scopes=[oauth2.GetAPIScope('adwords')]
+    )
+    flow.redirect_uri = settings.GOOGLE_REDIRECT_URI
     authorization_url, state = flow.authorization_url(
-        # Enable offline access so that you can refresh an access token without
-        # re-prompting the user for permission. Recommended for web server apps.
         access_type='offline',
-        # Enable incremental authorization. Recommended as a best practice.
-        include_granted_scopes='true')
+        include_granted_scopes='true'
+    )
     return authorization_url, state
 
 
 def get_token(code):
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        'client_secret.json',
-        scopes=[oauth2.GetAPIScope('adwords')])
-    flow.redirect_uri = os.environ.get('GOOGLE_REDIRECT_URI')
+    """Запрос на получние токенов"""
+    flow = google_auth_oauthlib.flow.Flow.from_client_config(
+        client_config=CLIENT_CONFIG,
+        scopes=[oauth2.GetAPIScope('adwords')]
+    )
+    flow.redirect_uri = settings.GOOGLE_REDIRECT_URI
     flow.fetch_token(code=code)
-    print(flow.credentials)
     token = flow.credentials.token
     refresh_token = flow.credentials.refresh_token
     return token, refresh_token

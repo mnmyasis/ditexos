@@ -46,6 +46,7 @@ Thumbs.db
 *.mov
 *.wmv
 client_secret.json
+.env
 venv
 databases
 linux_note_backup

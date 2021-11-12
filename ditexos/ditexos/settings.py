@@ -10,24 +10,17 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+import os, environ
 from pathlib import Path
-import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+env = environ.Env(DEBUG=(bool, False))
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-
-SECRET_KEY = os.environ.get('SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-if os.environ.get('DEBUG') == 'prod':
-    DEBUG = False
-else:
-    DEBUG = True
+SECRET_KEY = env('SECRET_KEY')
+DEBUG = env.bool('DEBUG')
 
 ALLOWED_HOSTS = ['*']
 
@@ -90,11 +83,11 @@ WSGI_APPLICATION = 'ditexos.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
-        'PORT': os.environ.get('DB_PORT')
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT')
     }
 }
 
@@ -123,18 +116,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
-
 STATIC_URL = '/static/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
-'''STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)'''
-# Default primary key field type
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -149,15 +131,20 @@ AUTHENTICATION_BACKENDS = [
 if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+else:
+    STATICFILES_DIRS = (
+        os.path.join(BASE_DIR, 'static'),
+    )
 
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_RESULT_BACKEND = 'django-db'
-CELERY_BROKER_URL = os.environ.get('BROKER_URL')
+CELERY_BROKER_URL = env('BROKER_URL')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_TASK_TRACK_STARTED = True
-
 
 LOGGING = {
     'version': 1,
@@ -221,4 +208,18 @@ LOGGING = {
     }
 }
 from logging.config import dictConfig
+
 dictConfig(LOGGING)
+
+"""API YANDEX DIRECT"""
+YANDEX_APP_ID = env('YANDEX_APP_ID')
+YANDEX_APP_PASSWORD = env('YANDEX_APP_PASSWORD')
+YANDEX_REDIRECT_URI = env('YANDEX_REDIRECT_URI')
+
+"""API GOOGLE ADS"""
+GOOGLE_DEVELOPER_TOKEN = env('GOOGLE_DEVELOPER_TOKEN')
+GOOGLE_APP_ID = env('GOOGLE_APP_ID')
+GOOGLE_PROJECT_ID = env('GOOGLE_PROJECT_ID')
+GOOGLE_APP_PASSWORD = env('GOOGLE_APP_PASSWORD')
+GOOGLE_REDIRECT_URIS = env.list('GOOGLE_REDIRECT_URIS')
+GOOGLE_REDIRECT_URI = env('GOOGLE_REDIRECT_URI')

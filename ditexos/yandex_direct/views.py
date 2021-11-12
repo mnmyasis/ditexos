@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic import DeleteView, TemplateView
-
+from django.conf import settings
 from .services.api.direct_api import YandexDir, token
 from .models import YandexDirectToken
 
@@ -13,6 +13,7 @@ from .models import YandexDirectToken
 # Create your views here.
 @login_required
 def get_token(request):
+    """Ловит Callback от yandex"""
     custom_user = get_user_model()
     user_email = custom_user.objects.get(email=request.GET.get('state'))
     code = request.GET.get('code')
@@ -35,11 +36,11 @@ class AllowAccessView(LoginRequiredMixin, TemplateView):
     template_name = 'yandex_direct/allow_access.html'
 
     def get_context_data(self, **kwargs):
-        client_id = os.environ.get('YANDEX_CLIENT_ID')
+        client_id = settings.YANDEX_APP_ID
         context = super().get_context_data(**kwargs)
         context['is_token'] = self.request.user.yandex_token_user.all().values('pk').first()
         context['client_id'] = client_id
-        context['redirect_uri'] = os.environ.get('YANDEX_REDIRECT_URI')
+        context['redirect_uri'] = settings.YANDEX_REDIRECT_URI
         return context
 
 

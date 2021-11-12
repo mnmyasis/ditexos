@@ -27,25 +27,6 @@ services:
       context: ./
       dockerfile: Dockerfile
     restart: always
-    environment:
-      SECRET_KEY: ${SECRET_KEY}
-      CALLTOUCH_TOKEN: ${CALLTOUCH_TOKEN}
-      GOOGLE_DEVELOPER_TOKEN: ${GOOGLE_DEVELOPER_TOKEN}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
-      YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID}
-      YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET}
-      YANDEX_REDIRECT_URI: ${YANDEX_REDIRECT_URI}
-      AMO_CLIENT_SECRET: ${AMO_CLIENT_SECRET}
-      AMO_CLIENT_ID: ${AMO_CLIENT_ID}
-      DEBUG: ${DEBUG}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      BROKER_URL: ${BROKER_URL}
     volumes:
       - ./:/home/www/
     ports:
@@ -53,6 +34,7 @@ services:
     depends_on:
       - db
       - rabbitmq
+    env_file: ./ditexos/.env
   nginx:
     build:
       context: ./docker/nginx
@@ -70,25 +52,6 @@ services:
   celery_worker:
     restart: always
     build: ./docker/celery_worker
-    environment:
-      SECRET_KEY: ${SECRET_KEY}
-      CALLTOUCH_TOKEN: ${CALLTOUCH_TOKEN}
-      GOOGLE_DEVELOPER_TOKEN: ${GOOGLE_DEVELOPER_TOKEN}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
-      YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID}
-      YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET}
-      YANDEX_REDIRECT_URI: ${YANDEX_REDIRECT_URI}
-      AMO_CLIENT_SECRET: ${AMO_CLIENT_SECRET}
-      AMO_CLIENT_ID: ${AMO_CLIENT_ID}
-      DEBUG: ${DEBUG}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      BROKER_URL: ${BROKER_URL}
     command: celery -A ditexos worker --beat --scheduler ${DB_USER} --loglevel=info
     depends_on:
       - rabbitmq
@@ -96,3 +59,4 @@ services:
       - ditexos
     volumes:
       - ./ditexos/.:/home/
+    env_file: ./ditexos/.env

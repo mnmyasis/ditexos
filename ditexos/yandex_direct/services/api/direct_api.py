@@ -1,7 +1,7 @@
 from time import sleep
 from urllib.parse import urlencode
 import os
-
+from django.conf import settings
 from celery.utils.serialization import jsonify
 from requests import post
 import json
@@ -11,12 +11,13 @@ from datetime import datetime
 
 
 def token(code):
+    """POST запрос для получения access_token, refresh_token пользователя"""
     url = 'https://oauth.yandex.ru/token'
     data = {
         'grant_type': 'authorization_code',
         'code': code,
-        'client_id': os.environ.get('YANDEX_CLIENT_ID'),
-        'client_secret': os.environ.get('YANDEX_CLIENT_SECRET')
+        'client_id': settings.YANDEX_APP_ID,
+        'client_secret': settings.YANDEX_APP_PASSWORD
     }
     data = urlencode(data)
     return jsonify(post(url, data).json())
