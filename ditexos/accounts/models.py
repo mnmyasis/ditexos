@@ -5,10 +5,10 @@ from django.contrib.auth.models import PermissionsMixin, AbstractBaseUser, BaseU
 # Create your models here.
 class CustomAccountManager(BaseUserManager):
 
-    def create_user(self, email, name, password):
+    def create_user(self, email, name, account_type, password):
         if not email:
             raise ValueError('Users must have an email address')
-        user = self.model(email=email, name=name, password=password)
+        user = self.model(email=email, name=name, password=password, account_type=account_type)
         user.set_password(password)
         user.is_superuser = False
         user.save(using=self._db)
@@ -29,9 +29,15 @@ class CustomAccountManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
+    account_type = (
+        ('ag', 'Агентский'),
+        ('cl', 'Клиентский')
+    )
+
     email = models.EmailField(unique=True)
     name = models.TextField()
     is_staff = models.BooleanField(default=False)
+    account_type = models.CharField(max_length=2, choices=account_type, default='ag')
     google_customer = models.CharField(max_length=250, blank=True)
     REQUIRED_FIELDS = ['name']
     USERNAME_FIELD = 'email'

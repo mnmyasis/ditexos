@@ -23,7 +23,11 @@ def clients(user_id):
         "login_customer_id": customer_id
     }
     google_ads_client = GoogleAdsClient.load_from_dict(credentials)
-    result = google_ads.clients(google_ads_client, customer_id)
+    if user.account_type == 'ag':
+        level = 1
+    else:
+        level = 0
+    result = google_ads.clients(google_ads_client, customer_id, customer_client_level=level)
     for client in result:
         Clients.objects.update_or_create(
             google_id=client['id'],
@@ -54,8 +58,6 @@ def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
         start_date,
         end_date
     )
-    print(df)
-    """Получение кампаний без дупликатов"""
     for res in df.iloc:
         """Запись"""
         obj_campaign, created = Campaigns.objects.update_or_create(

@@ -1,6 +1,6 @@
 from celery import shared_task
-
 from .services.api.direct_api import AgencyClients, YandexDir, Reports
+from .services.api.direct_api import Client as ApiYandexClient
 from .models import *
 import pandas as pd
 
@@ -9,9 +9,14 @@ import pandas as pd
 def clients(user_id=1):
     ya_dir_tok = YandexDirectToken.objects.get(user__pk=user_id)
     access_token = ya_dir_tok.access_token
-    ag_clients = AgencyClients(token=access_token)
+    if ya_dir_tok.user.account_type == 'ag':
+        """Для агентского аккаунта"""
+        ag_clients = AgencyClients(token=access_token)
+    else:
+        """Юзерского аккаунта"""
+        ag_clients = ApiYandexClient(token=access_token)
     director = YandexDir()
-    director.get(ag_clients)
+    director.agency_get_sandbox(ag_clients)
     res = ag_clients.get_result()
     if res.get('error'):
         return res.get('error')
@@ -40,7 +45,7 @@ def get_reports(user_id=1, yandex_client_id=None, start_date=None, end_date=None
         end_date=end_date
     )
     director = YandexDir()
-    director.get(report)
+    director.agency_get(report)
     result, status = report.get_result()
     if status is False:
         if result['error']['error_code'] == '8800':

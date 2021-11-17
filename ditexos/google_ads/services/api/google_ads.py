@@ -64,38 +64,10 @@ def report_default(client, customer_id, start_date, end_date):
     return df
 
 
-def campaigns(client, customer_id):
-    ga_service = client.get_service("GoogleAdsService")
-    result = []
-    query = """
-            SELECT
-              campaign.id,
-              campaign.name,
-              campaign.status
-            FROM campaign
-            ORDER BY campaign.id"""
-
-    # Issues a search request using streaming.
-    response = ga_service.search_stream(customer_id=customer_id, query=query)
-
-    for batch in response:
-        for row in batch.results:
-            print(
-                f"Campaign with ID {row.campaign.id} and name "
-                f'"{row.campaign.name}" was found.'
-            )
-            result.append({
-                'id': row.campaign.id,
-                'name': row.campaign.name,
-                'status': row.campaign.status
-            })
-    return result
-
-
-def clients(client, customer_id):
+def clients(client, customer_id, customer_client_level):
     result = []
     googleads_service = client.get_service("GoogleAdsService")
-    query = """
+    query = f"""
             SELECT
               customer_client.client_customer,
               customer_client.level,
@@ -105,14 +77,12 @@ def clients(client, customer_id):
               customer_client.time_zone,
               customer_client.id
             FROM customer_client
-            WHERE customer_client.level = 1"""
+            WHERE customer_client.level = {customer_client_level}"""
 
     response = googleads_service.search(
-        customer_id=customer_id, query=query
+        customer_id=customer_id,
+        query=query
     )
-
-    # Iterates over all rows in all pages to get all customer
-    # clients under the specified customer's hierarchy.
     for googleads_row in response:
         customer_client = googleads_row.customer_client
         print(customer_client)

@@ -1,13 +1,10 @@
 from django.contrib.auth.decorators import login_required
-from django.forms import modelform_factory
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from .forms import UserRegistrationForm
 from django.contrib.auth import logout
 from django.contrib.auth import get_user_model
 import re
-from .models import CustomUser
-from calltouch.models import ApiToken
 
 
 def login_view(request):
@@ -25,7 +22,6 @@ def login_view(request):
         else:
             error['error'] = 'Неверный логин или пароль'
     return render(request, 'accounts/login.html', error)
-
 
 
 def register(request):
@@ -58,20 +54,5 @@ def profile_form(request):
         google_ads_id = re.sub(r'-', '', google_ads_id)
         user.google_customer = google_ads_id
         user.save()
-        if request.POST.get('calltouch_site_id') and request.POST.get('calltouch_token'):
-            site_id = request.POST.get('calltouch_site_id')
-            token = request.POST.get('calltouch_token')
-            obj, created = ApiToken.objects.update_or_create(
-                user=user,
-                token=token,
-                site_id=site_id,
-                defaults={
-                    'user': user,
-                    'token': token,
-                    'site_id': site_id
-                }
-            )
-            obj.set_periodic_task('calltouch_reports')
         return redirect('dashboard:report_clients_view')
-    calltouch = ApiToken.objects.filter(user=user).first()
-    return render(request, 'accounts/profile.html', {'calltouch': calltouch})
+    return render(request, 'accounts/profile.html', {})

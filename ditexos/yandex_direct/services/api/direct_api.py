@@ -1,6 +1,5 @@
 from time import sleep
 from urllib.parse import urlencode
-import os
 from django.conf import settings
 from celery.utils.serialization import jsonify
 from requests import post
@@ -39,23 +38,19 @@ class YandexDirect:
     RESULT = ''
     ERROR = ''
 
+    def set_sandbox(self):
+        self.YANDEX_API_URL = self.YANDEX_API_URL_SANDBOX
+
     def set_api_url(self, url):
         if not url:
             raise ValueError('YandexDirect must have an url')
         self.API_URL = url
 
-    def set_headers(self, token, client_login=None, lang='ru'):
-        if not token:
-            raise ValueError('YandexDirect must have an token')
-        self.TOKEN = token
-        self.CLIENT_LOGIN = client_login
-        self.LANGUAGE = lang
+    def set_headers(self):
+        pass
 
-    def set_body(self, field_names, selection_criteria={}):
-        if not field_names:
-            raise ValueError('YandexDirect must have an field_names')
-        self.FIELD_NAMES = field_names
-        self.SELECTION_CRITERIA = selection_criteria
+    def set_body(self):
+        pass
 
     def get_headers(self):
         headers = {
@@ -86,6 +81,7 @@ class YandexDirect:
 
     def send(self):
         json_body = json.dumps(self.BODY, ensure_ascii=False).encode('utf8')
+        print(json_body)
         while True:
             try:
                 req = post(self.API_URL, json_body, headers=self.HEADERS)
@@ -153,10 +149,10 @@ class YandexDirect:
 
 class YandexDir:
 
-    def get(self, yandex_build):
-        yandex_build.set_api_url(yandex_build.api_url)
-        yandex_build.set_headers(token=yandex_build.token, client_login=yandex_build.client_login)
-        yandex_build.set_body(field_names=yandex_build.fields_name, selection_criteria=yandex_build.selection_criteria)
+    def agency_get(self, yandex_build):
+        yandex_build.set_api_url(yandex_build.get_api_url())
+        yandex_build.set_headers()
+        yandex_build.set_body()
         yandex_build.get_body()
         yandex_build.get_headers()
         yandex_build.send()
@@ -164,46 +160,75 @@ class YandexDir:
         #  yandex_build.write_excel()
         return result
 
+    def agency_get_sandbox(self, yandex_build):
+        yandex_build.set_sandbox()
+        yandex_build.set_api_url(yandex_build.get_api_url())
+        yandex_build.set_headers()
+        yandex_build.set_body()
+        yandex_build.get_body()
+        yandex_build.get_headers()
+        yandex_build.send()
+        result = yandex_build.get_result()
+        return result
+
 
 class AgencyClients(YandexDirect):
 
     def __init__(self, token):
         self.selection_criteria = {}
+        self.token = token
+        self.field_names = ["ClientId", "ClientInfo", "Login"]
+
+    def get_api_url(self):
+        return self.YANDEX_API_URL + 'agencyclients'
+
+    def get_result(self):
+        return self.RESULT.json()
+
+    def set_headers(self):
+        if not token:
+            raise ValueError('YandexDirect must have an token')
+        self.TOKEN = self.token
+
+    def set_body(self):
+        if not self.field_names:
+            raise ValueError('YandexDirect must have an field_names')
+        self.FIELD_NAMES = self.field_names
+        self.SELECTION_CRITERIA = self.selection_criteria
+
+
+class Client(YandexDirect):
+    def __init__(self, token):
+        self.selection_criteria = {}
         self.client_login = ''
         self.token = token
-        self.fields_name = ["ClientId", "ClientInfo", "Login"]
-        self.api_url = self.YANDEX_API_URL + 'agencyclients'
+        self.field_names = ["AccountQuality", "ClientId", "Archived", "ClientInfo", "Login"]
 
-    def set_sandbox(self):
-        self.api_url = self.YANDEX_API_URL_SANDBOX + 'agencyclients'
-
-    def get_result(self):
-        return self.RESULT.json()
-
-
-class Campaigns(YandexDirect):
-    def __init__(self, token, client_login):
-        self.selection_criteria = {}
-        self.client_login = client_login
-        self.token = token
-        self.fields_name = ["Id", "Name", "ClientInfo", "Status"]
-        self.api_url = self.YANDEX_API_URL + 'campaigns'
+    def get_api_url(self):
+        return self.YANDEX_API_URL + 'clients'
 
     def get_result(self):
         return self.RESULT.json()
 
+    def set_headers(self):
+        if not token:
+            raise ValueError('YandexDirect must have an token')
+        self.TOKEN = self.token
 
-class AdGroups(YandexDirect):
+    def set_body(self):
+        if not self.field_names:
+            raise ValueError('YandexDirect must have an field_names')
+        self.FIELD_NAMES = self.field_names
+        self.SELECTION_CRITERIA = self.selection_criteria
 
-    def __init__(self, token, client_login, campaigns_ids):
-        self.selection_criteria = {"CampaignIds": campaigns_ids}
-        self.client_login = client_login
-        self.token = token
-        self.fields_name = ["CampaignId", "Name", "Id", "Status"]
-        self.api_url = self.YANDEX_API_URL + 'adgroups'
-
-    def get_result(self):
-        return self.RESULT.json()
+    def get_body(self):
+        body = {
+            'method': 'get',
+            'params': {
+                'FieldNames': self.FIELD_NAMES
+            }
+        }
+        self.BODY = body
 
 
 class Reports(YandexDirect):
@@ -211,24 +236,21 @@ class Reports(YandexDirect):
     def __init__(self, token, client_login, start_date, end_date):
         self.client_login = client_login
         self.token = token
-        self.api_url = self.YANDEX_API_URL + 'reports'
-        self.selection_criteria = {}
-        self.fields_name = []
-        self.start_date = start_date
-        self.end_date = end_date
-
-    def set_sandbox(self):
-        self.api_url = self.YANDEX_API_URL_SANDBOX + 'reports'
-
-    def set_body(self, field_names, selection_criteria):
-        selection_criteria = {
-             "DateFrom": self.start_date,
-             "DateTo": self.end_date
+        self.selection_criteria = {
+            "DateFrom": start_date,
+            "DateTo": end_date
         }
-        field_names = ["Clicks", "Cost", 'Ctr', 'Conversions', 'Impressions', "CampaignId", "CampaignName", 'AdGroupName', 'AdGroupId', 'Criteria',
-                       'CriteriaId', 'Date']
-        self.FIELD_NAMES = field_names
-        self.SELECTION_CRITERIA = selection_criteria
+        self.field_names = ["Clicks", "Cost", 'Ctr', 'Conversions', 'Impressions', "CampaignId", "CampaignName",
+                            'AdGroupName', 'AdGroupId', 'Criteria', 'CriteriaId', 'Date']
+
+    def get_api_url(self):
+        return self.YANDEX_API_URL + 'reports'
+
+    def set_body(self):
+        if not self.field_names:
+            raise ValueError('YandexDirect must have an field_names')
+        self.FIELD_NAMES = self.field_names
+        self.SELECTION_CRITERIA = self.selection_criteria
 
     def get_body(self):
         body = {
@@ -253,8 +275,13 @@ class Reports(YandexDirect):
         if not self.RESULT:
             return self.ERROR, False
         df = pd.read_csv(StringIO(self.RESULT.text), header=1, sep='\t')
-        print(df)
         return df, True
+
+    def set_headers(self):
+        if not token:
+            raise ValueError('YandexDirect must have an token')
+        self.TOKEN = self.token
+        self.CLIENT_LOGIN = self.client_login
 
     def write_excel(self):
         df = pd.read_csv(StringIO(self.RESULT.text), header=1, sep='\t')
@@ -264,5 +291,5 @@ class Reports(YandexDirect):
 if __name__ == '__main__':
     ag_cl = Reports(token='', client_login='sbx-mnmyasAVBK5u')
     ya_dir = YandexDir()
-    ya_dir.get(ag_cl)
+    ya_dir.agency_get(ag_cl)
     ag_cl.get_result()

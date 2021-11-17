@@ -9,7 +9,7 @@ class UserRegistrationForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ('email', 'name')
+        fields = ('email', 'name', 'account_type')
 
     def clean_password2(self):
         cd = self.cleaned_data
@@ -21,7 +21,8 @@ class UserRegistrationForm(forms.ModelForm):
         user = CustomUser.objects.create_user(
             email=self.cleaned_data['email'],
             password=self.cleaned_data['password'],
-            name=self.cleaned_data['name']
+            name=self.cleaned_data['name'],
+            account_type=self.cleaned_data['account_type']
         )
         return user
 
