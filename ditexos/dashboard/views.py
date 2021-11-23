@@ -418,7 +418,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             row = self.export_excel_period(workbook, worksheet, context['report_client_period_campaign'],
                                            'Статистика по периодам', row)
             workbook.close()
-            response['Content-Disposition'] = f'attachment; filename="{self.object.name}"'
+            response['Content-Disposition'] = f'attachment; filename="{self.object.name}.xlsx"'
             return response
         else:
             return super().render_to_response(context, **response_kwargs)
