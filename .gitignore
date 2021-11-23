@@ -45,7 +45,6 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
-client_secret.json
 .env
 venv
 databases
