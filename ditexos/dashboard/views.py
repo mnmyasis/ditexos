@@ -12,6 +12,8 @@ import pandas as pd
 import datetime
 from .models import *
 from .forms import AgencyClientsForm
+from django.conf import settings
+from django.templatetags.static import static
 
 
 # Create your views here.
@@ -165,7 +167,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                 'align': 'center_across',
                 'font_size': 12,
                 'font_name': 'calibri'
-                }
+            }
             )
             worksheet.write(start_row, col, column_name, cell_format)
             col += 1
@@ -180,7 +182,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                 'align': 'center_across',
                 'font_size': 8,
                 'font_name': 'calibri'
-                }
+            }
             )
             cell_format_warning = workbook.add_format({
                 'bold': False,
@@ -190,7 +192,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                 'align': 'center_across',
                 'font_size': 8,
                 'font_name': 'calibri'
-                }
+            }
             )
             cell_format_total = workbook.add_format({
                 'bold': False,
@@ -200,7 +202,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                 'align': 'center_across',
                 'font_size': 8,
                 'font_name': 'calibri'
-                }
+            }
             )
 
             worksheet.merge_range(f'A{start_row + 1}:A{start_row + 2}', item.get('campaign'), cell_format)
@@ -285,7 +287,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             'align': 'center_across',
             'font_size': 24,
             'font_name': 'calibri'
-            }
+        }
         )
 
         worksheet.merge_range(start_row - 2, col, start_row - 1, col + 4, title, title_format)
@@ -299,7 +301,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                 'align': 'center_across',
                 'font_size': 12,
                 'font_name': 'calibri'
-                }
+            }
             )
             worksheet.write(start_row, col, key, cell_format)
             col += 1
@@ -336,7 +338,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             'align': 'center_across',
             'font_size': 24,
             'font_name': 'calibri'
-            }
+        }
         )
 
         value_format = workbook.add_format({
@@ -347,7 +349,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             'align': 'center_across',
             'font_size': 8,
             'font_name': 'calibri'
-            }
+        }
         )
         for key in items.columns.tolist():
             column_format = workbook.add_format({
@@ -358,7 +360,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                 'align': 'center_across',
                 'font_size': 12,
                 'font_name': 'calibri'
-                }
+            }
             )
             keys.append(key[0])
         sub_column_format = workbook.add_format({
@@ -369,7 +371,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             'align': 'center_across',
             'font_size': 12,
             'font_name': 'calibri'
-            }
+        }
         )
 
         keys = set(keys)
@@ -392,23 +394,31 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
         start_row = row + len(items.index)
         return start_row
 
-
-
+    def set_excel_logo(self, workbook, worksheet):
+        logo_path = '{}/{}'.format(settings.BASE_DIR, static('images/reports_logo/DI.png'))
+        worksheet.merge_range('A1:B4', '')
+        worksheet.insert_image('A1', logo_path, {'x_scale': 0.2, 'y_scale': 0.2})
 
     def render_to_response(self, context, **response_kwargs):
         if self.request.GET.get('export') == str(1):
             response = HttpResponse(content_type='application/vnd.ms-excel')
             workbook = xlsxwriter.Workbook(response)
             worksheet = workbook.add_worksheet()
-            row = self.export_excel(workbook, worksheet, context['report_client_cabinet'], 'Общая статистика')
-            row = self.export_excel(workbook, worksheet, context['report_client_channel'], 'Статистика по каналам', row)
-            row = self.export_excel(workbook, worksheet, context['report_client_campaign'], 'Статистика по кампаниям', row)
-            row = self.export_excel_direction(workbook, worksheet, context['report_direction_for_export'], 'Статистика по направлениям', row)
+            self.set_excel_logo(workbook, worksheet)
 
-            row = self.export_excel(workbook, worksheet, context['comagic_other_report'], 'Статистика "Comagic other"', row)
-            row = self.export_excel_period(workbook, worksheet, context['report_client_period_campaign'], 'Статистика по периодам', row)
+            row = self.export_excel(workbook, worksheet, context['report_client_cabinet'], 'Общая статистика', start_row=7)
+            row = self.export_excel(workbook, worksheet, context['report_client_channel'], 'Статистика по каналам', row)
+            row = self.export_excel(workbook, worksheet, context['report_client_campaign'], 'Статистика по кампаниям',
+                                    row)
+            row = self.export_excel_direction(workbook, worksheet, context['report_direction_for_export'],
+                                              'Статистика по направлениям', row)
+
+            row = self.export_excel(workbook, worksheet, context['comagic_other_report'], 'Статистика "Comagic other"',
+                                    row)
+            row = self.export_excel_period(workbook, worksheet, context['report_client_period_campaign'],
+                                           'Статистика по периодам', row)
             workbook.close()
-            response['Content-Disposition'] = f'attachment; filename="{self.object.name}.xlsx"'
+            response['Content-Disposition'] = f'attachment; filename="{self.object.name}"'
             return response
         else:
             return super().render_to_response(context, **response_kwargs)
