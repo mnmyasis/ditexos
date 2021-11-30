@@ -4,13 +4,9 @@ services:
     image: rabbitmq:3.8.17-alpine
     restart: always
     environment:
-      RABBITMQ_NODENAME: "django@localhost"
-      RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
-      RABBITMQ_DEFAULT_USER: ${DB_USER}
-      RABBITMQ_DEFAULT_PASS: ${DB_PASSWORD}
-      RABBITMQ_DEFAULT_VHOST: "/"
     ports:
-      - 127.0.0.1:5675:5672
+      - 127.0.0.1:5672:5672
+    env_file: ./ditexos/.env
   db:
     image: postgres:12.6
     restart: always

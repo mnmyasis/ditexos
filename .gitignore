@@ -14,6 +14,7 @@ node_modules/
 
 # Log files
 *.log
+*.log.*
 
 # Package files
 *.jar
