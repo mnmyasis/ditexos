@@ -32,7 +32,6 @@ class Mail(models.Model):
     is_week = models.BooleanField(default=False, verbose_name='Недельный отчет')
     is_month = models.BooleanField(default=False, verbose_name='Ежемесячный отчет')
     group_distribution = models.ForeignKey(GroupDistribution, on_delete=models.CASCADE, verbose_name='Группа рассылки')
-    periodic_task = models.ManyToManyField(PeriodicTask, verbose_name='Задачи')
 
     def __str__(self):
         return f'user({self.user.email}) group_distribution({self.group_distribution.name}) {self.name}'
