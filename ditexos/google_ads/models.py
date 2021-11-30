@@ -89,7 +89,7 @@ class Metrics(models.Model):
     average_cost = models.IntegerField()
     clicks = models.IntegerField()
     conversions = models.IntegerField()
-    cost_micros = models.IntegerField()
+    cost_micros = models.BigIntegerField()
     ctr = models.FloatField()
     impressions = models.IntegerField()
     search_rank_lost_impression_share = models.FloatField()

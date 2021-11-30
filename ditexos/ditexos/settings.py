@@ -14,6 +14,7 @@ import os, environ
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(DEBUG=(bool, False))
@@ -43,7 +44,8 @@ INSTALLED_APPS = [
     'amocrm',
     'excel',
     'dashboard',
-    'comagic'
+    'comagic',
+    'email_sender'
 
 ]
 
@@ -223,3 +225,11 @@ GOOGLE_PROJECT_ID = env('GOOGLE_PROJECT_ID')
 GOOGLE_APP_PASSWORD = env('GOOGLE_APP_PASSWORD')
 GOOGLE_REDIRECT_URIS = env.list('GOOGLE_REDIRECT_URIS')
 GOOGLE_REDIRECT_URI = env('GOOGLE_REDIRECT_URI')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_PORT = env('EMAIL_PORT')
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')

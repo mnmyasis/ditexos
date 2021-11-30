@@ -25,6 +25,7 @@
                                         <th>Google cost</th>
                                         <th>Yandex cost</th>
                                         <th>Leads</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -37,10 +38,14 @@
                                         <td>{{ client.google_cost }}</td>
                                         <td>{{ client.yandex_cost }}</td>
                                         <td>{{ client.leads }}</td>
-                                        <td class="d-flex justify-content-center">
-                                            <a class="btn btn-outline-danger" href="{% url 'dashboard:client_delete' pk=client.pk %}">
-                                                <img src="{% static 'images/svg/trash.svg' %}">
-                                            </a>
+                                        <td>
+                                            <div class="row">
+                                                <div class="col-2 offset-4">
+                                                    <a class="btn btn-outline-danger" href="{% url 'dashboard:client_delete' pk=client.pk %}">
+                                                        <img src="{% static 'images/svg/trash.svg' %}">
+                                                    </a>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                     {% endfor %}

@@ -40,7 +40,7 @@ select
        google.campaign campaign,
        google.campaign_id campaign_id,
        google.key_word key_word,
-       google.cost cost_,
+       google.cost * 1.2 cost_,
        google.clicks clicks,
        google.impressions impressions,
        google.date date
