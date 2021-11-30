@@ -3,7 +3,6 @@ services:
   rabbitmq:
     image: rabbitmq:3.8.17-alpine
     restart: always
-    environment:
     ports:
       - 127.0.0.1:5672:5672
     env_file: ./ditexos/.env
