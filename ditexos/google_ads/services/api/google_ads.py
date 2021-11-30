@@ -33,7 +33,7 @@ def report_default(client, customer_id, start_date, end_date):
             WHERE
                 customer.id = {}
                 AND segments.date >= '{}'
-                AND segments.date < '{}'
+                AND segments.date <= '{}'
             """.format(customer_id, start_date, end_date)
     search_request = client.get_type("SearchGoogleAdsStreamRequest")
     search_request.customer_id = customer_id
