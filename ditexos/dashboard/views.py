@@ -75,97 +75,118 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
     template_name = 'dashboard/board.html'
 
     def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
         if start_date is None and end_date is None or start_date == 'null' and end_date == 'null':
             start_date = datetime.datetime.now().strftime('%Y-%m-%d')
             end_date = datetime.datetime.now().strftime('%Y-%m-%d')
-        context = super().get_context_data(**kwargs)
+
         context['client_id'] = self.kwargs.get(self.slug_url_kwarg)
         context['start_date'] = start_date
         context['end_date'] = end_date
-        context['report_client_cabinet'] = Reports.objects.get_report_client_cabinet(
-            agency_client_id=context['client_id'],
-            start_date=start_date,
-            end_date=end_date
-        )
-        context['report_client_channel'] = Reports.objects.get_client_channel(
-            agency_client_id=context['client_id'],
-            start_date=start_date,
-            end_date=end_date
-        )
-        context['report_client_campaign'] = Reports.objects.get_client_campaign(
-            agency_client_id=context['client_id'],
-            start_date=start_date,
-            end_date=end_date
-        )
-        context['report_client_direction'] = Reports.objects.get_client_direction(
-            agency_client_id=context['client_id'],
-            start_date=start_date,
-            end_date=end_date
-        )
-        context['comagic_other_report'] = Reports.objects.get_comagic_other_report(
-            agency_client_id=context['client_id'],
-            start_date=start_date,
-            end_date=end_date
-        )
-        context['report_direction_for_export'] = Reports.objects.get_direction_for_export(
-            agency_client_id=context['client_id'],
-            start_date=start_date,
-            end_date=end_date
-        )
-        context['p1_start_date'] = self.request.GET.get('p1_start_date')
-        context['p1_end_date'] = self.request.GET.get('p1_end_date')
-        context['p2_start_date'] = self.request.GET.get('p2_start_date')
-        context['p2_end_date'] = self.request.GET.get('p2_end_date')
-
-        if context['p1_start_date'] and context['p1_end_date'] and context['p2_start_date'] and context['p2_end_date']:
-            context['report_client_period_campaign'] = Reports.objects.get_client_period_campaign(
+        try:
+            report_types = ReportTypes.objects.get(agency_client__pk=context['client_id'])
+            context['report_types'] = report_types
+        except ReportTypes.DoesNotExist:
+            return context
+        if report_types.is_common:
+            context['report_client_cabinet'] = Reports.objects.get_report_client_cabinet(
                 agency_client_id=context['client_id'],
-                p1_start_date=context['p1_start_date'],
-                p1_end_date=context['p1_end_date'],
-                p2_start_date=context['p2_start_date'],
-                p2_end_date=context['p2_end_date']
+                start_date=start_date,
+                end_date=end_date
             )
-        else:
-            context['p1_start_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
-            context['p1_end_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
-            context['p2_start_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
-            context['p2_end_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+        if report_types.is_channel:
+            context['report_client_channel'] = Reports.objects.get_client_channel(
+                agency_client_id=context['client_id'],
+                start_date=start_date,
+                end_date=end_date
+            )
+        if report_types.is_campaign:
+            context['report_client_campaign'] = Reports.objects.get_client_campaign(
+                agency_client_id=context['client_id'],
+                start_date=start_date,
+                end_date=end_date
+            )
+        if report_types.is_direction:
+            context['report_client_direction'] = Reports.objects.get_client_direction(
+                agency_client_id=context['client_id'],
+                start_date=start_date,
+                end_date=end_date
+            )
+        if report_types.is_comagic_other:
+            context['comagic_other_report'] = Reports.objects.get_comagic_other_report(
+                agency_client_id=context['client_id'],
+                start_date=start_date,
+                end_date=end_date
+            )
+        if report_types.is_direction:
+            context['report_direction_for_export'] = Reports.objects.get_direction_for_export(
+                agency_client_id=context['client_id'],
+                start_date=start_date,
+                end_date=end_date
+            )
+        if report_types.is_period:
+            context['p1_start_date'] = self.request.GET.get('p1_start_date')
+            context['p1_end_date'] = self.request.GET.get('p1_end_date')
+            context['p2_start_date'] = self.request.GET.get('p2_start_date')
+            context['p2_end_date'] = self.request.GET.get('p2_end_date')
+            if context['p1_start_date'] and context['p1_end_date'] and context['p2_start_date'] and context[
+                'p2_end_date']:
+                context['report_client_period_campaign'] = Reports.objects.get_client_period_campaign(
+                    agency_client_id=context['client_id'],
+                    p1_start_date=context['p1_start_date'],
+                    p1_end_date=context['p1_end_date'],
+                    p2_start_date=context['p2_start_date'],
+                    p2_end_date=context['p2_end_date']
+                )
+            else:
+                context['p1_start_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+                context['p1_end_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+                context['p2_start_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+                context['p2_end_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
         return context
 
     def render_to_response(self, context, **response_kwargs):
         if self.request.GET.get('export') == str(1):
             table_objects = []
-            cabinet_table = generate_export_file.DefaultTable(items=context['report_client_cabinet'],
-                                                              title='Общая статистика')
-            table_objects.append(cabinet_table)
+            if context['report_types'].is_common:
+                if context['report_client_cabinet']:
+                    cabinet_table = generate_export_file.DefaultTable(items=context['report_client_cabinet'],
+                                                                      title='Общая статистика')
+                    table_objects.append(cabinet_table)
+            if context['report_types'].is_channel:
+                if context['report_client_channel']:
+                    channel_table = generate_export_file.DefaultTable(items=context['report_client_channel'],
+                                                                      title='Статистика по каналам')
+                    table_objects.append(channel_table)
+            if context['report_types'].is_campaign:
+                if context['report_client_campaign']:
+                    campaign_table = generate_export_file.DefaultTable(items=context['report_client_campaign'],
+                                                                       title='Статистика по кампаниям',
+                                                                       exclude_keys=[
+                                                                           'agency_client_id',
+                                                                           'campaign_id'
+                                                                       ])
+                    table_objects.append(campaign_table)
 
-            channel_table = generate_export_file.DefaultTable(items=context['report_client_channel'],
-                                                              title='Статистика по каналам')
-            table_objects.append(channel_table)
+            if context['report_types'].is_direction:
+                if context['report_direction_for_export'] is not None:
+                    direction_table = generate_export_file.DirectionTable(items=context['report_direction_for_export'],
+                                                                          title='Статистика по направлениям')
+                    table_objects.append(direction_table)
 
-            campaign_table = generate_export_file.DefaultTable(items=context['report_client_campaign'],
-                                                               title='Статистика по кампаниям',
-                                                               exclude_keys=[
-                                                                   'agency_client_id',
-                                                                   'campaign_id'
-                                                               ])
-            table_objects.append(campaign_table)
+            if context['report_types'].is_comagic_other:
+                if context['comagic_other_report']:
+                    other_table = generate_export_file.DefaultTable(items=context['comagic_other_report'],
+                                                                    title='Статистика "Comagic other"')
+                    table_objects.append(other_table)
 
-            direction_table = generate_export_file.DirectionTable(items=context['report_direction_for_export'],
-                                                                  title='Статистика по направлениям')
-            table_objects.append(direction_table)
-
-            other_table = generate_export_file.DefaultTable(items=context['comagic_other_report'],
-                                                            title='Статистика "Comagic other"')
-            table_objects.append(other_table)
-
-            if context.get('report_client_period_campaign'):
-                period_table = generate_export_file.PeriodTable(items=context['report_client_period_campaign'],
-                                                                title='Статистика по периодам')
-                table_objects.append(period_table)
-
+            if context['report_types'].is_period:
+                if context.get('report_client_period_campaign') and context['report_client_period_campaign']:
+                    period_table = generate_export_file.PeriodTable(items=context['report_client_period_campaign'],
+                                                                    title='Статистика по периодам')
+                    table_objects.append(period_table)
             gen_report = generate_export_file.GenerateReport(
                 title_font_size=24,
                 header_font_size=12,

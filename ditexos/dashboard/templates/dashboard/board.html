@@ -19,6 +19,7 @@
                     </form>
                 </div>
             </div>
+            {% if report_types.is_common %}
             <div class="card mb-4">
                 <div class="card-header">
                     <i class="fas fa-table me-1"></i>
@@ -80,6 +81,9 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
+
+            {% if report_types.is_channel %}
             <div class="card mb-4">
                 <div class="card-header">
                     <i class="fas fa-table me-1"></i>
@@ -144,6 +148,9 @@
                     </div>
                  </div>
             </div>
+            {% endif %}
+
+            {% if report_types.is_campaign %}
             <div class="card mb-4">
                 <div class="card-header">
                     <i class="fas fa-table me-1"></i>
@@ -209,6 +216,9 @@
                     </div>
                  </div>
             </div>
+            {% endif %}
+
+            {% if report_types.is_direction %}
             <div class="card mb-4">
                 <div class="card-header">
                     <i class="fas fa-table me-1"></i>
@@ -251,6 +261,9 @@
                     </div>
                  </div>
             </div>
+            {% endif %}
+
+            {% if report_types.is_comagic_other %}
             <div class="card mb-4">
                 <div class="card-header">
                     <i class="fas fa-table me-1"></i>
@@ -283,6 +296,9 @@
                     </div>
                  </div>
             </div>
+            {% endif %}
+
+            {% if report_types.is_period %}
             <div class="card mb-4">
                 <div class="card-header">
                     <i class="fas fa-table me-1"></i>
@@ -394,6 +410,7 @@
                     </div>
                  </div>
             </div>
+            {% endif %}
         </div>
     </main>
 </div>
@@ -404,6 +421,7 @@
 <script>
 $(function() {
   $('input[name="daterange"]').daterangepicker({
+    autoUpdateInput: false,
     opens: 'left',
     locale: {
             format: 'YYYY-MM-DD'
@@ -418,7 +436,24 @@ $(function() {
     document.location.href = url
   });
 });
-$(function() {
+
+document.getElementById("btn-export-excel").addEventListener("click", function(e){
+    let currentLocation = window.location
+    const url_old = new URL(currentLocation.href)
+    st_date = url_old.searchParams.get('start_date')
+    if(st_date == null){
+        url = currentLocation.href + '?&export=' + 1
+    }else{
+    url = currentLocation.href + '&export=' + 1
+    }
+    document.location.href = url
+
+})
+</script>
+
+{% if report_types.is_period %}
+<script>
+    $(function() {
     let p1_start_date = ''
     let p2_start_date = ''
     let p1_end_date = ''
@@ -445,8 +480,6 @@ $(function() {
         p2_end_date = end.format('YYYY-MM-DD')
   });
   document.getElementById("period-button").addEventListener("click", function(e){
-    console.log(p1_start_date)
-    console.log(p2_start_date)
     if(new Date(p1_end_date) >= new Date(p2_start_date)){
         alert('Период 1 не может быть больше либо равен период 2')
         return;
@@ -456,7 +489,6 @@ $(function() {
     const url_old = new URL(currentLocation.href)
     st_date = 'start_date=' + url_old.searchParams.get('start_date') + '&'
     en_date = 'end_date=' + url_old.searchParams.get('end_date')
-    console.log(st_date)
     let origin = currentLocation.origin
     let path_name = currentLocation.pathname
     const url = new URL(
@@ -469,11 +501,6 @@ $(function() {
     document.location.href = url
     })
 });
-document.getElementById("btn-export-excel").addEventListener("click", function(e){
-    let currentLocation = window.location
-    url = currentLocation.href + '&export=' + 1
-    document.location.href = url
-
-})
 </script>
+{%endif%}
 {% endblock %}

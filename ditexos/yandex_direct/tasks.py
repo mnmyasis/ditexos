@@ -1,6 +1,9 @@
+import datetime
+
 from celery import shared_task
 from .services.api.direct_api import AgencyClients, YandexDir, Reports
 from .services.api.direct_api import Client as ApiYandexClient
+from django.db.models import Max
 from .models import *
 import pandas as pd
 
@@ -38,6 +41,16 @@ def clients(user_id=1):
 def get_reports(user_id=1, yandex_client_id=None, start_date=None, end_date=None):
     ya_dir_tok = YandexDirectToken.objects.get(user__pk=user_id)
     client = Clients.objects.get(client_id=yandex_client_id, user__pk=user_id)
+    if start_date is None:
+        start_date = Metrics.objects.filter(key_word__ad_group__campaign__client__pk=client.pk) \
+            .aggregate(Max('date')).get('date__max')
+        days = datetime.timedelta(days=3)
+        start_date -= days
+        start_date = start_date.strftime("%Y-%m-%d")
+    if end_date is None:
+        d = datetime.datetime.now()
+        end_date = d.strftime('%Y-%m-%d')
+
     report = Reports(
         token=ya_dir_tok.access_token,
         client_login=client.name,

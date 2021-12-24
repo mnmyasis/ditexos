@@ -1,5 +1,5 @@
 import datetime
-
+from django.db.models import Max
 from celery import shared_task
 from .models import ApiToken, ComagicReport, AttributesReport, DomainReport
 from .services.api import comagic_api
@@ -7,6 +7,12 @@ from .services.api import comagic_api
 
 @shared_task(name='comagic_call_reports')
 def get_call_report(api_token_id, v='2.0', start_date=None, end_date=None):
+    if start_date is None:
+        start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date'))\
+            .get('date__max').strftime("%Y-%m-%d")
+    if end_date is None:
+        d = datetime.datetime.now()
+        end_date = d.strftime('%Y-%m-%d')
     api_token = ApiToken.objects.get(pk=api_token_id)
     offset = 0
     limit = 10000
@@ -67,6 +73,12 @@ def get_call_report(api_token_id, v='2.0', start_date=None, end_date=None):
 
 @shared_task(name='comagic_chat_reports')
 def get_chat_report(api_token_id, v='2.0', start_date=None, end_date=None):
+    if start_date is None:
+        start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date')) \
+            .get('date__max').strftime("%Y-%m-%d")
+    if end_date is None:
+        d = datetime.datetime.now()
+        end_date = d.strftime('%Y-%m-%d')
     api_token = ApiToken.objects.get(pk=api_token_id)
     offset = 0
     limit = 10000
@@ -127,6 +139,12 @@ def get_chat_report(api_token_id, v='2.0', start_date=None, end_date=None):
 
 @shared_task(name='comagic_site_reports')
 def get_site_report(api_token_id, v='2.0', start_date=None, end_date=None):
+    if start_date is None:
+        start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date')) \
+            .get('date__max').strftime("%Y-%m-%d")
+    if end_date is None:
+        d = datetime.datetime.now()
+        end_date = d.strftime('%Y-%m-%d')
     api_token = ApiToken.objects.get(pk=api_token_id)
     offset = 0
     limit = 10000
@@ -186,6 +204,12 @@ def get_site_report(api_token_id, v='2.0', start_date=None, end_date=None):
 
 @shared_task(name='comagic_cutaways_reports')
 def get_cutaways_report(api_token_id, v='2.0', start_date=None, end_date=None):
+    if start_date is None:
+        start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date')) \
+            .get('date__max').strftime("%Y-%m-%d")
+    if end_date is None:
+        d = datetime.datetime.now()
+        end_date = d.strftime('%Y-%m-%d')
     api_token = ApiToken.objects.get(pk=api_token_id)
     offset = 0
     limit = 10000
@@ -246,6 +270,12 @@ def get_cutaways_report(api_token_id, v='2.0', start_date=None, end_date=None):
 
 @shared_task(name='comagic_other_reports')
 def get_other_report(api_token_id, v='2.0', start_date=None, end_date=None):
+    if start_date is None:
+        start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date')) \
+            .get('date__max').strftime("%Y-%m-%d")
+    if end_date is None:
+        d = datetime.datetime.now()
+        end_date = d.strftime('%Y-%m-%d')
     api_token = ApiToken.objects.get(pk=api_token_id)
     offset = 0
     limit = 10000

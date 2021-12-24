@@ -24,20 +24,28 @@ import pandas as pd
 class AgencyClients(models.Model):
 
     def get_absolute_url(self):
-        return '{}'.format(reverse_lazy('dashboard:client', kwargs={'client_id': self.pk}))
+        return '{}'.format(reverse_lazy('dashboard:client',
+                                        kwargs={'client_id': self.pk}))
 
     TRACKERS = (
         ('cl', 'CallTouch'),
         ('co_m', 'Comagic'),
     )
-    call_tracker_type = models.CharField(max_length=10, choices=TRACKERS, verbose_name='Тип коллтрекера')
+    call_tracker_type = models.CharField(max_length=10,
+                                         choices=TRACKERS,
+                                         verbose_name='Тип коллтрекера',
+                                         blank=True,
+                                         null=True
+                                         )
     call_tracker = models.ForeignKey(ContentType,
                                      on_delete=models.CASCADE,
                                      related_name='call_tracker_content_type',
                                      blank=True,
                                      null=True)
-    call_tracker_object_id = models.PositiveIntegerField(blank=True, null=True)
-    call_tracker_object = GenericForeignKey(ct_field='call_tracker', fk_field='call_tracker_object_id')
+    call_tracker_object_id = models.PositiveIntegerField(blank=True,
+                                                         null=True)
+    call_tracker_object = GenericForeignKey(ct_field='call_tracker',
+                                            fk_field='call_tracker_object_id')
     CRMS = (
         ('amo', 'AmoCrm'),
         ('exc', 'Excel'),
@@ -52,10 +60,15 @@ class AgencyClients(models.Model):
                             related_name='crm_content_type',
                             blank=True,
                             null=True)
-    crm_object_id = models.PositiveIntegerField(blank=True, null=True)
-    crm_object = GenericForeignKey(ct_field='crm', fk_field='crm_id')
-    name = models.CharField(max_length=100, verbose_name='Название клиента')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='agency_clients_user')
+    crm_object_id = models.PositiveIntegerField(blank=True,
+                                                null=True)
+    crm_object = GenericForeignKey(ct_field='crm',
+                                   fk_field='crm_id')
+    name = models.CharField(max_length=100,
+                            verbose_name='Название клиента')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE,
+                             related_name='agency_clients_user')
     yandex_client = models.ForeignKey(yandex_direct.models.Clients,
                                       on_delete=models.CASCADE,
                                       verbose_name='Логин клиента в yandex direct')
@@ -77,7 +90,7 @@ class AgencyClients(models.Model):
         schedule = self.get_or_create_interval()
         task, is_create = PeriodicTask.objects.get_or_create(
             interval=schedule,
-            name='{}-{}'.format(name, self.pk),
+            name='{}-user_{}-client_{}-{}'.format(name, self.user.name, self.name, self.pk),
             task=task_name,
             kwargs=json.dumps(arguments)
         )
@@ -97,16 +110,6 @@ class AgencyClients(models.Model):
         task_func.delay(**arguments)
 
     def update_report(self, task_name, arguments=dict):
-        d = datetime.datetime.now()
-        start_date = d.strftime('%Y-%m-%d')
-        end_date = d.strftime('%Y-%m-%d')
-
-        arguments.update(
-            {
-                'start_date': start_date,
-                'end_date': end_date
-            }
-        )
         self.set_periodic_task(
             name='{}-update-report'.format(task_name),
             task_name=task_name,
@@ -205,6 +208,45 @@ class AgencyClients(models.Model):
 
     def __str__(self):
         return '{} - {} - {}'.format(self.name, self.user, self.pk)
+
+
+class ClientProjects(models.Model):
+    name = models.CharField(max_length=256, verbose_name='Название проекта')
+    tag = models.CharField(max_length=256, verbose_name='Tag проекта в utm метке')
+    agency_client = models.ForeignKey(AgencyClients, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'client_projects'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class ReportTypes(models.Model):
+    agency_client = models.ForeignKey(AgencyClients, on_delete=models.CASCADE)
+    is_common = models.BooleanField(default=False,
+                                    verbose_name='Общая статистика')
+    is_channel = models.BooleanField(default=False,
+                                     verbose_name='Статистика по каналам')
+    is_campaign = models.BooleanField(default=False,
+                                      verbose_name='Статистика по кампаниям')
+    is_direction = models.BooleanField(default=False,
+                                       verbose_name='Статистика по направлениям')
+    is_comagic_other = models.BooleanField(default=False,
+                                           verbose_name='Статистика Comagic other')
+    is_period = models.BooleanField(default=False,
+                                    verbose_name='Статистика по периодам')
+    is_project_channel = models.BooleanField(default=False,
+                                             verbose_name='Статистика по каналам проекта')
+    is_project_by_day = models.BooleanField(default=False,
+                                            verbose_name='Статистика по дням проекта')
+
+    class Meta:
+        db_table = 'report_types'
+
+    def __str__(self):
+        return self.agency_client.name
 
 
 class ReportsQuerySet(models.QuerySet):
@@ -681,6 +723,74 @@ class ReportsQuerySet(models.QuerySet):
             ) other_leads
             where other_leads.date between '{start_date}' and '{end_date}' and other_leads.agency_client_id = {agency_client_id}
             group by other_leads.agency_client_id, other_leads.domain_
+        """
+        cursor.execute(sql)
+        report = self._dictfetchall(cursor)
+        return report
+
+    def get_project_channel(self, agency_client_id, project_tag, start_date, end_date):
+        cursor = connection.cursor()
+        sql = f"""
+            select cnn.date,
+                   cnn.source,
+                   cnn.channel,
+                   sum(cnn.impressions) impressions,
+                   sum(cnn.clicks) clicks,
+                   sum(cnn.ctr) ctr,
+                   sum(cnn.cpc) cpc,
+                   sum(cnn.cost_) cost_
+            from (
+            select
+                   ads.id,
+                   ads.date,
+                   ads.source,
+                   ads.campaign,
+                   case
+                       when campaign ~* '_search' THEN 'search'
+                       when campaign ~* '_network' THEN 'network'
+                   END channel,
+                   ads.impressions,
+                   ads.clicks,
+                   round(ads.clicks /
+                   case
+                       when ads.impressions = 0 then 1
+                       else ads.impressions
+                   end * 100, 2) ctr,
+                   round(ads.cost_ /
+                   case
+                       when ads.clicks = 0 then 1
+                       else ads.clicks
+                   end, 2) cpc,
+                   ads.cost_
+            from (
+                    (select id,
+                        'yandex' source,
+                        campaign,
+                        campaign_id,
+                        sum(cost_) cost_,
+                        sum(clicks) clicks,
+                        sum(impressions) impressions,
+                        date
+                    from yandex_report_view
+                    group by id, campaign, campaign_id, date)
+                    union all
+                    (select id,
+                        'google' source,
+                        campaign,
+                        campaign_id,
+                        sum(cost_) cost_,
+                        sum(clicks) clicks,
+                        sum(impressions) impressions,
+                        date
+                    from google_report_view
+                    group by id, campaign, campaign_id, date)
+                    )
+                ads
+                ) cnn where 
+                    cnn.id = {agency_client_id} and
+                    cnn.campaign ~* '{project_tag}' and
+                    cnn.date between '{start_date}' and '{end_date}'
+                group by cnn.date, cnn.source, cnn.channel
         """
         cursor.execute(sql)
         report = self._dictfetchall(cursor)

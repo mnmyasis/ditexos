@@ -45,6 +45,7 @@ class Clients(models.Model):
 
     class Meta:
         db_table = 'google_clients'
+        ordering = ['name']
 
 
 class Campaigns(models.Model):

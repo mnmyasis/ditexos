@@ -1,6 +1,8 @@
+import datetime
 import json
 import os
 import pandas as pd
+from django.db.models import Max
 from google.ads.googleads.client import GoogleAdsClient
 from .models import GoogleAdsToken, Clients, Campaigns, AdGroups, KeyWords, Metrics
 from celery import shared_task
@@ -52,6 +54,16 @@ def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
     }
     google_ads_client = GoogleAdsClient.load_from_dict(credentials)
     customer = Clients.objects.get(google_id=client_google_id)
+    if start_date is None:
+        start_date = Metrics.objects.filter(key_word__ad_group__campaign__client__pk=customer.pk) \
+            .aggregate(Max('date')).get('date__max')
+        days = datetime.timedelta(days=3)
+        start_date -= days
+        start_date = start_date.strftime("%Y-%m-%d")
+    if end_date is None:
+        d = datetime.datetime.now()
+        end_date = d.strftime('%Y-%m-%d')
+
     df = google_ads.report_default(
         google_ads_client,
         customer.google_id,

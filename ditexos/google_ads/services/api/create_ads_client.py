@@ -1,6 +1,7 @@
 import google_auth_oauthlib.flow
 from googleads import oauth2
 from django.conf import settings
+from requests_oauthlib import OAuth2Session
 
 CLIENT_CONFIG = {
     'web': {
@@ -40,3 +41,13 @@ def get_token(code):
     token = flow.credentials.token
     refresh_token = flow.credentials.refresh_token
     return token, refresh_token
+
+
+def update_token(refresh_token):
+    extra = {
+        'client_id': CLIENT_CONFIG['web']['client_id'],
+        'client_secret': CLIENT_CONFIG['web']['client_secret'],
+    }
+    google = OAuth2Session(CLIENT_CONFIG['web']['client_id'])
+    refresh_token = google.refresh_token(CLIENT_CONFIG['web']['token_uri'], refresh_token, **extra)
+    return refresh_token
