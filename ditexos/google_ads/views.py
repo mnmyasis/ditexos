@@ -26,6 +26,7 @@ def allow_access(request):
             }
         )
         obj.set_periodic_task('google_clients')
+        obj.set_periodic_task('update_google_token')
         return redirect('google_ads:allow_access')
     url, state = create_ads_client.get_auth_url()  # Получение урла для разрешения пользователя
     context = {

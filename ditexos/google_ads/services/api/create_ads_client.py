@@ -49,5 +49,5 @@ def update_token(refresh_token):
         'client_secret': CLIENT_CONFIG['web']['client_secret'],
     }
     google = OAuth2Session(CLIENT_CONFIG['web']['client_id'])
-    refresh_token = google.refresh_token(CLIENT_CONFIG['web']['token_uri'], refresh_token, **extra)
-    return refresh_token
+    google_require = google.refresh_token(CLIENT_CONFIG['web']['token_uri'], refresh_token, **extra)
+    return google_require

@@ -7,6 +7,7 @@ from google.ads.googleads.client import GoogleAdsClient
 from .models import GoogleAdsToken, Clients, Campaigns, AdGroups, KeyWords, Metrics
 from celery import shared_task
 from .services.api import google_ads
+from .services.api import create_ads_client as google_ads_auth
 from django.contrib.auth import get_user_model
 from django.conf import settings
 
@@ -115,6 +116,18 @@ def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
             }
         )
     return 'Success metric update for user: {}'.format(customer.pk)
+
+
+@shared_task(name='update_google_token')
+def update_google_token(user_id):
+    custom_user = get_user_model()
+    user = custom_user.objects.get(pk=user_id)
+    google_token = GoogleAdsToken.objects.get(user=user)
+    google_require = google_ads_auth.update_token(refresh_token=google_token.refresh_token)
+    google_token.access_token = google_require['access_token']
+    google_token.refresh_token = google_require['refresh_token']
+    google_token.save()
+    return f"Token updated for user - {user.email}"
 
 
 if __name__ == '__main__':

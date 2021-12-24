@@ -47,6 +47,7 @@ services:
   celery_worker:
     restart: always
     build: ./docker/celery_worker
+    env_file: ./ditexos/.env
     command: celery -A ditexos worker --beat --scheduler ${DB_USER} --loglevel=info
     depends_on:
       - rabbitmq
@@ -54,4 +55,3 @@ services:
       - ditexos
     volumes:
       - ./ditexos/.:/home/
-    env_file: ./ditexos/.env
