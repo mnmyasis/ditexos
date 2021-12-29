@@ -3,6 +3,6 @@ from .views import *
 
 app_name = 'calltouch'
 urlpatterns = [
-    path('create/<int:agency_client_id>/', CallTouchFormCreateView.as_view(), name='create'),
+    path('create/', CallTouchFormCreateView.as_view(), name='create'),
     path('client/<int:client_id>/', CallTouchFormUpdateView.as_view(), name='client')
 ]

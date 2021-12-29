@@ -1,16 +1,13 @@
-from decimal import Decimal
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
 from django.conf import settings
 from django.urls import reverse_lazy
 from django.db import connection
 import yandex_direct
 import google_ads
-from calltouch import tasks as calltouch_task
+
 from yandex_direct import tasks as yandex_task
 from google_ads import tasks as google_task
-from comagic import tasks as comagic_task
+
 
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 import json, datetime
@@ -37,15 +34,6 @@ class AgencyClients(models.Model):
                                          blank=True,
                                          null=True
                                          )
-    call_tracker = models.ForeignKey(ContentType,
-                                     on_delete=models.CASCADE,
-                                     related_name='call_tracker_content_type',
-                                     blank=True,
-                                     null=True)
-    call_tracker_object_id = models.PositiveIntegerField(blank=True,
-                                                         null=True)
-    call_tracker_object = GenericForeignKey(ct_field='call_tracker',
-                                            fk_field='call_tracker_object_id')
     CRMS = (
         ('amo', 'AmoCrm'),
         ('exc', 'Excel'),
@@ -55,15 +43,6 @@ class AgencyClients(models.Model):
                                 verbose_name='Тип crm системы',
                                 blank=True,
                                 null=True)
-    crm = models.ForeignKey(ContentType,
-                            on_delete=models.CASCADE,
-                            related_name='crm_content_type',
-                            blank=True,
-                            null=True)
-    crm_object_id = models.PositiveIntegerField(blank=True,
-                                                null=True)
-    crm_object = GenericForeignKey(ct_field='crm',
-                                   fk_field='crm_id')
     name = models.CharField(max_length=100,
                             verbose_name='Название клиента')
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
@@ -117,54 +96,8 @@ class AgencyClients(models.Model):
         )
 
     def save(self, *args, **kwargs):
-        """Переписать функционал по нормальному"""
 
         super().save(args, kwargs)
-        """Создание задач для коллтрекинга"""
-        if self.call_tracker_object:
-            if self.call_tracker_type == 'cl':
-                """Одноразовый сбор статастики за 3 месяца(колточа)"""
-                self.history_report_one_off(
-                    task_func=calltouch_task.report,
-                    arguments={
-                        'api_token_id': self.call_tracker_object.pk
-                    }
-                )
-                """Переодинческие задачи для обновления статистики(колточа)"""
-                self.update_report(
-                    task_name='calltouch_reports',
-                    arguments={
-                        'api_token_id': self.call_tracker_object.pk
-                    }
-                )
-            elif self.call_tracker_type == 'co_m':
-                """Одноразовый сбор статастики за 3 месяца(comagic)"""
-                comagic_tasks = [comagic_task.get_call_report,
-                                 comagic_task.get_chat_report,
-                                 comagic_task.get_site_report,
-                                 comagic_task.get_cutaways_report,
-                                 comagic_task.get_other_report]
-                comagic_name = ['comagic_call_reports',
-                                'comagic_chat_reports',
-                                'comagic_site_reports',
-                                'comagic_cutaways_reports',
-                                'comagic_other_reports']
-                for cm_task, cm_name in zip(comagic_tasks, comagic_name):
-                    self.history_report_one_off(
-                        task_func=cm_task,
-                        arguments={
-                            'api_token_id': self.call_tracker_object.pk,
-                            'v': '2.0'
-                        }
-                    )
-                    """Переодинческие задачи для обновления статистики(comagic)"""
-                    self.update_report(
-                        task_name=cm_name,
-                        arguments={
-                            'api_token_id': self.call_tracker_object.pk,
-                            'v': '2.0'
-                        }
-                    )
 
         """Создание задач для рекламных кабинетов"""
 

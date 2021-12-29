@@ -1,19 +1,46 @@
+import json
+from dashboard.models import AgencyClients
+from django.conf import settings
 from django.db import models
-
-# Create your models here.
 from django.urls import reverse_lazy
-from django.utils import timezone
+from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 
-class ApiToken(models.Model):
+class Comagic(models.Model):
     def get_absolute_url(self):
         return '{}'.format(reverse_lazy('comagic:client', kwargs={'client_id': self.pk}))
 
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    agency_client = models.OneToOneField(AgencyClients, on_delete=models.CASCADE)
     token = models.TextField()
     hostname = models.CharField(max_length=255)
 
     class Meta:
         db_table = 'comagic_api_token'
+
+    def __str__(self):
+        return f'{self.agency_client.name} - {self.user.name}'
+
+    def get_or_create_interval(self):
+        schedule, created = IntervalSchedule.objects.get_or_create(
+            every=60,
+            period=IntervalSchedule.MINUTES,
+        )
+        return schedule
+
+    def set_periodic_task(self, task_name):
+        arguments = {
+            'api_token_id': self.pk,
+            'v': '2.0'
+        }
+        schedule = self.get_or_create_interval()
+        task, is_create = PeriodicTask.objects.get_or_create(
+            interval=schedule,
+            name=f'{task_name}#{self.user.name} - {self.agency_client.name}',
+            task=task_name,
+            kwargs=json.dumps(arguments)
+        )
+        return task
 
 
 class AttributesReport(models.Model):
@@ -46,7 +73,7 @@ class ComagicReport(models.Model):
         ('other', 'Другие лиды'),
     )
     source_type = models.CharField(max_length=10, choices=SOURCE, verbose_name='Источник заявки')
-    api_client = models.ForeignKey(ApiToken, on_delete=models.CASCADE)
+    api_client = models.ForeignKey(Comagic, on_delete=models.CASCADE)
     site_domain_name = models.ForeignKey(DomainReport, on_delete=models.CASCADE)
     contact_phone_number = models.CharField(max_length=50, blank=True, null=True, verbose_name='Контактный номер')
     gclid = models.CharField(max_length=255, blank=True, null=True, verbose_name='Google Click Identifier')

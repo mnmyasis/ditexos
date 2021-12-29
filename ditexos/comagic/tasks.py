@@ -1,19 +1,32 @@
 import datetime
 from django.db.models import Max
 from celery import shared_task
-from .models import ApiToken, ComagicReport, AttributesReport, DomainReport
+from .models import Comagic, ComagicReport, AttributesReport, DomainReport
 from .services.api import comagic_api
 
 
-@shared_task(name='comagic_call_reports')
-def get_call_report(api_token_id, v='2.0', start_date=None, end_date=None):
-    if start_date is None:
-        start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date'))\
+def get_date(start_date, api_token_id):
+    if start_date is None:  # Если дата не задана вручную
+        start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date')) \
             .get('date__max').strftime("%Y-%m-%d")
-    if end_date is None:
-        d = datetime.datetime.now()
-        end_date = d.strftime('%Y-%m-%d')
-    api_token = ApiToken.objects.get(pk=api_token_id)
+        if start_date is None:  # Если метрик нет
+            start_date = datetime.datetime.now()
+            month = datetime.timedelta(days=60)
+            start_date -= month
+            start_date = start_date.strftime("%Y-%m-%d")
+        else:
+            days = datetime.timedelta(days=3)
+            start_date -= days
+            start_date = start_date.strftime("%Y-%m-%d")
+    d = datetime.datetime.now()
+    end_date = d.strftime('%Y-%m-%d')
+    return start_date, end_date
+
+
+@shared_task(name='comagic_call_reports')
+def get_call_report(api_token_id, v='2.0', start_date=None):
+    start_date, end_date = get_date(start_date=start_date, api_token_id=api_token_id)
+    api_token = Comagic.objects.get(pk=api_token_id)
     offset = 0
     limit = 10000
     end = True
@@ -68,18 +81,13 @@ def get_call_report(api_token_id, v='2.0', start_date=None, end_date=None):
 
             )
             obj.attributes.set(attrs, clear=True)
-    return 'Success update call_reports for id {}'.format(api_token.pk)
+    return f'Success update start: {start_date} - end: {end_date} call_reports for id {api_token.pk}'
 
 
 @shared_task(name='comagic_chat_reports')
-def get_chat_report(api_token_id, v='2.0', start_date=None, end_date=None):
-    if start_date is None:
-        start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date')) \
-            .get('date__max').strftime("%Y-%m-%d")
-    if end_date is None:
-        d = datetime.datetime.now()
-        end_date = d.strftime('%Y-%m-%d')
-    api_token = ApiToken.objects.get(pk=api_token_id)
+def get_chat_report(api_token_id, v='2.0', start_date=None):
+    start_date, end_date = get_date(start_date=start_date, api_token_id=api_token_id)
+    api_token = Comagic.objects.get(pk=api_token_id)
     offset = 0
     limit = 10000
     end = True
@@ -134,18 +142,13 @@ def get_chat_report(api_token_id, v='2.0', start_date=None, end_date=None):
 
             )
             obj.attributes.set(attrs, clear=True)
-    return 'Success update chat_reports for id {}'.format(api_token.pk)
+    return f'Success update start: {start_date} - end: {end_date} chat_reports for id {api_token.pk}'
 
 
 @shared_task(name='comagic_site_reports')
-def get_site_report(api_token_id, v='2.0', start_date=None, end_date=None):
-    if start_date is None:
-        start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date')) \
-            .get('date__max').strftime("%Y-%m-%d")
-    if end_date is None:
-        d = datetime.datetime.now()
-        end_date = d.strftime('%Y-%m-%d')
-    api_token = ApiToken.objects.get(pk=api_token_id)
+def get_site_report(api_token_id, v='2.0', start_date=None):
+    start_date, end_date = get_date(start_date=start_date, api_token_id=api_token_id)
+    api_token = Comagic.objects.get(pk=api_token_id)
     offset = 0
     limit = 10000
     end = True
@@ -199,18 +202,13 @@ def get_site_report(api_token_id, v='2.0', start_date=None, end_date=None):
 
             )
             obj.attributes.set(attrs, clear=True)
-    return 'Success update site_reports for id {}'.format(api_token.pk)
+    return f'Success update start: {start_date} - end: {end_date} site_reports for id {api_token.pk}'
 
 
 @shared_task(name='comagic_cutaways_reports')
-def get_cutaways_report(api_token_id, v='2.0', start_date=None, end_date=None):
-    if start_date is None:
-        start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date')) \
-            .get('date__max').strftime("%Y-%m-%d")
-    if end_date is None:
-        d = datetime.datetime.now()
-        end_date = d.strftime('%Y-%m-%d')
-    api_token = ApiToken.objects.get(pk=api_token_id)
+def get_cutaways_report(api_token_id, v='2.0', start_date=None):
+    start_date, end_date = get_date(start_date=start_date, api_token_id=api_token_id)
+    api_token = Comagic.objects.get(pk=api_token_id)
     offset = 0
     limit = 10000
     end = True
@@ -265,18 +263,13 @@ def get_cutaways_report(api_token_id, v='2.0', start_date=None, end_date=None):
 
             )
             obj.attributes.set(attrs, clear=True)
-    return 'Success update cutaways_reports for id {}'.format(api_token.pk)
+    return f'Success update start: {start_date} - end: {end_date} cutaways_reports for id {api_token.pk}'
 
 
 @shared_task(name='comagic_other_reports')
-def get_other_report(api_token_id, v='2.0', start_date=None, end_date=None):
-    if start_date is None:
-        start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date')) \
-            .get('date__max').strftime("%Y-%m-%d")
-    if end_date is None:
-        d = datetime.datetime.now()
-        end_date = d.strftime('%Y-%m-%d')
-    api_token = ApiToken.objects.get(pk=api_token_id)
+def get_other_report(api_token_id, v='2.0', start_date=None):
+    start_date, end_date = get_date(start_date=start_date, api_token_id=api_token_id)
+    api_token = Comagic.objects.get(pk=api_token_id)
     offset = 0
     limit = 10000
     end = True
@@ -331,4 +324,4 @@ def get_other_report(api_token_id, v='2.0', start_date=None, end_date=None):
 
             )
             obj.attributes.set(attrs, clear=True)
-    return 'Success update other_reports for id {}'.format(api_token.pk)
+    return f'Success update start: {start_date} - end: {end_date} other_reports for id {api_token.pk}'

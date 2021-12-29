@@ -104,4 +104,4 @@ def get_reports(user_id=1, yandex_client_id=None, start_date=None, end_date=None
                 'date': rep.Date
             }
         )
-    return 'Success update yandex metrics for user {}'.format(ya_dir_tok.user.email)
+    return f'Success update metric start: {start_date} - end:{end_date} update for client: {client.name}'

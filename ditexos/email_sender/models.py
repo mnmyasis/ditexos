@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from dashboard.models import AgencyClients
-from django_celery_beat.models import PeriodicTask
 
 
 class GroupDistribution(models.Model):

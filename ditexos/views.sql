@@ -3,7 +3,6 @@ as
 select
     agc_cl.id id,
     agc_cl.name agency_client_name,
-    agc_cl.call_tracker_object_id call_tracker_id,
     yandex.id yandex_client_id,
     yandex.campaign campaign,
     yandex.campaign_id campaign_id,
@@ -35,7 +34,6 @@ as
 select
        agc_cl.id id,
        agc_cl.name agency_client_name,
-       agc_cl.call_tracker_object_id call_tracker_id,
        google.google_client_id google_client_id,
        google.campaign campaign,
        google.campaign_id campaign_id,
@@ -138,31 +136,30 @@ from (
         select id,
             'yandex' source,
             campaign,
-            call_tracker_id,
             campaign_id,
             sum(cost_) cost_,
             sum(clicks) clicks,
             sum(impressions) impressions,
             date
         from yandex_report_view
-        group by id, call_tracker_id, campaign, campaign_id, date
+        group by id, campaign, campaign_id, date
         ) ads
         union all
         (select id,
             'google' source,
             campaign,
-            call_tracker_id,
             campaign_id,
             sum(cost_) cost_,
             sum(clicks) clicks,
             sum(impressions) impressions,
             date
         from google_report_view
-        group by id, call_tracker_id, campaign, campaign_id, date
+        group by id, campaign, campaign_id, date
         )
     ) cabinet
     left join (
         select co_api.id,
+               co_api.agency_client_id,
                cr.utm_source,
                cr.utm_campaign,
                count(cr.utm_campaign) leads,
@@ -171,13 +168,14 @@ from (
         left join comagic_report cr on co_api.id = cr.api_client_id
         where (cr.utm_source = 'yandex' or cr.utm_source = 'google') and
               cr.source_type = 'call'
-        group by co_api.id, cr.utm_source, cr.utm_campaign, cr.date
-        ) call on cabinet.call_tracker_id = call.id and
+        group by co_api.id, co_api.agency_client_id, cr.utm_source, cr.utm_campaign, cr.date
+        ) call on cabinet.id = call.agency_client_id and
                   cabinet.source = call.utm_source and
                   cabinet.date = call.date and
                   cabinet.campaign = call.utm_campaign
     left join (
         select co_api.id,
+               co_api.agency_client_id,
                cr.utm_source,
                cr.utm_campaign,
                count(cr.utm_campaign) leads,
@@ -186,13 +184,14 @@ from (
         left join comagic_report cr on co_api.id = cr.api_client_id
         where (cr.utm_source = 'yandex' or cr.utm_source = 'google') and
               cr.source_type = 'chat'
-        group by co_api.id, cr.utm_source, cr.utm_campaign, cr.date
-        ) chat on cabinet.call_tracker_id = chat.id and
+        group by co_api.id, co_api.agency_client_id, cr.utm_source, cr.utm_campaign, cr.date
+        ) chat on cabinet.id = chat.agency_client_id and
                   cabinet.source = chat.utm_source and
                   cabinet.date = chat.date and
                   cabinet.campaign = chat.utm_campaign
     left join (
         select co_api.id,
+               co_api.agency_client_id,
                cr.utm_source,
                cr.utm_campaign,
                count(cr.utm_campaign) leads,
@@ -201,8 +200,8 @@ from (
         left join comagic_report cr on co_api.id = cr.api_client_id
         where (cr.utm_source = 'yandex' or cr.utm_source = 'google') and
               cr.source_type = 'site'
-        group by co_api.id, cr.utm_source, cr.utm_campaign, cr.date
-        ) site on cabinet.call_tracker_id = site.id and
+        group by co_api.id, co_api.agency_client_id, cr.utm_source, cr.utm_campaign, cr.date
+        ) site on cabinet.id = site.agency_client_id and
                   cabinet.source = site.utm_source and
                   cabinet.date = site.date and
                   cabinet.campaign = site.utm_campaign
@@ -284,7 +283,6 @@ from (
         select id,
             'yandex' source,
             campaign,
-            call_tracker_id,
             campaign_id,
             key_word,
             sum(cost_) cost_,
@@ -292,13 +290,12 @@ from (
             sum(impressions) impressions,
             date
         from yandex_report_view
-        group by id, call_tracker_id, campaign, campaign_id, key_word, date
+        group by id, campaign, campaign_id, key_word, date
         ) ads
         union all
         (select id,
             'google' source,
             campaign,
-            call_tracker_id,
             campaign_id,
             key_word,
             sum(cost_) cost_,
@@ -306,11 +303,12 @@ from (
             sum(impressions) impressions,
             date
         from google_report_view
-        group by id, call_tracker_id, campaign, campaign_id, key_word, date
+        group by id, campaign, campaign_id, key_word, date
         )
     ) cabinet
     left join (
         select co_api.id,
+               co_api.agency_client_id,
                cr.utm_source,
                cr.utm_campaign,
                cr.utm_term,
@@ -320,14 +318,15 @@ from (
         left join comagic_report cr on co_api.id = cr.api_client_id
         where (cr.utm_source = 'yandex' or cr.utm_source = 'google') and
               cr.source_type = 'call'
-        group by co_api.id, cr.utm_source, cr.utm_campaign, cr.utm_term, cr.date
-        ) call on cabinet.call_tracker_id = call.id and
+        group by co_api.id, co_api.agency_client_id, cr.utm_source, cr.utm_campaign, cr.utm_term, cr.date
+        ) call on cabinet.id = call.agency_client_id and
                   cabinet.source = call.utm_source and
                   cabinet.date = call.date and
                   cabinet.campaign = call.utm_campaign and
                   cabinet.key_word = call.utm_term
     left join (
         select co_api.id,
+               co_api.agency_client_id,
                cr.utm_source,
                cr.utm_campaign,
                cr.utm_term,
@@ -337,14 +336,15 @@ from (
         left join comagic_report cr on co_api.id = cr.api_client_id
         where (cr.utm_source = 'yandex' or cr.utm_source = 'google') and
               cr.source_type = 'chat'
-        group by co_api.id, cr.utm_source, cr.utm_campaign, cr.utm_term, cr.date
-        ) chat on cabinet.call_tracker_id = chat.id and
+        group by co_api.id, co_api.agency_client_id, cr.utm_source, cr.utm_campaign, cr.utm_term, cr.date
+        ) chat on cabinet.id = chat.agency_client_id and
                   cabinet.source = chat.utm_source and
                   cabinet.date = chat.date and
                   cabinet.campaign = chat.utm_campaign and
                   cabinet.key_word = chat.utm_term
     left join (
         select co_api.id,
+               co_api.agency_client_id,
                cr.utm_source,
                cr.utm_campaign,
                cr.utm_term,
@@ -354,8 +354,8 @@ from (
         left join comagic_report cr on co_api.id = cr.api_client_id
         where (cr.utm_source = 'yandex' or cr.utm_source = 'google') and
               cr.source_type = 'site'
-        group by co_api.id, cr.utm_source, cr.utm_campaign, cr.utm_term, cr.date
-        ) site on cabinet.call_tracker_id = site.id and
+        group by co_api.id, co_api.agency_client_id, cr.utm_source, cr.utm_campaign, cr.utm_term, cr.date
+        ) site on cabinet.id = site.agency_client_id and
                   cabinet.source = site.utm_source and
                   cabinet.date = site.date and
                   cabinet.campaign = site.utm_campaign and

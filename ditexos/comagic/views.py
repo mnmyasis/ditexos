@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView, UpdateView
-from .models import ApiToken, ComagicReport
+from .models import Comagic, ComagicReport
 from .forms import ComagicCreateForm
 from dashboard.models import AgencyClients
 
@@ -10,24 +10,17 @@ from dashboard.models import AgencyClients
 # Create your views here.
 
 class ComagicFormCreateView(LoginRequiredMixin, CreateView):
-    model = ApiToken
+    model = Comagic
     template_name = 'create_form.html'
     form_class = ComagicCreateForm
 
-    def post(self, request, *args, **kwargs):
-        try:
-            ac = AgencyClients.objects.get(pk=kwargs.get('agency_client_id'))
-            return super().post(request, *args, **kwargs)
-        except AgencyClients.DoesNotExist:
-            self.object = None
-            return self.form_invalid(self.get_form())
-
     def form_valid(self, form):
-        form.instance.user = self.request.user
         f = super().form_valid(form)
-        ac = AgencyClients.objects.get(pk=self.kwargs.get('agency_client_id'))
-        ac.call_tracker_object = self.object
-        ac.save()
+        self.object.set_periodic_task(task_name='comagic_call_reports')
+        self.object.set_periodic_task(task_name='comagic_chat_reports')
+        self.object.set_periodic_task(task_name='comagic_site_reports')
+        self.object.set_periodic_task(task_name='comagic_cutaways_reports')
+        self.object.set_periodic_task(task_name='comagic_other_reports')
         return f
 
     def get_success_url(self):
@@ -37,6 +30,6 @@ class ComagicFormCreateView(LoginRequiredMixin, CreateView):
 class ComagicFormUpdateView(LoginRequiredMixin, UpdateView):
     slug_field = 'pk'
     slug_url_kwarg = 'client_id'
-    model = ApiToken
+    model = Comagic
     template_name = 'create_form.html'
     form_class = ComagicCreateForm

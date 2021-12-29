@@ -9,26 +9,14 @@ from .forms import CallTouchCreateForm
 from dashboard.models import AgencyClients
 
 
-# Create your views here.
 class CallTouchFormCreateView(LoginRequiredMixin, CreateView):
     model = ApiToken
     template_name = 'calltouch/calltouch_create_form.html'
     form_class = CallTouchCreateForm
 
-    def post(self, request, *args, **kwargs):
-        try:
-            ac = AgencyClients.objects.get(pk=kwargs.get('agency_client_id'))
-            return super().post(request, *args, **kwargs)
-        except AgencyClients.DoesNotExist:
-            self.object = None
-            return self.form_invalid(self.get_form())
-
     def form_valid(self, form):
-        form.instance.user = self.request.user
         f = super().form_valid(form)
-        ac = AgencyClients.objects.get(pk=self.kwargs.get('agency_client_id'))
-        ac.call_tracker_object = self.object
-        ac.save()
+        self.object.set_periodic_task(task_name='calltouch_reports')
         return f
 
     def get_success_url(self):

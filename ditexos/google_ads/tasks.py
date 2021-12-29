@@ -115,7 +115,7 @@ def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
                 'date': res.segments_date
             }
         )
-    return 'Success metric update for user: {}'.format(customer.pk)
+    return f'Success metric start: {start_date} - end:{end_date}  update for client: {customer.name}'
 
 
 @shared_task(name='update_google_token')

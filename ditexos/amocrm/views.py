@@ -1,48 +1,44 @@
-import os
-
 from django.shortcuts import render
-from .services.api import get_access_token, amo
-from .services.amo_db import wr_api_info
+from .services.api import amo
 from .models import AmoCRM
 from django.contrib.auth.decorators import login_required
+import os
 
 
 # Create your views here.
 
 @login_required
 def amocrm_allow_api(request):
-    print(request.user)
     code = request.GET.get('code')
     referer = request.GET.get('referer')
-    client_id = request.GET.get('client_id')
-    if code and referer and client_id:
-        res = get_access_token.access_token(
-            client_id=client_id,
+    agency_client_id = request.GET.get('agency_client_id')
+
+    if code and referer:
+        client_id = request.GET.get('client_id')
+        amo_crm = AmoCRM.objects.get(subdomain=referer, integration_id=client_id, user__pk=request.user.pk)
+        res = amo.access_token(
             code=code,
             referer=referer,
-            client_secret=os.environ.get('AMO_CLIENT_SECRET')
+            client_id=amo_crm.integration_id,
+            client_secret=amo_crm.integration_secret
         )
-        create_status = wr_api_info(
-            access_token=res.get('access_token'),
-            refresh_token=res.get('refresh_token'),
-            referer=res.get('referer'),
+        obj, create = AmoCRM.objects.update_or_create(
             user=request.user,
-            model=AmoCRM
+            subdomain=referer,
+            defaults={
+                'subdomain': referer,
+                'user': request.user,
+                'refresh_token': res.get('refresh_token'),
+                'access_token': res.get('access_token'),
+            }
         )
-        if create_status:
-            print('Создан')
-        else:
-            print('Изменен')
-    return render(request, 'amocrm/allow_api.html', {})
 
-
-@login_required
-def amo_table(request):
-    api = AmoCRM.objects.get(user=request.user)
-    res = amo.table(
-        access_token=api.access_token,
-        referer=api.subdomain
-    )
-    print(res)
-
-    return render(request, 'amocrm/table.html', {'require': res})
+        obj.set_periodic_task(task_name='amo_update_token')
+        obj.set_periodic_task(task_name='amo_get_pipelines')
+        obj.set_periodic_task(task_name='amo_get_leads')
+    else:
+        amo_crm = AmoCRM.objects.get(agency_client__pk=agency_client_id, user__pk=request.user.pk)
+    context = {
+        'client_id': amo_crm.integration_id,
+    }
+    return render(request, 'amocrm/allow_api.html', context)

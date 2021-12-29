@@ -1,4 +1,29 @@
 {% extends 'index.html' %}
 {% block content %}
-    <a href="https://www.amocrm.ru/oauth?client_id=15278802-8dca-43d7-97a2-ddfd2c691288&state=qwerty&mode=popup" class="btn btn-outline-info">AMOCRM</a>
+<div id="layoutSidenav_content">
+    <main>
+        <div class="container-fluid px-4">
+            <div class="row mt-4">
+                <div class="col-md-6 offset-md-4 mt-4">
+                    <div class="card mb-3" style="max-width: 650px;">
+                        <a href="https://www.amocrm.ru/oauth?client_id={{client_id}}&state=qwerty&mode=popup" class="btn btn-outline-info">AMOCRM</a>
+                    </div>
+                    <script
+                      class="amocrm_oauth"
+                      charset="utf-8"
+                      data-client-id="{{client_id}}"
+                      data-title="Button"
+                      data-compact="false"
+                      data-class-name="className"
+                      data-color="default"
+                      data-state="state"
+                      data-error-callback="functionName"
+                      data-mode="popup"
+                      src="https://www.amocrm.ru/auth/button.min.js"
+                    ></script>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
 {% endblock %}

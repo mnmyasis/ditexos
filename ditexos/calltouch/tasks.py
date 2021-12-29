@@ -2,12 +2,34 @@ import os
 
 from celery import shared_task
 from datetime import datetime
+
+from django.db.models import Max
+
 from .services.api import calltouch_api
 from .models import ApiToken, Reports
 
 
+def get_date(start_date, api_token_id):
+    if start_date is None:  # Если дата не задана вручную
+        start_date = Reports.objects.filter(api_client__pk=api_token_id).aggregate(Max('date')) \
+            .get('date__max').strftime("%Y-%m-%d")
+        if start_date is None:  # Если метрик нет
+            start_date = datetime.datetime.now()
+            month = datetime.timedelta(days=60)
+            start_date -= month
+            start_date = start_date.strftime("%Y-%m-%d")
+        else:
+            days = datetime.timedelta(days=3)
+            start_date -= days
+            start_date = start_date.strftime("%Y-%m-%d")
+    d = datetime.datetime.now()
+    end_date = d.strftime('%Y-%m-%d')
+    return start_date, end_date
+
+
 @shared_task(name='calltouch_reports')
-def report(start_date=None, end_date=None, api_token_id=1):
+def report(start_date=None, api_token_id=1):
+    start_date, end_date = get_date(start_date, api_token_id)
     api_token = ApiToken.objects.get(pk=api_token_id)
     token = api_token.token
     site_id = api_token.site_id
@@ -37,4 +59,4 @@ def report(start_date=None, end_date=None, api_token_id=1):
 
             )
         page += 1
-    return 'Success update reports for site_id {}'.format(api_token.site_id)
+    return f'Success update reports for {api_token.agency_client.name}// {start_date} - {end_date}'

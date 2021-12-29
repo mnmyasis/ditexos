@@ -3,10 +3,10 @@ import json
 from django.db import models
 from django.conf import settings
 
-
 # Create your models here.
 from django.urls import reverse_lazy
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
+from dashboard.models import AgencyClients
 
 
 class ApiToken(models.Model):
@@ -14,6 +14,7 @@ class ApiToken(models.Model):
         return '{}'.format(reverse_lazy('calltouch:client', kwargs={'client_id': self.pk}))
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    agency_client = models.OneToOneField(AgencyClients, on_delete=models.CASCADE)
     token = models.TextField()
     site_id = models.TextField()
 
@@ -25,29 +26,20 @@ class ApiToken(models.Model):
         return schedule
 
     def set_periodic_task(self, task_name):
+        arguments = {
+            'api_token_id': self.pk,
+        }
         schedule = self.get_or_create_interval()
-        arguments = [self.site_id, self.user.pk]
-        PeriodicTask.objects.get_or_create(
+        task, is_create = PeriodicTask.objects.get_or_create(
             interval=schedule,
-            name='{}-{}'.format(task_name, self.id),
+            name=f'{task_name}#{self.user.name} - {self.agency_client.name}',
             task=task_name,
-            args=json.dumps(arguments)
+            kwargs=json.dumps(arguments)
         )
-
-    def get_periodic_task(self, task_name):
-        periodic_task = PeriodicTask.objects.get(
-            name='{}-{}'.format(task_name, self.id),
-            task=task_name,
-        )
-        return periodic_task
-
-    def sync_disable_enable_task(self, task_name, status):
-        periodic_task = self.get_periodic_task(task_name)
-        periodic_task.enabled = status
-        periodic_task.save()
+        return task
 
     def __str__(self):
-        return '{} - {} - {}'.format(self.user.email, self.site_id, self.pk)
+        return '{} - {}'.format(self.user.email, self.agency_client.name)
 
     class Meta:
         db_table = 'calltouch_api_token'
