@@ -203,11 +203,11 @@ class ReportsQuerySet(models.QuerySet):
                    round(google.go_cost, 2) google_cost
             from agency_clients ag_cl
             left join (
-                select co_api.id id, count(*) leads from comagic_api_token co_api
+                select co_api.agency_client_id, count(*) leads from comagic_api_token co_api
                 join comagic_report cr on co_api.id = cr.api_client_id
                 where cr.utm_source='yandex' or cr.utm_source='google'
                 group by co_api.id
-                ) comagic on call_tracker_object_id = comagic.id
+                ) comagic on ag_cl.id = comagic.agency_client_id
             left join (
                 select id, agency_client_name, sum(cost_) ya_cost from yandex_report_view
                 group by id, agency_client_name
@@ -647,7 +647,7 @@ class ReportsQuerySet(models.QuerySet):
                        cr.source_type,
                        cr.date
                 from agency_clients ag_cl
-                left join comagic_api_token co_api on ag_cl.call_tracker_object_id = co_api.id
+                left join comagic_api_token co_api on ag_cl.id = co_api.agency_client_id
                 left join comagic_report cr on co_api.id = cr.api_client_id
                 left join comagic_domain_report cdr on cr.site_domain_name_id = cdr.id
                 where cr.source_type in ('cutaways', 'other')

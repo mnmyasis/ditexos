@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
+from .views import privacy_view
 
 urlpatterns = [
     path(r'', include('dashboard.urls')),
+    path('privacy/', privacy_view),
     path('admin/', admin.site.urls),
     path('yandex/', include('yandex_direct.urls')),
     path('calltouch/', include('calltouch.urls')),

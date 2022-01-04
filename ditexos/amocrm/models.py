@@ -81,7 +81,6 @@ class PipelineStatuses(models.Model):
     amo = models.ForeignKey(AmoCRM, on_delete=models.CASCADE)
     status_id = models.IntegerField()
     name = models.TextField()
-    pipeline = models.ForeignKey(Pipelines, on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'amo_pipeline_statuses'
