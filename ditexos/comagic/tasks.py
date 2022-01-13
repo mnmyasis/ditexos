@@ -8,7 +8,7 @@ from .services.api import comagic_api
 def get_date(start_date, api_token_id):
     if start_date is None:  # Если дата не задана вручную
         start_date = ComagicReport.objects.filter(api_client__pk=api_token_id).aggregate(Max('date')) \
-            .get('date__max').strftime("%Y-%m-%d")
+            .get('date__max')
         if start_date is None:  # Если метрик нет
             start_date = datetime.datetime.now()
             month = datetime.timedelta(days=60)
