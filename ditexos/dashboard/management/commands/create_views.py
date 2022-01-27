@@ -1,5 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
+from django.db.utils import ProgrammingError
+import os
 
 
 class Command(BaseCommand):
@@ -8,6 +10,12 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         cursor = connection.cursor()
-        sql = open('views.sql', 'r')
-        cursor.execute(sql.read())
-        print(cursor.fetchall())
+        os.chdir('sql_views/')
+        files = os.listdir()
+        for file in files:
+            sql = open(file, 'r')
+            try:
+                cursor.execute(sql.read())
+                print(f'{file} created')
+            except ProgrammingError:
+                print(f'{file} already exists')
