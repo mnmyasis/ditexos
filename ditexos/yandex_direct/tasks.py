@@ -19,7 +19,7 @@ def clients(user_id=1):
         """Юзерского аккаунта"""
         ag_clients = ApiYandexClient(token=access_token)
     director = YandexDir()
-    director.agency_get_sandbox(ag_clients)
+    director.agency_get(ag_clients)
     res = ag_clients.get_result()
     if res.get('error'):
         return res.get('error')
