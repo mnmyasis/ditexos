@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('django_celery_beat', '0016_auto_20210902_2233'),
         ('dashboard', '0007_auto_20211117_1301'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
@@ -45,7 +44,6 @@ class Migration(migrations.Migration):
                 ('is_week', models.BooleanField(default=False, verbose_name='Недельный отчет')),
                 ('is_month', models.BooleanField(default=False, verbose_name='Ежемесячный отчет')),
                 ('group_distribution', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='email_sender.groupdistribution', verbose_name='Группа рассылки')),
-                ('periodic_task', models.ManyToManyField(to='django_celery_beat.PeriodicTask', verbose_name='Задачи')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
