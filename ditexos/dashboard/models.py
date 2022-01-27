@@ -8,7 +8,6 @@ import google_ads
 from yandex_direct import tasks as yandex_task
 from google_ads import tasks as google_task
 
-
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 import json, datetime
 from dateutil.relativedelta import relativedelta
@@ -96,7 +95,6 @@ class AgencyClients(models.Model):
         )
 
     def save(self, *args, **kwargs):
-
         super().save(args, kwargs)
 
         """Создание задач для рекламных кабинетов"""
@@ -174,6 +172,12 @@ class ReportTypes(models.Model):
                                              verbose_name='Статистика по каналам проекта')
     is_project_by_day = models.BooleanField(default=False,
                                             verbose_name='Статистика по дням проекта')
+    is_brand_nvm = models.BooleanField(default=False,
+                                       verbose_name='Статистика за месяц для NVM')
+    is_week_nvm = models.BooleanField(default=False,
+                                      verbose_name='Статистика по неделям для NVM')
+    is_month_nvm = models.BooleanField(default=False,
+                                       verbose_name='Статистика по месяцам для NVM')
 
     class Meta:
         db_table = 'report_types'
@@ -724,6 +728,393 @@ class ReportsQuerySet(models.QuerySet):
                     cnn.campaign ~* '{project_tag}' and
                     cnn.date between '{start_date}' and '{end_date}'
                 group by cnn.date, cnn.source, cnn.channel
+        """
+        cursor.execute(sql)
+        report = self._dictfetchall(cursor)
+        return report
+
+    def get_brand_nvm(self, agency_client_id, is_brand, start_date, end_date):
+        cursor = connection.cursor()
+        sql = f"""
+            select amo_report.agency_client_id,
+                   amo_report.source,
+                   amo_report.channel,
+                   amo_report.source_ || amo_report.channel_ t_source,
+                   round(amo_report.cost_, 2) cost_,
+                   amo_report.clicks,
+                   amo_report.impressions,
+                   amo_report.leads,
+                   amo_report.kpf,
+                   round(amo_report.clicks /
+                   case
+                       when amo_report.impressions = 0 then 1
+                       else amo_report.impressions
+                   end * 100, 2) ctr,
+                   round(amo_report.cost_ /
+                   case
+                       when amo_report.clicks = 0 then 1
+                       else amo_report.clicks
+                   end, 2) cpc,
+                   round(amo_report.leads /
+                   case
+                       when amo_report.clicks = 0 then 1
+                       else amo_report.clicks
+                   end * 100, 2) cr,
+                   round(amo_report.cost_ /
+                   case
+                       when amo_report.leads = 0 then 1
+                       else amo_report.leads
+                   end, 2) cpl,
+                   round(amo_report.cost_ /
+                   case
+                       when amo_report.kpf = 0 then 1
+                       else amo_report.kpf
+                   end, 2) kpf_cpl
+            from (
+                select cab.agency_client_id,
+                       cab.source,
+                       cab.channel,
+                       case
+                           when cab.source = 'google' THEN 'Google Ads'
+                           when cab.source = 'yandex' THEN 'Яндекс Директ'
+                       END source_,
+                       case
+                           when cab.channel ~* 'master' THEN ' - Мастер'
+                           when cab.channel ~* 'search' THEN ' - Поиск'
+                           when cab.channel ~* 'network' and cab.source = 'google' THEN ' - КМС'
+                           when cab.channel ~* 'network' THEN ' - РСЯ'
+                           when cab.channel ~* 'discovery' THEN ' - Discovery'
+                           when cab.channel ~* 'performance_max' THEN ' - Performance_max'
+                           when cab.channel isnull and cab.source = 'yandex' THEN ' - Поиск'
+                       END channel_,
+                       cab.cost_,
+                       cab.clicks,
+                       cab.impressions impressions,
+                       case when kpf.leads is NULL then 0
+                           else kpf.leads
+                       end kpf,
+                       case when lead.leads is NULL then 0
+                           else lead.leads
+                       end leads
+                from (
+                    select
+                       agency_client_id,
+                       source,
+                       channel,
+                       is_brand,
+                       sum(cost_) cost_,
+                       sum(clicks) clicks,
+                       sum(impressions) impressions
+                    from cabinets
+                    where is_brand={is_brand} and
+                    date between '{start_date}' and '{end_date}'
+                    and agency_client_id={agency_client_id}
+                    group by agency_client_id, source, channel, is_brand
+                ) cab
+                left join (
+                    select
+                           agency_client_id,
+                           count(*) leads,
+                           utm_source,
+                           case
+                               when utm_campaign isnull THEN 'search'
+                               when utm_campaign ~* '_master' THEN 'master'
+                               when utm_campaign ~* 'master_kviz_krd' THEN 'master'
+                               when utm_campaign ~* '_search' THEN 'search'
+                               when utm_campaign ~* 'kazakhstan_kviz_mkb' THEN 'search'
+                               when utm_campaign ~* 'discovery_' and utm_source = 'google' THEN 'discovery'
+                               when utm_campaign ~* '_network' THEN 'network'
+                               when utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
+                               when utm_campaign ~* 'perfomance_max' and utm_source = 'google' THEN 'performance_max'
+                           END channel,
+                           case
+                               when utm_campaign ~* '_brand' THEN True
+                               when utm_campaign ~* 'brand_' THEN True
+                               when utm_campaign ~* '_brand_' THEN True
+                           else False
+                           END is_brand
+                    from amo_kpf where lead_type='kpf' and utm_source in ('google', 'yandex')
+                    and  date between '{start_date}' and '{end_date}'
+                    and agency_client_id={agency_client_id}
+                    group by agency_client_id, utm_source, channel, is_brand
+                    ) kpf on cab.source = kpf.utm_source and
+                             cab.channel = kpf.channel and
+                             cab.agency_client_id = kpf.agency_client_id and
+                             cab.is_brand = kpf.is_brand
+                    left join (
+                        select
+                           agency_client_id,
+                           count(*) leads,
+                           utm_source,
+                           case
+                               when utm_campaign isnull THEN 'search'
+                               when utm_campaign ~* '_master' THEN 'master'
+                               when utm_campaign ~* 'master_kviz_krd' THEN 'master'
+                               when utm_campaign ~* '_search' THEN 'search'
+                               when utm_campaign ~* 'kazakhstan_kviz_mkb' THEN 'search'
+                               when utm_campaign ~* 'discovery_' and utm_source = 'google' THEN 'discovery'
+                               when utm_campaign ~* '_network' THEN 'network'
+                               when utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
+                               when utm_campaign ~* 'perfomance_max' and utm_source = 'google' THEN 'performance_max'
+                           END channel,
+                           case
+                               when utm_campaign ~* '_brand' THEN True
+                               when utm_campaign ~* 'brand_' THEN True
+                               when utm_campaign ~* '_brand_' THEN True
+                           else False
+                           END is_brand
+                    from amo_kpf where lead_type='leads' and utm_source in ('google', 'yandex')
+                        and date  between '{start_date}' and '{end_date}'
+                        and agency_client_id={agency_client_id}
+                    group by agency_client_id, utm_source, channel, is_brand
+                    ) lead on cab.source = lead.utm_source and
+                              cab.channel = lead.channel and
+                              cab.agency_client_id = lead.agency_client_id and
+                              cab.is_brand = lead.is_brand
+              where cab.channel is not null
+            ) amo_report;
+        """
+        cursor.execute(sql)
+        report = self._dictfetchall(cursor)
+        return report
+
+    def get_week_nvm(self, agency_client_id):
+        cursor = connection.cursor()
+        sql = f"""
+        select amo_report.agency_client_id,
+               amo_report.week,
+                amo_report.channel_,
+               round(amo_report.cost_, 2) cost_,
+               amo_report.clicks,
+               amo_report.impressions,
+               amo_report.leads,
+               amo_report.gk,
+               round(amo_report.clicks /
+               case
+                   when amo_report.impressions = 0 then 1
+                   else amo_report.impressions
+               end * 100, 2) ctr,
+               round(amo_report.cost_ /
+               case
+                   when amo_report.clicks = 0 then 1
+                   else amo_report.clicks
+               end, 2) cpc,
+               round(amo_report.leads /
+               case
+                   when amo_report.clicks = 0 then 1
+                   else amo_report.clicks
+               end * 100, 2) cr,
+               round(amo_report.gk /
+               case
+                   when amo_report.clicks = 0 then 1
+                   else amo_report.clicks
+               end * 100, 2) gk_cr,
+               round(amo_report.cost_ /
+               case
+                   when amo_report.leads = 0 then 1
+                   else amo_report.leads
+               end, 2) cpl,
+               round(amo_report.cost_ /
+               case
+                   when amo_report.gk = 0 then 1
+                   else amo_report.gk
+               end, 2) gk_cpl
+        
+        from (
+            select cab.agency_client_id,
+                   cab.source,
+                   cab.source_ || cab.channel_ channel_,
+                   cab.week,
+                   sum(cab.cost_) cost_,
+                   sum(cab.clicks) clicks,
+                   sum(cab.impressions) impressions,
+                   sum(case when gk.leads is NULL then 0
+                       else gk.leads
+                   end) gk,
+                   sum(case when lead.leads is NULL then 0
+                       else lead.leads
+                   end) leads
+            from (
+                select
+                   agency_client_id,
+                   channel,
+                   source,
+                   case
+                       when source = 'google' THEN 'Google Ads'
+                       when source = 'yandex' THEN 'Яндекс Директ'
+                   END source_,
+                   case
+                       when channel ~* 'master' THEN ' - Мастер'
+                       when channel ~* 'search' THEN ' - Поиск'
+                       when channel ~* 'network' and source = 'google' THEN ' - КМС'
+                       when channel ~* 'network' THEN ' - РСЯ'
+                       when channel ~* 'discovery' THEN ' - Discovery'
+                       when channel ~* 'performance_max' THEN ' - Performance_max'
+                       when channel isnull and source= 'yandex' THEN ' - Поиск'
+                   END channel_,
+                   sum(cost_) cost_,
+                   sum(clicks) clicks,
+                   sum(impressions) impressions,
+                   date_trunc('week', date)::date || ' - ' || (date_trunc('week', date) + '6 day'::interval)::date week,
+                   date as date
+                from cabinets
+                group by agency_client_id, source, channel, date, week
+            ) cab
+            left join (
+                select
+                       count(*) leads,
+                       agency_client_id,
+                       utm_source,
+                       case
+                           when utm_campaign isnull THEN 'search'
+                           when utm_campaign ~* '_master' THEN 'master'
+                           when utm_campaign ~* 'master_kviz_krd' THEN 'master'
+                           when utm_campaign ~* '_search' THEN 'search'
+                           when utm_campaign ~* 'kazakhstan_kviz_mkb' THEN 'search'
+                           when utm_campaign ~* '_search' THEN 'search'
+                           when utm_campaign ~* 'discovery_' and utm_source = 'google' THEN 'discovery'
+                           when utm_campaign ~* '_network' THEN 'network'
+                           when utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
+                           when utm_campaign ~* 'perfomance_max' and utm_source = 'google' THEN 'performance_max'
+                       END amo_channel,
+                       date
+                from amo_kpf where lead_type='gk'
+                and utm_source in ('google', 'yandex')
+                group by agency_client_id, utm_source, amo_channel, date
+                ) gk on cab.agency_client_id = gk.agency_client_id and
+                        cab.source = gk.utm_source and
+                        cab.date = gk.date and
+                        cab.channel = gk.amo_channel
+                left join (
+                    select
+                       count(*) leads,
+                       agency_client_id,
+                       utm_source,
+                       case
+                           when utm_campaign isnull THEN 'search'
+                           when utm_campaign ~* '_master' THEN 'master'
+                           when utm_campaign ~* 'master_kviz_krd' THEN 'master'
+                           when utm_campaign ~* '_search' THEN 'search'
+                           when utm_campaign ~* 'kazakhstan_kviz_mkb' THEN 'search'
+                           when utm_campaign ~* 'discovery_' and utm_source = 'google' THEN 'discovery'
+                           when utm_campaign ~* '_network' THEN 'network'
+                           when utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
+                           when utm_campaign ~* 'perfomance_max' and utm_source = 'google' THEN 'performance_max'
+                       END amo_channel,
+                       date
+                from amo_kpf where lead_type='leads'
+                               and utm_source in ('google', 'yandex')
+                group by agency_client_id, utm_source, amo_channel, date
+                ) lead on cab.agency_client_id = lead.agency_client_id and
+                          cab.source = lead.utm_source and
+                          cab.channel = lead.amo_channel and
+                          cab.date = lead.date
+            where cab.agency_client_id = {agency_client_id} and cab.week is not null
+            group by cab.agency_client_id, cab.week, cab.source, cab.source_, cab.channel_
+        ) amo_report order by week DESC;
+        """
+        cursor.execute(sql)
+        report = self._dictfetchall(cursor)
+        return report
+
+    def get_month_nvm(self, agency_client_id):
+        cursor = connection.cursor()
+        sql = f"""
+            select amo_report.agency_client_id,
+                   amo_report.month_,
+                   amo_report.source,
+                   case
+                       when source = 'google' THEN 'Google Ads'
+                       when source = 'yandex' THEN 'Яндекс Директ'
+                   END source_,
+                   round(amo_report.cost_, 2) cost_,
+                   amo_report.clicks,
+                   amo_report.impressions,
+                   amo_report.leads,
+                   amo_report.gk,
+                   round(amo_report.clicks /
+                   case
+                       when amo_report.impressions = 0 then 1
+                       else amo_report.impressions
+                   end * 100, 2) ctr,
+                   round(amo_report.cost_ /
+                   case
+                       when amo_report.clicks = 0 then 1
+                       else amo_report.clicks
+                   end, 2) cpc,
+                   round(amo_report.leads /
+                   case
+                       when amo_report.clicks = 0 then 1
+                       else amo_report.clicks
+                   end * 100, 2) cr,
+                   round(amo_report.gk /
+                   case
+                       when amo_report.clicks = 0 then 1
+                       else amo_report.clicks
+                   end * 100, 2) gk_cr,
+                   round(amo_report.cost_ /
+                   case
+                       when amo_report.leads = 0 then 1
+                       else amo_report.leads
+                   end, 2) cpl,
+                   round(amo_report.cost_ /
+                   case
+                       when amo_report.gk = 0 then 1
+                       else amo_report.gk
+                   end, 2) gk_cpl
+            
+            from (
+                select cab.agency_client_id,
+                       cab.source,
+                       cab.tmp_month,
+                       cab.month_,
+                       sum(cab.cost_) cost_,
+                       sum(cab.clicks) clicks,
+                       sum(cab.impressions) impressions,
+                       sum(case when gk.leads is NULL then 0
+                           else gk.leads
+                       end) gk,
+                       sum(case when lead.leads is NULL then 0
+                           else lead.leads
+                       end) leads
+                from (
+                    select
+                       agency_client_id,
+                       source,
+                       sum(cost_) cost_,
+                       sum(clicks) clicks,
+                       sum(impressions) impressions,
+                       date_trunc('month', date) tmp_month,
+                       to_char(date_trunc('month', date), 'YYYY - MONTH') month_,
+                       date
+                    from cabinets
+                    group by agency_client_id, source, date
+                ) cab
+                left join (
+                    select
+                           agency_client_id,
+                           count(*) leads,
+                           utm_source,
+                           date
+                    from amo_kpf where lead_type='gk'
+                    group by agency_client_id, utm_source, date
+                    ) gk on cab.source = gk.utm_source and
+                             cab.date = gk.date and
+                             cab.agency_client_id = gk.agency_client_id
+                    left join (
+                        select
+                           agency_client_id,
+                           count(*) leads,
+                           utm_source,
+                           date
+                    from amo_kpf where lead_type='leads'
+                    group by agency_client_id, utm_source, date
+                    ) lead on cab.source = lead.utm_source and
+                              cab.date = lead.date and
+                              cab.agency_client_id = lead.agency_client_id
+                where cab.agency_client_id = {agency_client_id} and month_ is not null
+                group by cab.agency_client_id, cab.tmp_month, cab.month_, cab.source
+            ) amo_report order by tmp_month DESC;
         """
         cursor.execute(sql)
         report = self._dictfetchall(cursor)

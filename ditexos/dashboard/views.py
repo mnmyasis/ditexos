@@ -126,6 +126,27 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                 start_date=start_date,
                 end_date=end_date
             )
+        if report_types.is_brand_nvm:
+            context['report_brand_nvm'] = Reports.objects.get_brand_nvm(
+                agency_client_id=context['client_id'],
+                is_brand=True,
+                start_date=start_date,
+                end_date=end_date
+            )
+            context['report_no_brand_nvm'] = Reports.objects.get_brand_nvm(
+                agency_client_id=context['client_id'],
+                is_brand=False,
+                start_date=start_date,
+                end_date=end_date
+            )
+        if report_types.is_week_nvm:
+            context['report_week_nvm'] = Reports.objects.get_week_nvm(
+                agency_client_id=context['client_id']
+            )
+        if report_types.is_month_nvm:
+            context['report_month_nvm'] = Reports.objects.get_month_nvm(
+                agency_client_id=context['client_id']
+            )
         if report_types.is_period:
             context['p1_start_date'] = self.request.GET.get('p1_start_date')
             context['p1_end_date'] = self.request.GET.get('p1_end_date')
@@ -187,6 +208,48 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                     period_table = generate_export_file.PeriodTable(items=context['report_client_period_campaign'],
                                                                     title='Статистика по периодам')
                     table_objects.append(period_table)
+            if context['report_types'].is_brand_nvm:
+                if context['report_brand_nvm']:
+                    brand_table = generate_export_file.NVMTable(items=context['report_brand_nvm'],
+                                                                title='Брендовые кампании',
+                                                                exclude_keys=[
+                                                                    'agency_client_id',
+                                                                    'channel',
+                                                                    'source'
+                                                                ])
+                    no_brand_table = generate_export_file.NVMTable(items=context['report_no_brand_nvm'],
+                                                                   title='Небрендовые кампании',
+                                                                   exclude_keys=[
+                                                                       'agency_client_id',
+                                                                       'channel',
+                                                                       'source'
+                                                                   ])
+                    table_objects.append(brand_table)
+                    table_objects.append(no_brand_table)
+            if context['report_types'].is_week_nvm:
+                if context['report_week_nvm']:
+                    week_table = generate_export_file.NVMCustomTable(items=context['report_week_nvm'],
+                                                                     title='По неделям',
+                                                                     letters=['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+                                                                              'K', 'L', 'M'],
+                                                                     change_item_key='week',
+                                                                     exclude_keys=[
+                                                                         'agency_client_id'
+                                                                     ])
+                    table_objects.append(week_table)
+            if context['report_types'].is_month_nvm:
+                if context['report_month_nvm']:
+                    week_table = generate_export_file.NVMCustomTable(items=context['report_month_nvm'],
+                                                                     title='По месяцам',
+                                                                     letters=['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+                                                                              'K', 'L', 'M'],
+                                                                     change_item_key='month_',
+                                                                     exclude_keys=[
+                                                                         'agency_client_id',
+                                                                         'source'
+                                                                     ])
+                    table_objects.append(week_table)
+
             gen_report = generate_export_file.GenerateReport(
                 title_font_size=24,
                 header_font_size=12,

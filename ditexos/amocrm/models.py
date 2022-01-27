@@ -79,6 +79,7 @@ class Pipelines(models.Model):
 
 class PipelineStatuses(models.Model):
     amo = models.ForeignKey(AmoCRM, on_delete=models.CASCADE)
+    pipeline_id = models.IntegerField()
     status_id = models.IntegerField()
     name = models.TextField()
 

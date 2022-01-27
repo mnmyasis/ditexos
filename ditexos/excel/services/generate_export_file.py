@@ -168,6 +168,133 @@ class DefaultTable(GenerateExcelFile):
         return row
 
 
+class NVMTable(GenerateExcelFile):
+
+    def __init__(self, items, title, skip_row=3, exclude_keys=[]):
+        self.items = items
+        self.title = title
+        self.skip_row = skip_row
+        self.exclude_keys = exclude_keys
+        super().__init__()
+
+    def create_table(self, workbook, worksheet, items, title, start_row, skip_row=3, exclude_keys=[]):
+        col = 0
+        if len(items) > 0:
+            keys = items[0].keys()
+        else:
+            ValueError('list not items')
+        skip_row = 5  # Отступ
+        title_format = self.get_title_format()
+        header_format = self.get_header_format()  # header table
+        cell_format = self.get_cell_format()
+        worksheet.merge_range(start_row - 2, col, start_row - 1, col + 4, title, title_format)
+        start_row += 2
+        for key in keys:
+            if key not in exclude_keys:
+                worksheet.write(start_row, col, key, header_format)
+                col += 1
+        start_row += 1
+        tmp_row = start_row + 1
+        for item in items:
+            col = 0
+            for key in keys:
+                if key not in exclude_keys:
+                    worksheet.write(start_row, col, item[key], cell_format)
+                    col += 1
+            start_row += 1
+        letters = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']
+        for letter in letters:
+            formula = '+'.join([f'{letter}{x}' for x in range(tmp_row, start_row + 1)])
+            worksheet.write_formula(f'{letter}{start_row + 1}', f'={formula}', self.get_total_format())
+        worksheet.write(start_row, 0, 'Всего', self.get_total_format())
+        start_row += skip_row
+        return start_row
+
+    def write_table(self, workbook, worksheet, start_row):
+        self.set_workbook(workbook)
+        row = self.create_table(workbook, worksheet, self.items, self.title, start_row, self.skip_row,
+                                self.exclude_keys)
+        return row
+
+
+class NVMCustomTable(GenerateExcelFile):
+
+    def __init__(self, items, title, letters, change_item_key, skip_row=3, exclude_keys=[]):
+        self.items = items
+        self.title = title
+        self.letters = letters
+        self.change_item_key = change_item_key
+        self.skip_row = skip_row
+        self.exclude_keys = exclude_keys
+        super().__init__()
+
+    def set_formula(self, worksheet, end_row, start_row, letters, item):
+        for letter in letters:
+            formula = '+'.join([f'{letter}{x}' for x in range(start_row, end_row + 1)])
+            worksheet.write_formula(f'{letter}{end_row + 1}', f'={formula}', self.get_total_format())
+        worksheet.write(end_row, 1, 'Всего', self.get_total_format())
+        worksheet.write(end_row, 0, item, self.get_total_format())
+
+    def create_table(self, workbook, worksheet, items, title, start_row, letters, change_item_key, skip_row=3, exclude_keys=[]):
+        col = 0
+        if len(items) > 0:
+            keys = items[0].keys()
+        else:
+            ValueError('list not items')
+        skip_row = 3  # Отступ
+        title_format = self.get_title_format()
+        header_format = self.get_header_format()  # header table
+        cell_format = self.get_cell_format()
+        worksheet.merge_range(start_row - 2, col, start_row - 1, col + 4, title, title_format)
+        start_row += 2
+        for key in keys:
+            if key not in exclude_keys:
+                worksheet.write(start_row, col, key, header_format)
+                col += 1
+        start_row += 1
+        tmp_row = start_row + 1
+        check_item = items[0][change_item_key]
+        last_item = None
+        for item in items:
+            col = 0
+            if item[change_item_key] != check_item:
+                self.set_formula(worksheet,
+                                 end_row=start_row,
+                                 start_row=tmp_row,
+                                 letters=letters,
+                                 item=check_item)
+                start_row += 1
+                tmp_row=start_row + 1
+                check_item = item[change_item_key]
+            for key in keys:
+                if key not in exclude_keys:
+                    worksheet.write(start_row, col, item[key], cell_format)
+                    col += 1
+            start_row += 1
+            last_item = item[change_item_key]
+
+        self.set_formula(worksheet,
+                         end_row=start_row,
+                         start_row=tmp_row,
+                         letters=letters,
+                         item=last_item)
+        start_row += skip_row + 2
+        return start_row
+
+    def write_table(self, workbook, worksheet, start_row):
+        self.set_workbook(workbook)
+        row = self.create_table(workbook=workbook,
+                                worksheet=worksheet,
+                                items=self.items,
+                                title=self.title,
+                                letters=self.letters,
+                                change_item_key=self.change_item_key,
+                                start_row=start_row,
+                                skip_row=self.skip_row,
+                                exclude_keys=self.exclude_keys)
+        return row
+
+
 class PeriodTable(GenerateExcelFile):
 
     def __init__(self, items, title, skip_row=3):

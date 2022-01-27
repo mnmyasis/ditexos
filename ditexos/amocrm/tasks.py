@@ -43,9 +43,11 @@ def amo_get_pipelines(user_id=1, agency_client_id=1):
             PipelineStatuses.objects.update_or_create(
                 amo=amo_crm,
                 status_id=status.get('status_id'),
+                pipeline_id=status.get('pipeline_id'),
                 defaults={
                     'amo': amo_crm,
                     'status_id': status.get('status_id'),
+                    'pipeline_id': status.get('pipeline_id'),
                     'name': status.get('name'),
                 }
             )

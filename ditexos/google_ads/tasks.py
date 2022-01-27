@@ -65,7 +65,7 @@ def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
         d = datetime.datetime.now()
         end_date = d.strftime('%Y-%m-%d')
 
-    df = google_ads.report_default(
+    df = google_ads.report_campaign(
         google_ads_client,
         customer.google_id,
         start_date,
@@ -82,39 +82,50 @@ def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
                 'campaign_id': res.campaign_id
             }
         )
-        obj_ad_group, created = AdGroups.objects.update_or_create(
-            campaign=obj_campaign,
-            ad_group_id=res.ad_group_id,
-            defaults={
-                'campaign': obj_campaign,
-                'name': res.ad_group_name,
-                'ad_group_id': res.ad_group_id
-            }
-        )
-        obj_key_word, created = KeyWords.objects.update_or_create(
-            ad_group=obj_ad_group,
-            key_word_id=res.ad_group_criterion_criterion_id,
-            defaults={
-                'ad_group': obj_ad_group,
-                'name': res.ad_group_criterion_keyword_text,
-                'key_word_id': res.ad_group_criterion_criterion_id
-            }
-        )
-        metric, updated = Metrics.objects.update_or_create(
-            key_word=obj_key_word,
-            date=res.segments_date,
-            defaults={
-                'key_word': obj_key_word,
-                'average_cost': res.metrics_average_cost,
-                'clicks': res.metrics_clicks,
-                'conversions': res.metrics_conversions,
-                'cost_micros': res.metrics_cost_micros,
-                'ctr': res.metrics_ctr,
-                'impressions': res.metrics_impressions,
-                'search_rank_lost_impression_share': res.metrics_search_rank_lost_impression_share,
-                'date': res.segments_date
-            }
-        )
+        if res.get('ad_group_id'):
+            obj_ad_group, created = AdGroups.objects.update_or_create(
+                campaign=obj_campaign,
+                ad_group_id=res.ad_group_id,
+                defaults={
+                    'campaign': obj_campaign,
+                    'name': res.ad_group_name,
+                    'ad_group_id': res.ad_group_id
+                }
+            )
+            obj_key_word, created = KeyWords.objects.update_or_create(
+                ad_group=obj_ad_group,
+                key_word_id=res.ad_group_criterion_criterion_id,
+                defaults={
+                    'ad_group': obj_ad_group,
+                    'name': res.ad_group_criterion_keyword_text,
+                    'key_word_id': res.ad_group_criterion_criterion_id
+                }
+            )
+            metric, updated = Metrics.objects.update_or_create(
+                campaign=obj_campaign,
+                key_word=obj_key_word,
+                date=res.segments_date,
+                defaults={
+                    'campaign': obj_campaign,
+                    'key_word': obj_key_word,
+                    'clicks': res.metrics_clicks,
+                    'cost_micros': res.metrics_cost_micros,
+                    'impressions': res.metrics_impressions,
+                    'date': res.segments_date
+                }
+            )
+        else:
+            metric, updated = Metrics.objects.update_or_create(
+                campaign=obj_campaign,
+                date=res.segments_date,
+                defaults={
+                    'campaign': obj_campaign,
+                    'clicks': res.metrics_clicks,
+                    'cost_micros': res.metrics_cost_micros,
+                    'impressions': res.metrics_impressions,
+                    'date': res.segments_date
+                }
+            )
     return f'Success metric start: {start_date} - end:{end_date}  update for client: {customer.name}'
 
 

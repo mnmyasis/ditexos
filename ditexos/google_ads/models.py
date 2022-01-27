@@ -86,14 +86,11 @@ class KeyWords(models.Model):
 
 
 class Metrics(models.Model):
-    key_word = models.ForeignKey(KeyWords, on_delete=models.CASCADE)
-    average_cost = models.IntegerField()
+    key_word = models.ForeignKey(KeyWords, on_delete=models.CASCADE, blank=True, null=True)
+    campaign = models.ForeignKey(Campaigns, on_delete=models.CASCADE, blank=True, null=True)
     clicks = models.IntegerField()
-    conversions = models.IntegerField()
     cost_micros = models.BigIntegerField()
-    ctr = models.FloatField()
     impressions = models.IntegerField()
-    search_rank_lost_impression_share = models.FloatField()
     date = models.DateField()
 
     def __str__(self):

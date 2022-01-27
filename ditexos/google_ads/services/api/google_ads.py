@@ -7,34 +7,26 @@ import pandas as pd
 PAGE_SIZE = 100
 
 
-def report_default(client, customer_id, start_date, end_date):
+def report_keyword(client, customer_id, start_date, end_date):
     report = []
-    ga_service = client.get_service("GoogleAdsService")
+    ga_service = client.get_service("GoogleAdsService", version="v7")
     query = """
             SELECT
                 ad_group.id,
                 ad_group.name,
-                ad_group.status,
                 ad_group_criterion.criterion_id,
                 ad_group_criterion.keyword.text,
                 campaign.id,
                 campaign.name,
-                campaign.status,
-                metrics.average_cost,
-                metrics.average_cpc,
                 metrics.clicks,
-                metrics.conversions,
                 metrics.cost_micros,
-                metrics.ctr,
                 metrics.impressions,
-                metrics.search_rank_lost_impression_share,
                 segments.date
             FROM keyword_view 
             WHERE
-                customer.id = {}
-                AND segments.date >= '{}'
+                segments.date >= '{}'
                 AND segments.date <= '{}'
-            """.format(customer_id, start_date, end_date)
+            """.format(start_date, end_date)
     search_request = client.get_type("SearchGoogleAdsStreamRequest")
     search_request.customer_id = customer_id
     search_request.query = query
@@ -44,23 +36,51 @@ def report_default(client, customer_id, start_date, end_date):
             res = {
                 'ad_group_id': row.ad_group.id,
                 'ad_group_name': row.ad_group.name,
-                'ad_group_status': row.ad_group.status,
                 'ad_group_criterion_criterion_id': row.ad_group_criterion.criterion_id,
                 'ad_group_criterion_keyword_text': row.ad_group_criterion.keyword.text,
                 'campaign_id': row.campaign.id,
                 'campaign_name': row.campaign.name,
-                'campaign_status': row.campaign.status,
-                'metrics_average_cost': row.metrics.average_cost,
                 'metrics_clicks': row.metrics.clicks,
-                'metrics_conversions': row.metrics.conversions,
                 'metrics_cost_micros': row.metrics.cost_micros,
-                'metrics_ctr': row.metrics.ctr,
                 'metrics_impressions': row.metrics.impressions,
-                'metrics_search_rank_lost_impression_share': row.metrics.search_rank_lost_impression_share,
                 'segments_date': row.segments.date
             }
             report.append(res)
     df = pd.DataFrame(report)
+    df.to_excel('google_ads_{}.xlsx'.format(datetime.now().strftime('%Y_%m_%d')))
+    return df
+
+
+def report_campaign(client, customer_id, start_date, end_date):
+    report = []
+    ga_service = client.get_service("GoogleAdsService", version="v7")
+    query = f"""
+            SELECT
+              campaign.id,
+              campaign.name,
+              metrics.impressions,
+              metrics.clicks,
+              metrics.cost_micros,
+              segments.date
+            FROM campaign WHERE segments.date >= '{start_date}' AND segments.date <= '{end_date}'
+            """
+    search_request = client.get_type("SearchGoogleAdsStreamRequest")
+    search_request.customer_id = customer_id
+    search_request.query = query
+    response = ga_service.search_stream(search_request)
+    for batch in response:
+        for row in batch.results:
+            res = {
+                'campaign_id': row.campaign.id,
+                'campaign_name': row.campaign.name,
+                'metrics_clicks': row.metrics.clicks,
+                'metrics_cost_micros': row.metrics.cost_micros,
+                'metrics_impressions': row.metrics.impressions,
+                'segments_date': row.segments.date
+            }
+            report.append(res)
+    df = pd.DataFrame(report)
+    df.to_excel('google_ads_{}.xlsx'.format(datetime.now().strftime('%Y_%m_%d')))
     return df
 
 
@@ -92,4 +112,3 @@ def clients(client, customer_id, customer_client_level):
             'id': customer_client.id
         })
     return result
-
