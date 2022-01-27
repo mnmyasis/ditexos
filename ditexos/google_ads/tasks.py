@@ -56,7 +56,7 @@ def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
     google_ads_client = GoogleAdsClient.load_from_dict(credentials)
     customer = Clients.objects.get(google_id=client_google_id)
     if start_date is None:
-        start_date = Metrics.objects.filter(key_word__ad_group__campaign__client__pk=customer.pk) \
+        start_date = Metrics.objects.filter(campaign__client__pk=customer.pk) \
             .aggregate(Max('date')).get('date__max')
         days = datetime.timedelta(days=3)
         start_date -= days
