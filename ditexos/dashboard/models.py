@@ -4,9 +4,10 @@ from django.urls import reverse_lazy
 from django.db import connection
 import yandex_direct
 import google_ads
-
+from vk.models import Clients as ClientsVK
 from yandex_direct import tasks as yandex_task
 from google_ads import tasks as google_task
+from vk import tasks as vk_task
 
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 import json, datetime
@@ -53,9 +54,12 @@ class AgencyClients(models.Model):
     google_client = models.ForeignKey(google_ads.models.Clients,
                                       on_delete=models.CASCADE,
                                       verbose_name='Логин клиента в google ads')
-
-    def __get_user_id(self):
-        return self.pk
+    vk_client = models.ForeignKey(ClientsVK,
+                                  on_delete=models.CASCADE,
+                                  verbose_name='Логин клиента в vk ads',
+                                  blank=True,
+                                  null=True
+                                  )
 
     def get_or_create_interval(self):
         schedule, created = IntervalSchedule.objects.get_or_create(
@@ -99,7 +103,7 @@ class AgencyClients(models.Model):
 
         """Создание задач для рекламных кабинетов"""
 
-        """Одноразовый запуск для сбора статистики за 3 месяца(яндекс, гугл)"""
+        """Одноразовый запуск для сбора статистики за 3 месяца(яндекс, гугл, вк)"""
         self.history_report_one_off(
             task_func=yandex_task.get_reports,
             arguments={
@@ -114,6 +118,22 @@ class AgencyClients(models.Model):
                 'client_google_id': self.google_client.google_id
             }
         )
+        if self.vk_client:
+            self.history_report_one_off(
+                task_func=vk_task.campaigns,
+                arguments={
+                    'user_id': self.user.pk,
+                    'client_id': self.vk_client.pk,
+                }
+            )
+            self.history_report_one_off(
+                task_func=vk_task.metrics,
+                arguments={
+                    'user_id': self.user.pk,
+                    'vk_client_id': self.vk_client.client_id,
+                    'vk_account_id': self.vk_client.account.account_id,
+                }
+            )
         """Переодинческие задачи для обновления статистики(яндекс,гугл)"""
         self.update_report(
             task_name='get_yandex_reports',
@@ -129,6 +149,22 @@ class AgencyClients(models.Model):
                 'client_google_id': self.google_client.google_id
             }
         )
+        if self.vk_client:
+            self.update_report(
+                task_name='vk_campaigns',
+                arguments={
+                    'user_id': self.user.pk,
+                    'client_id': self.vk_client.pk,
+                }
+            )
+            self.update_report(
+                task_name='vk_metrics',
+                arguments={
+                    'user_id': self.user.pk,
+                    'vk_client_id': self.vk_client.client_id,
+                    'vk_account_id': self.vk_client.account.account_id,
+                }
+            )
 
     def delete(self, using=None, keep_parents=False):
         PeriodicTask.objects.filter(name__regex=f'-{self.pk}').delete()

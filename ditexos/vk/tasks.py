@@ -1,4 +1,8 @@
+import datetime
+
 from celery import shared_task
+from django.db.models import Max
+
 from .services import vk_ads
 from .models import *
 
@@ -43,7 +47,9 @@ def clients(user_id=1):
 
 
 @shared_task(name='vk_campaigns')
-def campaigns(user_id=1, client_id=None):
+def campaigns(*args, **kwargs):
+    user_id = kwargs.get('user_id')
+    client_id = kwargs.get('client_id')
     token_vk = TokenVK.objects.get(user__pk=user_id)
     _clients = Clients.objects.filter(pk=client_id)
     for client in _clients:
@@ -63,3 +69,47 @@ def campaigns(user_id=1, client_id=None):
                 }
             )
     return f"VK ads campaigns is updated for user {token_vk.user.email}"
+
+
+@shared_task(name='vk_metrics')
+def metrics(user_id, vk_account_id, vk_client_id, start_date, end_date):
+    token_vk = TokenVK.objects.get(user__pk=user_id)
+    if start_date is None:
+        start_date = Metrics.objects.filter(campaign__client__client_id=vk_client_id) \
+            .aggregate(Max('date')).get('date__max')
+        days = datetime.timedelta(days=3)
+        start_date -= days
+        start_date = start_date.strftime("%Y-%m-%d")
+    if end_date is None:
+        d = datetime.datetime.now()
+        end_date = d.strftime('%Y-%m-%d')
+
+    campaign_ids = list(Campaign.objects.filter(client__client_id=vk_client_id).values_list('campaign_id', flat=True))
+    campaign_ids = ','.join([str(_id) for _id in campaign_ids])
+    require = vk_ads.metrics.get_by_campaign(
+        access_token=token_vk.access_token,
+        account_id=vk_account_id,
+        campaign_ids=campaign_ids,
+        start_date=start_date,
+        end_date=end_date
+    )
+    for resp in require.get('response'):
+        for metric in resp.get('stats'):
+            campaign = Campaign.objects.get(
+                campaign_id=resp.get('id'),
+                client__client_id=vk_client_id,
+                client__account__account_id=vk_account_id,
+                client__account__token_vk__pk=token_vk.pk
+            )
+            Metrics.objects.update_or_create(
+                campaign=campaign,
+                date=metric.get('day'),
+                defaults={
+                    'campaign': campaign,
+                    'spent': metric.get('spent'),
+                    'impressions': metric.get('impressions'),
+                    'clicks': metric.get('clicks'),
+                    'date': metric.get('day')
+                }
+            )
+    return f"VK ads metrics is updated for user {token_vk.user.email} {start_date} - {end_date}"

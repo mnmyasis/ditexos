@@ -32,6 +32,7 @@ class CallbackView(LoginRequiredMixin, View):
                         'vk_user_id': require.get('user_id')
                     }
                 )
+                obj.set_periodic_task('vk_accounts')
                 obj.set_periodic_task('vk_clients')
         return HttpResponseRedirect(reverse('vk:allow'))
 

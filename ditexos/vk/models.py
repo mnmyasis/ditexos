@@ -49,13 +49,15 @@ class AdsAccounts(models.Model):
 class Clients(models.Model):
     client_id = models.IntegerField(verbose_name="ID клиента VK")
     name = models.CharField(max_length=256)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='vk_client')
     account = models.ForeignKey(AdsAccounts, on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'vk_clients'
+        ordering = ['name']
 
     def __str__(self):
-        return f"{self.name} - {self.account.token_vk.user.email} - {self.account.account_name} - account_id={self.account.account_id}"
+        return f"{self.name} - {self.account.account_name}"
 
 
 class Campaign(models.Model):
@@ -72,9 +74,9 @@ class Campaign(models.Model):
 
 class Metrics(models.Model):
     campaign = models.ForeignKey(Campaign, on_delete=models.Model)
-    spent = models.IntegerField()
-    impressions = models.IntegerField()
-    clicks = models.IntegerField()
+    spent = models.FloatField(blank=True, null=True)
+    impressions = models.IntegerField(blank=True, null=True)
+    clicks = models.IntegerField(blank=True, null=True)
     date = models.DateField()
 
     class Meta:
