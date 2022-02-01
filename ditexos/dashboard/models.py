@@ -186,6 +186,8 @@ class ReportTypes(models.Model):
                                       verbose_name='Статистика по неделям для NVM')
     is_month_nvm = models.BooleanField(default=False,
                                        verbose_name='Статистика по месяцам для NVM')
+    is_campaign_nvm = models.BooleanField(default=False,
+                                          verbose_name='Статистика по кампаниям для NVM')
 
     class Meta:
         db_table = 'report_types'

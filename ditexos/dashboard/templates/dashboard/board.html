@@ -457,16 +457,16 @@
                                             {% for line in reports.no_brand_report %}
                                             <tr>
                                                 <td>{{ line.t_source }}</td>
-                                                <td>{{ line.cost_ }}</td>
+                                                <td>{{ line.cost_ }} ₽</td>
                                                  <td>{{ line.impressions }}</td>
                                                  <td>{{ line.clicks }}</td>
-                                                 <td>{{ line.ctr }}</td>
-                                                 <td>{{ line.cpc }}</td>
+                                                 <td>{{ line.ctr }}%</td>
+                                                 <td>{{ line.cpc }} ₽</td>
                                                  <td>{{ line.kpf }}</td>
-                                                 <td>{{ line.kpf_cpl }}</td>
+                                                 <td>{{ line.kpf_cpl }} ₽</td>
                                                  <td>{{ line.leads }}</td>
-                                                 <td>{{ line.cr }}</td>
-                                                 <td>{{ line.cpl }}</td>
+                                                 <td>{{ line.cr }}%</td>
+                                                 <td>{{ line.cpl }} ₽</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -520,16 +520,16 @@
                                             {% for line in reports.brand_report %}
                                             <tr>
                                                 <td>{{ line.t_source }}</td>
-                                                <td>{{ line.cost_ }}</td>
+                                                <td>{{ line.cost_ }} ₽</td>
                                                  <td>{{ line.impressions }}</td>
                                                  <td>{{ line.clicks }}</td>
-                                                 <td>{{ line.ctr }}</td>
-                                                 <td>{{ line.cpc }}</td>
+                                                 <td>{{ line.ctr }} %</td>
+                                                 <td>{{ line.cpc }} ₽</td>
                                                  <td>{{ line.kpf }}</td>
-                                                 <td>{{ line.kpf_cpl }}</td>
+                                                 <td>{{ line.kpf_cpl }} ₽</td>
                                                  <td>{{ line.leads }}</td>
-                                                 <td>{{ line.cr }}</td>
-                                                 <td>{{ line.cpl }}</td>
+                                                 <td>{{ line.cr }}%</td>
+                                                 <td>{{ line.cpl }} ₽</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
@@ -542,7 +542,7 @@
                 {% endfor %}
             {% endif %}
             {% if report_types.is_week_nvm %}
-            <div class="card mb-4">
+                <div class="card mb-4">
                 <div class="card-header">
                     <i class="fas fa-table me-1"></i>
                    По неделям
@@ -564,6 +564,7 @@
                                         <th>CPL ГК</th>
                                         <th>Обращения</th>
                                         <th>CR</th>
+                                        <th>CR ГК</th>
                                         <th>CPL</th>
                                     </tr>
                                 </thead>
@@ -580,6 +581,7 @@
                                         <th>CPL ГК</th>
                                         <th>Обращения</th>
                                         <th>CR</th>
+                                        <th>CR ГК</th>
                                         <th>CPL</th>
                                     </tr>
                                 </tfoot>
@@ -588,16 +590,17 @@
                                     <tr>
                                         <td>{{ line.week }}</td>
                                         <td>{{ line.channel_ }}</td>
-                                        <td>{{ line.cost_ }}</td>
+                                        <td>{{ line.cost_ }} ₽</td>
                                          <td>{{ line.impressions }}</td>
                                          <td>{{ line.clicks }}</td>
-                                         <td>{{ line.ctr }}</td>
-                                         <td>{{ line.cpc }}</td>
+                                         <td>{{ line.ctr }} %</td>
+                                         <td>{{ line.cpc }} ₽</td>
                                          <td>{{ line.gk }}</td>
-                                         <td>{{ line.gk_cpl }}</td>
+                                         <td>{{ line.gk_cpl }} ₽</td>
                                          <td>{{ line.leads }}</td>
-                                         <td>{{ line.cr }}</td>
-                                         <td>{{ line.cpl }}</td>
+                                         <td>{{ line.cr }} %</td>
+                                         <td>{{ line.gk_cr }} %</td>
+                                         <td>{{ line.cpl }} ₽</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -608,10 +611,79 @@
             </div>
             {% endif %}
             {% if report_types.is_month_nvm %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-table me-1"></i>
+                       По месяцам
+                    </div>
+                     <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <table class="datatable">
+                                    <thead>
+                                        <tr>
+                                            <th>Месяц</th>
+                                            <th>Площадка</th>
+                                            <th>Потрачено</th>
+                                            <th>Показы</th>
+                                            <th>Клики</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>ГК</th>
+                                            <th>CPL ГК</th>
+                                            <th>Обращения</th>
+                                            <th>CR</th>
+                                            <th>CR ГК</th>
+                                            <th>CPL</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot>
+                                        <tr>
+                                            <th>Месяц</th>
+                                            <th>Площадка</th>
+                                            <th>Потрачено</th>
+                                            <th>Показы</th>
+                                            <th>Клики</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>ГК</th>
+                                            <th>CPL ГК</th>
+                                            <th>Обращения</th>
+                                            <th>CR</th>
+                                            <th>CR ГК</th>
+                                            <th>CPL</th>
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>
+                                        {% for line in report_month_nvm %}
+                                        <tr>
+                                            <td>{{ line.month_ }}</td>
+                                            <td>{{ line.source_ }}</td>
+                                            <td>{{ line.cost_ }} ₽</td>
+                                             <td>{{ line.impressions }}</td>
+                                             <td>{{ line.clicks }}</td>
+                                             <td>{{ line.ctr }}%</td>
+                                             <td>{{ line.cpc }} ₽</td>
+                                             <td>{{ line.gk }}</td>
+                                             <td>{{ line.gk_cpl }} ₽</td>
+                                             <td>{{ line.leads }}</td>
+                                             <td>{{ line.cr }}%</td>
+                                             <td>{{ line.gk_cr }}%</td>
+                                             <td>{{ line.cpl }} ₽</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+            {% endif %}
+            {% if report_types.is_campaign_nvm %}
             <div class="card mb-4">
                 <div class="card-header">
                     <i class="fas fa-table me-1"></i>
-                   По месяцам
+                   По кампаниям
                 </div>
                  <div class="card-body">
                     <div class="row">
@@ -621,6 +693,7 @@
                                     <tr>
                                         <th>Месяц</th>
                                         <th>Площадка</th>
+                                        <th>Кампания</th>
                                         <th>Потрачено</th>
                                         <th>Показы</th>
                                         <th>Клики</th>
@@ -630,6 +703,7 @@
                                         <th>CPL ГК</th>
                                         <th>Обращения</th>
                                         <th>CR</th>
+                                        <th>CR ГК</th>
                                         <th>CPL</th>
                                     </tr>
                                 </thead>
@@ -637,6 +711,7 @@
                                     <tr>
                                         <th>Месяц</th>
                                         <th>Площадка</th>
+                                        <th>Кампания</th>
                                         <th>Потрачено</th>
                                         <th>Показы</th>
                                         <th>Клики</th>
@@ -646,24 +721,27 @@
                                         <th>CPL ГК</th>
                                         <th>Обращения</th>
                                         <th>CR</th>
+                                        <th>CR ГК</th>
                                         <th>CPL</th>
                                     </tr>
                                 </tfoot>
                                 <tbody>
-                                    {% for line in report_month_nvm %}
+                                    {% for line in report_campaign_nvm %}
                                     <tr>
                                         <td>{{ line.month_ }}</td>
                                         <td>{{ line.source_ }}</td>
-                                        <td>{{ line.cost_ }}</td>
+                                        <td>{{ line.campaign }}</td>
+                                        <td>{{ line.cost_ }} ₽</td>
                                          <td>{{ line.impressions }}</td>
                                          <td>{{ line.clicks }}</td>
-                                         <td>{{ line.ctr }}</td>
-                                         <td>{{ line.cpc }}</td>
+                                         <td>{{ line.ctr }}%</td>
+                                         <td>{{ line.cpc }} ₽</td>
                                          <td>{{ line.gk }}</td>
-                                         <td>{{ line.gk_cpl }}</td>
+                                         <td>{{ line.gk_cpl }} ₽</td>
                                          <td>{{ line.leads }}</td>
-                                         <td>{{ line.cr }}</td>
-                                         <td>{{ line.cpl }}</td>
+                                         <td>{{ line.cr }}%</td>
+                                         <td>{{ line.gk_cr }}%</td>
+                                         <td>{{ line.cpl }} ₽</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

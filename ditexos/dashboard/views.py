@@ -162,6 +162,10 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             context['report_month_nvm'] = Reports.objects.get_month_nvm(
                 agency_client_id=context['client_id']
             )
+        if report_types.is_campaign_nvm:
+            context['report_campaign_nvm'] = Reports.objects.get_campaign_nvm(
+                agency_client_id=context['client_id']
+            )
         if report_types.is_period:
             context['p1_start_date'] = self.request.GET.get('p1_start_date')
             context['p1_end_date'] = self.request.GET.get('p1_end_date')
@@ -270,6 +274,18 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                                                                          'source'
                                                                      ])
                     table_objects.append(week_table)
+
+            if context['report_types'].is_campaign_nvm:
+                if context['report_campaign_nvm']:
+                    campaign_table = generate_export_file.DefaultTable(
+                        items=context['report_campaign_nvm'],
+                        exclude_keys=[
+                            'agency_client_id',
+                            '_month',
+                            'source'
+                        ],
+                        title='Статистика по Кампаниям')
+                    table_objects.append(campaign_table)
 
             gen_report = generate_export_file.GenerateReport(
                 title_font_size=24,

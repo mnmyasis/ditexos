@@ -33,7 +33,7 @@ from (
                when campaign ~* 'master_kviz_krd' THEN 'master'
                when campaign ~* 'kazakhstan_kviz_mkb' THEN 'search'
                when campaign ~* '_search' THEN 'search'
-               when campaign ~* 'discovery_' and source = 'google' THEN 'discovery'
+               when campaign ~* 'discovery' and source = 'google' THEN 'discovery'
                when campaign ~* '_network' THEN 'network'
                when campaign ~* 'performance_max' and source = 'google' THEN 'performance_max'
            END channel,
