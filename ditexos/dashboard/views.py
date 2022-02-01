@@ -11,6 +11,7 @@ import pandas as pd
 import datetime
 from .models import *
 from .forms import AgencyClientsForm
+from .proxy_models import *
 
 
 # Create your views here.
@@ -127,18 +128,32 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                 end_date=end_date
             )
         if report_types.is_brand_nvm:
-            context['report_brand_nvm'] = Reports.objects.get_brand_nvm(
-                agency_client_id=context['client_id'],
-                is_brand=True,
-                start_date=start_date,
-                end_date=end_date
-            )
-            context['report_no_brand_nvm'] = Reports.objects.get_brand_nvm(
-                agency_client_id=context['client_id'],
-                is_brand=False,
-                start_date=start_date,
-                end_date=end_date
-            )
+            agency_client = AgencyClients.objects.get(pk=context['client_id'])
+            directions = agency_client.customizabledirection_set.all()
+            context['report_brand_nvm'] = []
+            for direction in directions:
+                rep = {
+                    'brand_report': Reports.objects.get_brand_nvm(
+                        agency_client_id=context['client_id'],
+                        is_brand=True,
+                        direction_name=direction.direction,
+                        is_main=direction.is_main,
+                        directions=directions,
+                        start_date=start_date,
+                        end_date=end_date
+                    ),
+                    'no_brand_report': Reports.objects.get_brand_nvm(
+                        agency_client_id=context['client_id'],
+                        is_brand=False,
+                        direction_name=direction.direction,
+                        is_main=direction.is_main,
+                        directions=directions,
+                        start_date=start_date,
+                        end_date=end_date
+                    ),
+                    'direction_name': direction.name
+                }
+                context['report_brand_nvm'].append(rep)
         if report_types.is_week_nvm:
             context['report_week_nvm'] = Reports.objects.get_week_nvm(
                 agency_client_id=context['client_id']
@@ -210,22 +225,28 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                     table_objects.append(period_table)
             if context['report_types'].is_brand_nvm:
                 if context['report_brand_nvm']:
-                    brand_table = generate_export_file.NVMTable(items=context['report_brand_nvm'],
-                                                                title='Брендовые кампании',
-                                                                exclude_keys=[
-                                                                    'agency_client_id',
-                                                                    'channel',
-                                                                    'source'
-                                                                ])
-                    no_brand_table = generate_export_file.NVMTable(items=context['report_no_brand_nvm'],
-                                                                   title='Небрендовые кампании',
-                                                                   exclude_keys=[
-                                                                       'agency_client_id',
-                                                                       'channel',
-                                                                       'source'
-                                                                   ])
-                    table_objects.append(brand_table)
-                    table_objects.append(no_brand_table)
+                    for reports in context['report_brand_nvm']:
+                        direction_name = reports.get("direction_name")
+                        if reports.get('brand_report'):
+                            brand_table = generate_export_file.NVMTable(
+                                items=reports['brand_report'],
+                                title=f'Брендовые кампании {direction_name}',
+                                exclude_keys=[
+                                    'agency_client_id',
+                                    'channel',
+                                    'source'
+                                ])
+                            table_objects.append(brand_table)
+                        if reports.get('no_brand_report'):
+                            no_brand_table = generate_export_file.NVMTable(
+                                items=reports['no_brand_report'],
+                                title=f'Небрендовые кампании {direction_name}',
+                                exclude_keys=[
+                                    'agency_client_id',
+                                    'channel',
+                                    'source'
+                                ])
+                            table_objects.append(no_brand_table)
             if context['report_types'].is_week_nvm:
                 if context['report_week_nvm']:
                     week_table = generate_export_file.NVMCustomTable(items=context['report_week_nvm'],

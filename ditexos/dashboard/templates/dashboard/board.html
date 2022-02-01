@@ -412,128 +412,134 @@
             {% endif %}
 
             {% if report_types.is_brand_nvm %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   Небрендовые кампании
-                </div>
-                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="datatable">
-                                <thead>
-                                    <tr>
-                                        <th>Источник</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>КПФ</th>
-                                        <th>CPL КПФ</th>
-                                        <th>Обращения</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Источник</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>КПФ</th>
-                                        <th>CPL КПФ</th>
-                                        <th>Обращения</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                    </tr>
-                                </tfoot>
-                                <tbody>
-                                    {% for line in report_no_brand_nvm %}
-                                    <tr>
-                                        <td>{{ line.t_source }}</td>
-                                        <td>{{ line.cost_ }}</td>
-                                         <td>{{ line.impressions }}</td>
-                                         <td>{{ line.clicks }}</td>
-                                         <td>{{ line.ctr }}</td>
-                                         <td>{{ line.cpc }}</td>
-                                         <td>{{ line.kpf }}</td>
-                                         <td>{{ line.kpf_cpl }}</td>
-                                         <td>{{ line.leads }}</td>
-                                         <td>{{ line.cr }}</td>
-                                         <td>{{ line.cpl }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                {% for reports in report_brand_nvm %}
+                    {% if reports.no_brand_report %}
+                        <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                           Небрендовые кампании {{ reports.direction_name }}
                         </div>
+                         <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="datatable">
+                                        <thead>
+                                            <tr>
+                                                <th>Источник</th>
+                                                <th>Потрачено</th>
+                                                <th>Показы</th>
+                                                <th>Клики</th>
+                                                <th>CTR</th>
+                                                <th>CPC</th>
+                                                <th>КПФ</th>
+                                                <th>CPL КПФ</th>
+                                                <th>Обращения</th>
+                                                <th>CR</th>
+                                                <th>CPL</th>
+                                            </tr>
+                                        </thead>
+                                        <tfoot>
+                                            <tr>
+                                                <th>Источник</th>
+                                                <th>Потрачено</th>
+                                                <th>Показы</th>
+                                                <th>Клики</th>
+                                                <th>CTR</th>
+                                                <th>CPC</th>
+                                                <th>КПФ</th>
+                                                <th>CPL КПФ</th>
+                                                <th>Обращения</th>
+                                                <th>CR</th>
+                                                <th>CPL</th>
+                                            </tr>
+                                        </tfoot>
+                                        <tbody>
+                                            {% for line in reports.no_brand_report %}
+                                            <tr>
+                                                <td>{{ line.t_source }}</td>
+                                                <td>{{ line.cost_ }}</td>
+                                                 <td>{{ line.impressions }}</td>
+                                                 <td>{{ line.clicks }}</td>
+                                                 <td>{{ line.ctr }}</td>
+                                                 <td>{{ line.cpc }}</td>
+                                                 <td>{{ line.kpf }}</td>
+                                                 <td>{{ line.kpf_cpl }}</td>
+                                                 <td>{{ line.leads }}</td>
+                                                 <td>{{ line.cr }}</td>
+                                                 <td>{{ line.cpl }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                         </div>
                     </div>
-                 </div>
-            </div>
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   Брендовые кампании
-                </div>
-                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="datatable">
-                                <thead>
-                                    <tr>
-                                        <th>Источник</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>КПФ</th>
-                                        <th>CPL КПФ</th>
-                                        <th>Обращения</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Источник</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>КПФ</th>
-                                        <th>CPL КПФ</th>
-                                        <th>Обращения</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                    </tr>
-                                </tfoot>
-                                <tbody>
-                                    {% for line in report_brand_nvm %}
-                                    <tr>
-                                        <td>{{ line.t_source }}</td>
-                                        <td>{{ line.cost_ }}</td>
-                                         <td>{{ line.impressions }}</td>
-                                         <td>{{ line.clicks }}</td>
-                                         <td>{{ line.ctr }}</td>
-                                         <td>{{ line.cpc }}</td>
-                                         <td>{{ line.kpf }}</td>
-                                         <td>{{ line.kpf_cpl }}</td>
-                                         <td>{{ line.leads }}</td>
-                                         <td>{{ line.cr }}</td>
-                                         <td>{{ line.cpl }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                    {% endif %}
+                    {% if reports.brand_report %}
+                        <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                           Брендовые кампании {{reports.direction_name}}
                         </div>
+                         <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="datatable">
+                                        <thead>
+                                            <tr>
+                                                <th>Источник</th>
+                                                <th>Потрачено</th>
+                                                <th>Показы</th>
+                                                <th>Клики</th>
+                                                <th>CTR</th>
+                                                <th>CPC</th>
+                                                <th>КПФ</th>
+                                                <th>CPL КПФ</th>
+                                                <th>Обращения</th>
+                                                <th>CR</th>
+                                                <th>CPL</th>
+                                            </tr>
+                                        </thead>
+                                        <tfoot>
+                                            <tr>
+                                                <th>Источник</th>
+                                                <th>Потрачено</th>
+                                                <th>Показы</th>
+                                                <th>Клики</th>
+                                                <th>CTR</th>
+                                                <th>CPC</th>
+                                                <th>КПФ</th>
+                                                <th>CPL КПФ</th>
+                                                <th>Обращения</th>
+                                                <th>CR</th>
+                                                <th>CPL</th>
+                                            </tr>
+                                        </tfoot>
+                                        <tbody>
+                                            {% for line in reports.brand_report %}
+                                            <tr>
+                                                <td>{{ line.t_source }}</td>
+                                                <td>{{ line.cost_ }}</td>
+                                                 <td>{{ line.impressions }}</td>
+                                                 <td>{{ line.clicks }}</td>
+                                                 <td>{{ line.ctr }}</td>
+                                                 <td>{{ line.cpc }}</td>
+                                                 <td>{{ line.kpf }}</td>
+                                                 <td>{{ line.kpf_cpl }}</td>
+                                                 <td>{{ line.leads }}</td>
+                                                 <td>{{ line.cr }}</td>
+                                                 <td>{{ line.cpl }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                         </div>
                     </div>
-                 </div>
-            </div>
+                    {% endif %}
+                {% endfor %}
             {% endif %}
             {% if report_types.is_week_nvm %}
             <div class="card mb-4">

@@ -11,7 +11,7 @@ as
         left join amo_metrics metric on amo.id = metric.amo_id
         left join amo_pipelines pipelines on metric.pipeline_id = pipelines.pipeline_id
         left join amo_pipeline_statuses statuses on statuses.status_id = metric.status_id and statuses.pipeline_id = metric.pipeline_id
-    where pipelines.id = 1 and statuses.status_id = 142
+    where pipelines.pipeline_id = 3245188 and statuses.status_id = 142
  union all
     select
            amo.id,
@@ -24,7 +24,7 @@ as
         left join amo_metrics metric on amo.id = metric.amo_id
         left join amo_pipelines pipelines on metric.pipeline_id = pipelines.pipeline_id
         left join amo_pipeline_statuses statuses on statuses.status_id = metric.status_id and statuses.pipeline_id = metric.pipeline_id
-    where pipelines.id = 1
+    where pipelines.pipeline_id = 3245188
 union all
     select
            amo.id,
@@ -37,4 +37,4 @@ union all
         left join amo_metrics metric on amo.id = metric.amo_id
         left join amo_pipelines pipelines on metric.pipeline_id = pipelines.pipeline_id
         left join amo_pipeline_statuses statuses on statuses.status_id = metric.status_id and statuses.pipeline_id = metric.pipeline_id
-    where pipelines.id = 1 and statuses.status_id in (142, 32860978);
+    where pipelines.pipeline_id = 3245188 and statuses.status_id in (142, 32860978);
