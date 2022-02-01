@@ -8,8 +8,8 @@ from .services.api import amo
 
 
 @shared_task(name='amo_update_token')
-def amo_update_token(user_id=1, agency_client_id=1):
-    amo_crm = AmoCRM.objects.get(user__pk=user_id, agency_client__pk=agency_client_id)
+def amo_update_token(user_id=1, agency_clients_ids=[]):
+    amo_crm = AmoCRM.objects.filter(user__pk=user_id, agency_client__pk__in=agency_clients_ids).first()
     tokens = amo.update_token(
         client_id=amo_crm.integration_id,
         client_secret=amo_crm.integration_secret,
@@ -19,12 +19,12 @@ def amo_update_token(user_id=1, agency_client_id=1):
     amo_crm.access_token = tokens.get('access_token')
     amo_crm.refresh_token = tokens.get('refresh_token')
     amo_crm.save()
-    return f'Update token for client {amo_crm.agency_client.name}'
+    return f'Update token for client {amo_crm.name}'
 
 
 @shared_task(name='amo_get_pipelines')
-def amo_get_pipelines(user_id=1, agency_client_id=1):
-    amo_crm = AmoCRM.objects.get(user__pk=user_id, agency_client__pk=agency_client_id)
+def amo_get_pipelines(user_id=1, agency_clients_ids=[]):
+    amo_crm = AmoCRM.objects.filter(user__pk=user_id, agency_client__pk__in=agency_clients_ids).first()
     pipelines = amo.get_pipelines(
         referer=amo_crm.subdomain,
         access_token=amo_crm.access_token
@@ -51,12 +51,12 @@ def amo_get_pipelines(user_id=1, agency_client_id=1):
                     'name': status.get('name'),
                 }
             )
-    return f'Pipelines updated for {amo_crm.agency_client.name}'
+    return f'Pipelines updated for {amo_crm.name}'
 
 
 @shared_task(name='amo_get_leads')
-def amo_get_leads(user_id=1, agency_client_id=1, start_date=None):
-    amo_crm = AmoCRM.objects.get(user__pk=user_id, agency_client__pk=agency_client_id)
+def amo_get_leads(user_id=1, agency_clients_ids=[], start_date=None):
+    amo_crm = AmoCRM.objects.filter(user__pk=user_id, agency_client__pk__in=agency_clients_ids).first()
     if start_date is None:  # Если дата не задана вручную
         start_date = Metrics.objects.filter(amo=amo_crm).aggregate(Max('created_at')).get('created_at__max')
         if start_date is None:  # Если метрик нет
@@ -97,4 +97,4 @@ def amo_get_leads(user_id=1, agency_client_id=1, start_date=None):
                 'is_closed': lead.get('is_closed'),
             }
         )
-    return f'Metric updated for {amo_crm.agency_client.name}// {start_date} - {end_date}'
+    return f'Metric updated for {amo_crm.name}// {start_date} - {end_date}'

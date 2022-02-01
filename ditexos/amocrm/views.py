@@ -2,10 +2,7 @@ from django.shortcuts import render
 from .services.api import amo
 from .models import AmoCRM
 from django.contrib.auth.decorators import login_required
-import os
 
-
-# Create your views here.
 
 @login_required
 def amocrm_allow_api(request):

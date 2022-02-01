@@ -8,7 +8,11 @@ from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
 class AmoCRM(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    agency_client = models.OneToOneField(AgencyClients, on_delete=models.CASCADE)
+    name = models.CharField(max_length=256, verbose_name='Наименование клиента')
+    agency_client = models.ManyToManyField(
+        AgencyClients,
+        db_table='amo_crm_and_agency_client'
+    )
     access_token = models.TextField(blank=True, null=True)
     refresh_token = models.TextField(blank=True, null=True)
     subdomain = models.CharField(max_length=256, blank=True, null=True)
@@ -19,7 +23,7 @@ class AmoCRM(models.Model):
         db_table = 'amo_crm'
 
     def __str__(self):
-        return self.agency_client.name
+        return self.name
 
     def get_or_create_interval(self):
         schedule, created = IntervalSchedule.objects.get_or_create(
@@ -31,12 +35,12 @@ class AmoCRM(models.Model):
     def set_periodic_task(self, task_name):
         arguments = {
             'user_id': self.user.pk,
-            'agency_client_id': self.agency_client.pk
+            'agency_clients_ids': [ag_client.pk for ag_client in self.agency_client.all()]
         }
         schedule = self.get_or_create_interval()
-        task, is_create = PeriodicTask.objects.get_or_create(
+        task, is_create = PeriodicTask.objects.update_or_create(
             interval=schedule,
-            name=f'{task_name}#{self.user.name} - {self.agency_client.name}',
+            name=f'{task_name}#{self.user.name} - {self.name}',
             task=task_name,
             kwargs=json.dumps(arguments)
         )
