@@ -36,7 +36,7 @@ from (
                when campaign ~* 'discovery' and source = 'google' THEN 'discovery'
                when campaign ~* '_network' THEN 'network'
                when campaign ~* 'performance_max' and source = 'google' THEN 'performance_max'
-               when campaign ~* 'perfomance_max' and source = 'google' THEN 'performance_max
+               when campaign ~* 'perfomance_max' and source = 'google' THEN 'performance_max'
            END channel,
            case
                when campaign ~* '_search' THEN replace(campaign, '_search', '')
