@@ -29,9 +29,9 @@ from (
            cabinet.campaign,
            cabinet.campaign_id,
            case
+               when campaign ~* '_mkb' THEN 'mkb'
                when campaign ~* '_master' THEN 'master'
                when campaign ~* 'master_kviz_krd' THEN 'master'
-               when campaign ~* 'kazakhstan_kviz_mkb' THEN 'search'
                when campaign ~* '_search' THEN 'search'
                when campaign ~* 'discovery' and source = 'google' THEN 'discovery'
                when campaign ~* '_network' THEN 'network'

@@ -617,6 +617,7 @@ class ReportsQuerySet(models.QuerySet):
                            when cab.source = 'yandex' THEN 'Яндекс Директ'
                        END source_,
                        case
+                           when cab.channel ~* 'mkb' THEN ' - МКБ'
                            when cab.channel ~* 'master' THEN ' - Мастер'
                            when cab.channel ~* 'search' THEN ' - Поиск'
                            when cab.channel ~* 'network' and cab.source = 'google' THEN ' - КМС'
@@ -656,11 +657,11 @@ class ReportsQuerySet(models.QuerySet):
                            count(*) leads,
                            utm_source,
                            case
+                               when utm_campaign ~* '_mkb' THEN 'mkb'
                                when utm_campaign isnull THEN 'search'
                                when utm_campaign ~* '_master' THEN 'master'
                                when utm_campaign ~* 'master_kviz_krd' THEN 'master'
                                when utm_campaign ~* '_search' THEN 'search'
-                               when utm_campaign ~* 'kazakhstan_kviz_mkb' THEN 'search'
                                when utm_campaign ~* 'discovery' and utm_source = 'google' THEN 'discovery'
                                when utm_campaign ~* '_network' THEN 'network'
                                when utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
@@ -687,11 +688,11 @@ class ReportsQuerySet(models.QuerySet):
                            count(*) leads,
                            utm_source,
                            case
+                               when utm_campaign ~* '_mkb' THEN 'mkb'
                                when utm_campaign isnull THEN 'search'
                                when utm_campaign ~* '_master' THEN 'master'
                                when utm_campaign ~* 'master_kviz_krd' THEN 'master'
                                when utm_campaign ~* '_search' THEN 'search'
-                               when utm_campaign ~* 'kazakhstan_kviz_mkb' THEN 'search'
                                when utm_campaign ~* 'discovery' and utm_source = 'google' THEN 'discovery'
                                when utm_campaign ~* '_network' THEN 'network'
                                when utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
@@ -785,6 +786,7 @@ class ReportsQuerySet(models.QuerySet):
                        when source = 'yandex' THEN 'Яндекс Директ'
                    END source_,
                    case
+                       when channel ~* 'mkb' THEN ' - МКБ'
                        when channel ~* 'master' THEN ' - Мастер'
                        when channel ~* 'search' THEN ' - Поиск'
                        when channel ~* 'network' and source = 'google' THEN ' - КМС'
@@ -807,11 +809,11 @@ class ReportsQuerySet(models.QuerySet):
                        agency_client_id,
                        utm_source,
                        case
+                           when utm_campaign ~* '_mkb' THEN 'mkb'
                            when utm_campaign isnull THEN 'search'
                            when utm_campaign ~* '_master' THEN 'master'
                            when utm_campaign ~* 'master_kviz_krd' THEN 'master'
                            when utm_campaign ~* '_search' THEN 'search'
-                           when utm_campaign ~* 'kazakhstan_kviz_mkb' THEN 'search'
                            when utm_campaign ~* '_search' THEN 'search'
                            when utm_campaign ~* 'discovery' and utm_source = 'google' THEN 'discovery'
                            when utm_campaign ~* '_network' THEN 'network'
@@ -832,11 +834,11 @@ class ReportsQuerySet(models.QuerySet):
                        agency_client_id,
                        utm_source,
                        case
+                           when utm_campaign ~* '_mkb' THEN 'mkb'
                            when utm_campaign isnull THEN 'search'
                            when utm_campaign ~* '_master' THEN 'master'
                            when utm_campaign ~* 'master_kviz_krd' THEN 'master'
                            when utm_campaign ~* '_search' THEN 'search'
-                           when utm_campaign ~* 'kazakhstan_kviz_mkb' THEN 'search'
                            when utm_campaign ~* 'discovery' and utm_source = 'google' THEN 'discovery'
                            when utm_campaign ~* '_network' THEN 'network'
                            when utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
