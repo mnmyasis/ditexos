@@ -623,6 +623,7 @@ class ReportsQuerySet(models.QuerySet):
                            when cab.channel ~* 'network' and cab.source = 'google' THEN ' - КМС'
                            when cab.channel ~* 'network' THEN ' - РСЯ'
                            when cab.channel ~* 'discovery' THEN ' - Discovery'
+                           when cab.channel ~* 'video' THEN ' - Video'
                            when cab.channel ~* 'performance_max' THEN ' - Performance_max'
                            when cab.channel isnull and cab.source = 'yandex' THEN ' - Поиск'
                        END channel_,
@@ -664,6 +665,7 @@ class ReportsQuerySet(models.QuerySet):
                                when utm_campaign ~* '_search' THEN 'search'
                                when utm_campaign ~* 'discovery' and utm_source = 'google' THEN 'discovery'
                                when utm_campaign ~* '_network' THEN 'network'
+                               when utm_campaign ~* '_video' THEN 'video'
                                when utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
                                when utm_campaign ~* 'perfomance_max' and utm_source = 'google' THEN 'performance_max'
                            END channel,
@@ -695,6 +697,7 @@ class ReportsQuerySet(models.QuerySet):
                                when utm_campaign ~* '_search' THEN 'search'
                                when utm_campaign ~* 'discovery' and utm_source = 'google' THEN 'discovery'
                                when utm_campaign ~* '_network' THEN 'network'
+                               when utm_campaign ~* '_video' THEN 'video'
                                when utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
                                when utm_campaign ~* 'perfomance_max' and utm_source = 'google' THEN 'performance_max'
                            END channel,
@@ -792,6 +795,7 @@ class ReportsQuerySet(models.QuerySet):
                        when channel ~* 'network' and source = 'google' THEN ' - КМС'
                        when channel ~* 'network' THEN ' - РСЯ'
                        when channel ~* 'discovery' THEN ' - Discovery'
+                       when channel ~* 'video' THEN ' - Video'
                        when channel ~* 'performance_max' THEN ' - Performance_max'
                        when channel isnull and source= 'yandex' THEN ' - Поиск'
                    END channel_,
@@ -817,6 +821,7 @@ class ReportsQuerySet(models.QuerySet):
                            when utm_campaign ~* '_search' THEN 'search'
                            when utm_campaign ~* 'discovery' and utm_source = 'google' THEN 'discovery'
                            when utm_campaign ~* '_network' THEN 'network'
+                           when utm_campaign ~* '_video' THEN 'video'
                            when utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
                            when utm_campaign ~* 'perfomance_max' and utm_source = 'google' THEN 'performance_max'
                        END amo_channel,
@@ -841,6 +846,7 @@ class ReportsQuerySet(models.QuerySet):
                            when utm_campaign ~* '_search' THEN 'search'
                            when utm_campaign ~* 'discovery' and utm_source = 'google' THEN 'discovery'
                            when utm_campaign ~* '_network' THEN 'network'
+                           when utm_campaign ~* '_video' THEN 'video'
                            when utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
                            when utm_campaign ~* 'perfomance_max' and utm_source = 'google' THEN 'performance_max'
                        END amo_channel,

@@ -32,9 +32,11 @@ from (
                when campaign ~* '_mkb' THEN 'mkb'
                when campaign ~* '_master' THEN 'master'
                when campaign ~* 'master_kviz_krd' THEN 'master'
+               when campaign ~* 'general_kviz_krd' THEN 'search'
                when campaign ~* '_search' THEN 'search'
                when campaign ~* 'discovery' and source = 'google' THEN 'discovery'
                when campaign ~* '_network' THEN 'network'
+               when campaign ~* '_video' and source = 'google' THEN 'video'
                when campaign ~* 'performance_max' and source = 'google' THEN 'performance_max'
                when campaign ~* 'perfomance_max' and source = 'google' THEN 'performance_max'
            END channel,
