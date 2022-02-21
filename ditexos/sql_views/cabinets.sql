@@ -29,6 +29,9 @@ from (
            cabinet.campaign,
            cabinet.campaign_id,
            case
+               when campaign ~* 'smm' and source in ('vk_di', 'mytarget_di') THEN 'smm'
+               when campaign !~* 'smm' and source = 'vk_di' THEN 'vk_target'
+               when campaign !~* 'smm' and source = 'mytarget_di' THEN 'my_target'
                when campaign ~* '_mkb' THEN 'mkb'
                when campaign ~* '_master' THEN 'master'
                when campaign ~* 'master_kviz_krd' THEN 'master'
@@ -82,6 +85,20 @@ from (
             date
         from google_report_view
         group by id, campaign, campaign_id, date
+        )
+        union all
+        (
+            select
+                   id,
+                   'mytarget_di' source,
+                   campaign,
+                   campaign_id,
+                   cast(sum(cost_) as numeric) cost_,
+                   sum(clicks) clicks,
+                   sum(impressions) impressions,
+                   date
+            from my_target_view
+            group by id, campaign, campaign_id, date
         )
     ) cabinet
 ) cab_report;

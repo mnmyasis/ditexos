@@ -166,6 +166,18 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             context['report_campaign_nvm'] = Reports.objects.get_campaign_nvm(
                 agency_client_id=context['client_id']
             )
+        if report_types.is_target_nvm:
+            context['report_target_nvm'] = Reports.objects.get_target_nvm(
+                agency_client_id=context['client_id'],
+                start_date=start_date,
+                end_date=end_date
+            )
+        if report_types.is_smm_nvm:
+            context['report_smm_nvm'] = Reports.objects.get_smm_nvm(
+                agency_client_id=context['client_id'],
+                start_date=start_date,
+                end_date=end_date
+            )
         if report_types.is_period:
             context['p1_start_date'] = self.request.GET.get('p1_start_date')
             context['p1_end_date'] = self.request.GET.get('p1_end_date')

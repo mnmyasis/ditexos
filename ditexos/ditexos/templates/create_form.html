@@ -2,14 +2,16 @@
 {% block content %}
 <div id="layoutSidenav_content">
     <main>
+        <div class="container-fluid">
         <div class="row justify-content-center">
             <div class="col-lg-7">
                 <div class="card shadow-lg border-0 rounded-lg mt-5">
-                    <div class="card-header"><h3 class="text-center font-weight-light my-4">Создание нового клиента {{ title_form }}</h3></div>
+                    <div class="card-header"><h3 class="text-center font-weight-light my-4">{{ title_form }}</h3></div>
                     <div class="card-body">
                         <form method="post">
                             {% csrf_token %}
                             {{ form.non_field_errors }}
+                            {{ form.instance.error_api }}
                              {% for field in form %}
                                 {% if field.field.widget.input_type  == 'select' %}
                                     <div class="row mb-3">
@@ -30,7 +32,9 @@
                                                        id="{{ field.id_for_label }}"
                                                        type="text"
                                                        name="{{ field.html_name }}",
-                                                       value="{{field.value}}"
+                                                       {% if field.value %}
+                                                        value="{{field.value}}"
+                                                       {% endif %}
                                                 />
                                                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                                             </div>
@@ -47,6 +51,7 @@
                 </div>
             </div>
         </div>
+            </div>
     </main>
 </div>
 {% endblock %}

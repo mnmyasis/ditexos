@@ -541,6 +541,120 @@
                     {% endif %}
                 {% endfor %}
             {% endif %}
+            {% if report_types.is_target_nvm %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                   Таргет
+                </div>
+                 <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Источник</th>
+                                        <th>Потрачено</th>
+                                        <th>Показы</th>
+                                        <th>Клики</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                        <th>КПФ</th>
+                                        <th>CPL КПФ</th>
+                                        <th>Обращения</th>
+                                        <th>CR</th>
+                                        <th>CR КПФ</th>
+                                        <th>CPL</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>Источник</th>
+                                        <th>Потрачено</th>
+                                        <th>Показы</th>
+                                        <th>Клики</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                        <th>КПФ</th>
+                                        <th>CPL КПФ</th>
+                                        <th>Обращения</th>
+                                        <th>CR</th>
+                                        <th>CR КПФ</th>
+                                        <th>CPL</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                    {% for line in report_target_nvm %}
+                                    <tr>
+                                        <td>{{ line.source }}</td>
+                                        <td>{{ line.cost_ }} ₽</td>
+                                         <td>{{ line.impressions }}</td>
+                                         <td>{{ line.clicks }}</td>
+                                         <td>{{ line.ctr }} %</td>
+                                         <td>{{ line.cpc }} ₽</td>
+                                         <td>{{ line.kpf }}</td>
+                                         <td>{{ line.kpf_cpl }} ₽</td>
+                                         <td>{{ line.leads }}</td>
+                                         <td>{{ line.cr }} %</td>
+                                         <td>{{ line.kpf_cr }} %</td>
+                                         <td>{{ line.cpl }} ₽</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+            {% endif %}
+            {% if report_types.is_smm_nvm %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-table me-1"></i>
+                   SMM
+                </div>
+                 <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="datatable">
+                                <thead>
+                                    <tr>
+                                        <th>Источник</th>
+                                        <th>Потрачено</th>
+                                        <th>Показы</th>
+                                        <th>Клики</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>Источник</th>
+                                        <th>Потрачено</th>
+                                        <th>Показы</th>
+                                        <th>Клики</th>
+                                        <th>CTR</th>
+                                        <th>CPC</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                    {% for line in report_smm_nvm %}
+                                    <tr>
+                                        <td>{{ line.source }}</td>
+                                        <td>{{ line.cost_ }} ₽</td>
+                                         <td>{{ line.impressions }}</td>
+                                         <td>{{ line.clicks }}</td>
+                                         <td>{{ line.ctr }} %</td>
+                                         <td>{{ line.cpc }} ₽</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+            {% endif %}
             {% if report_types.is_week_nvm %}
                 <div class="card mb-4">
                 <div class="card-header">

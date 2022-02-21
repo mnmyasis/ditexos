@@ -1,0 +1,32 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+<div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                        <div class="row mt-4">
+                            <div class="col-md-6 offset-md-4 mt-4">
+                                <div class="card mb-3" style="max-width: 650px;">
+                                  <div class="row g-0">
+                                    <div class="col-md-8">
+                                      <div class="card-body">
+                                        <h5 class="card-title">Интеграция с "mytarget"</h5>
+                                        <p class="card-text">Для того чтобы разрешить сбор метрик вашего рекламного аккаунта, необходимо авторизоваться в аккаунте mytarget, на котором зарегистрирован рекламный кабинет.</p>
+                                        <p class="card-text"><small class="text-muted"></small></p>
+                                          {% if is_token %}
+                                                <a href="#" class="btn btn-warning mt-4 mb-2 disabled">Разрешить</a>
+                                                <a href="{% url 'yandex_direct:delete_token' pk=is_token.pk %}" class="btn btn-warning mt-4 mb-2">Отвязать</a>
+                                           {% endif %}
+                                          <a href="https://target.my.com/oauth2/authorize?response_type=code&client_id=kr5K4TnTRHXW7aRU&state={{ csrf_token }}&scope=[read_ads]&redirect_uri=http:/ditexos.ru/my-target/allow"
+                                                   class="btn btn-warning mt-4 mb-2">Разрешить</a>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                {% include 'footer.html' %}
+            </div>
+{% endblock %}
