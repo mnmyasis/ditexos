@@ -13,7 +13,8 @@ class AgencyClientsForm(ModelForm):
             agency_client = CustomUser.objects.prefetch_related('yandex_clients', 'google_clients').get(pk=user_id)
             self.fields['yandex_client'].queryset = agency_client.yandex_clients.all()
             self.fields['google_client'].queryset = agency_client.google_clients.all()
+            self.fields['vk_client'].queryset = agency_client.vk_client.all()
 
     class Meta:
         model = AgencyClients
-        fields = ('name', 'call_tracker_type', 'crm_type', 'yandex_client', 'google_client')
+        fields = ('name', 'call_tracker_type', 'crm_type', 'yandex_client', 'google_client', 'vk_client')

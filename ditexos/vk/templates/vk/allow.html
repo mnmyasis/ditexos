@@ -1,0 +1,33 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+<div id="layoutSidenav_content">
+                <main>
+                    <div class="container-fluid px-4">
+                        <div class="row mt-4">
+                            <div class="col-md-6 offset-md-4 mt-4">
+                                <div class="card mb-3" style="max-width: 650px;">
+                                  <div class="row g-0">
+                                    <div class="col-md-8">
+                                      <div class="card-body">
+                                        <h5 class="card-title">Интеграция с "VK"</h5>
+                                        <p class="card-text">Для того чтобы разрешить сбор метрик вашего рекламного аккаунта, необходимо авторизоваться в аккаунте vk, на котором зарегистрирован рекламный кабинет.</p>
+                                        <p class="card-text"><small class="text-muted"></small></p>
+                                          {% if vk_token_id %}
+                                                <a href="#" class="btn btn-warning mt-4 mb-2 disabled">Разрешить</a>
+                                                <a href="{% url 'vk:delete_token' pk=vk_token_id %}" class="btn btn-warning mt-4 mb-2">Отвязать</a>
+                                          {% else %}
+                                                <a href="https://oauth.vk.com/authorize?client_id={{client_id}}&display=page&redirect_uri={{redirect_uri}}&scope=ads,offline&response_type=code&v=5.131"
+                                                   class="btn btn-warning mt-4 mb-2">Разрешить</a>
+                                          {% endif %}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+                {% include 'footer.html' %}
+            </div>
+{% endblock %}

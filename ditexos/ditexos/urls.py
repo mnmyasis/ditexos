@@ -14,5 +14,6 @@ urlpatterns = [
     path('excel/', include('excel.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('account/', include('accounts.urls')),
+    path('vk/', include('vk.urls')),
     path('email-sender/', include('email_sender.urls'))
 ]

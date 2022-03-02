@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'excel',
     'dashboard',
     'comagic',
-    'email_sender'
+    'email_sender',
+    'vk'
 
 ]
 
@@ -225,6 +226,12 @@ GOOGLE_PROJECT_ID = env('GOOGLE_PROJECT_ID')
 GOOGLE_APP_PASSWORD = env('GOOGLE_APP_PASSWORD')
 GOOGLE_REDIRECT_URIS = env.list('GOOGLE_REDIRECT_URIS')
 GOOGLE_REDIRECT_URI = env('GOOGLE_REDIRECT_URI')
+
+"""API VK"""
+VK_APP_ID = env('VK_APP_ID')
+VK_APP_SECRET = env('VK_APP_SECRET')
+VK_REDIRECT_URI = env('VK_REDIRECT_URI')
+VK_API_VERSION = '5.131'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = env('EMAIL_HOST')
