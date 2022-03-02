@@ -65,7 +65,7 @@ def amo_get_leads(user_id=1, agency_clients_ids=[], start_date=None):
             start_date -= month
             start_date = start_date.strftime("%Y-%m-%d")
         else:
-            days = datetime.timedelta(days=3)
+            days = datetime.timedelta(days=30)
             start_date -= days
             start_date = start_date.strftime("%Y-%m-%d")
     d = datetime.datetime.now()
