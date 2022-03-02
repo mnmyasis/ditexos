@@ -15,7 +15,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='agencyclients',
             name='vk_client',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='vk.clients', verbose_name='Логин клиента в vk ads'),
-            preserve_default=False,
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='vk.clients', verbose_name='Логин клиента в vk ads'),
         ),
     ]

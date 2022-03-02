@@ -11,7 +11,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         cursor = connection.cursor()
         os.chdir('sql_views/')
-        files = os.listdir()
+        files = sorted(os.listdir())
         for file in files:
             sql = open(file, 'r')
             try:

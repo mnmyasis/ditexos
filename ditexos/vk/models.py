@@ -61,7 +61,7 @@ class Clients(models.Model):
 
 
 class Campaign(models.Model):
-    campaign_id = models.IntegerField()
+    campaign_id = models.TextField()
     name = models.CharField(max_length=256)
     client = models.ForeignKey(Clients, on_delete=models.CASCADE)
 

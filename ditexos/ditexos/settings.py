@@ -46,7 +46,9 @@ INSTALLED_APPS = [
     'dashboard',
     'comagic',
     'email_sender',
-    'vk'
+    'vk',
+    'facebook',
+    'my_target'
 
 ]
 

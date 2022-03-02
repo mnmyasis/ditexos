@@ -170,14 +170,15 @@ class DefaultTable(GenerateExcelFile):
 
 class NVMTable(GenerateExcelFile):
 
-    def __init__(self, items, title, skip_row=3, exclude_keys=[]):
+    def __init__(self, items, title, letters, skip_row=3, exclude_keys=[]):
         self.items = items
         self.title = title
         self.skip_row = skip_row
         self.exclude_keys = exclude_keys
+        self.letters = letters
         super().__init__()
 
-    def create_table(self, workbook, worksheet, items, title, start_row, skip_row=3, exclude_keys=[]):
+    def create_table(self, workbook, worksheet, items, title, start_row, letters, skip_row=3, exclude_keys=[]):
         col = 0
         if len(items) > 0:
             keys = items[0].keys()
@@ -202,7 +203,7 @@ class NVMTable(GenerateExcelFile):
                     worksheet.write(start_row, col, item[key], cell_format)
                     col += 1
             start_row += 1
-        letters = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']
+        # letters = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
         for letter in letters:
             formula = '+'.join([f'{letter}{x}' for x in range(tmp_row, start_row + 1)])
             worksheet.write_formula(f'{letter}{start_row + 1}', f'={formula}', self.get_total_format())
@@ -212,7 +213,7 @@ class NVMTable(GenerateExcelFile):
 
     def write_table(self, workbook, worksheet, start_row):
         self.set_workbook(workbook)
-        row = self.create_table(workbook, worksheet, self.items, self.title, start_row, self.skip_row,
+        row = self.create_table(workbook, worksheet, self.items, self.title, start_row, self.letters, self.skip_row,
                                 self.exclude_keys)
         return row
 

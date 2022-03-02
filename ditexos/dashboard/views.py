@@ -166,6 +166,18 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             context['report_campaign_nvm'] = Reports.objects.get_campaign_nvm(
                 agency_client_id=context['client_id']
             )
+        if report_types.is_target_nvm:
+            context['report_target_nvm'] = Reports.objects.get_target_nvm(
+                agency_client_id=context['client_id'],
+                start_date=start_date,
+                end_date=end_date
+            )
+        if report_types.is_smm_nvm:
+            context['report_smm_nvm'] = Reports.objects.get_smm_nvm(
+                agency_client_id=context['client_id'],
+                start_date=start_date,
+                end_date=end_date
+            )
         if report_types.is_period:
             context['p1_start_date'] = self.request.GET.get('p1_start_date')
             context['p1_end_date'] = self.request.GET.get('p1_end_date')
@@ -235,6 +247,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                             brand_table = generate_export_file.NVMTable(
                                 items=reports['brand_report'],
                                 title=f'Брендовые кампании {direction_name}',
+                                letters=['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
                                 exclude_keys=[
                                     'agency_client_id',
                                     'channel',
@@ -245,12 +258,31 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                             no_brand_table = generate_export_file.NVMTable(
                                 items=reports['no_brand_report'],
                                 title=f'Небрендовые кампании {direction_name}',
+                                letters=['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
                                 exclude_keys=[
                                     'agency_client_id',
                                     'channel',
                                     'source'
                                 ])
                             table_objects.append(no_brand_table)
+            if context['report_types'].is_target_nvm:
+                if context['report_target_nvm']:
+                    target_table = generate_export_file.NVMTable(
+                        items=context['report_target_nvm'],
+                        title='Таргет',
+                        exclude_keys=['agency_client_id'],
+                        letters=['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
+                    )
+                    table_objects.append(target_table)
+            if context['report_types'].is_smm_nvm:
+                if context['report_smm_nvm']:
+                    smm_table = generate_export_file.NVMTable(
+                        items=context['report_smm_nvm'],
+                        title='SMM',
+                        exclude_keys=['agency_client_id'],
+                        letters=['B', 'C', 'D', 'E', 'F']
+                    )
+                    table_objects.append(smm_table)
             if context['report_types'].is_week_nvm:
                 if context['report_week_nvm']:
                     week_table = generate_export_file.NVMCustomTable(items=context['report_week_nvm'],

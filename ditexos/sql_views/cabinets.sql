@@ -32,13 +32,16 @@ from (
                when campaign ~* '_mkb' THEN 'mkb'
                when campaign ~* '_master' THEN 'master'
                when campaign ~* 'master_kviz_krd' THEN 'master'
-               when campaign ~* 'general_kviz_krd' THEN 'search'
+               when campaign ~* 'kazakhstan_kviz_mkb' THEN 'search'
                when campaign ~* '_search' THEN 'search'
                when campaign ~* 'discovery' and source = 'google' THEN 'discovery'
                when campaign ~* '_network' THEN 'network'
                when campaign ~* '_video' and source = 'google' THEN 'video'
                when campaign ~* 'performance_max' and source = 'google' THEN 'performance_max'
                when campaign ~* 'perfomance_max' and source = 'google' THEN 'performance_max'
+               when campaign ~* 'smm' and source in ('vk_di', 'mytarget_di') THEN 'smm'
+               when campaign !~* 'smm' and source = 'vk_di' THEN 'vk_target'
+               when campaign !~* 'smm' and source = 'mytarget_di' THEN 'my_target'
            END channel,
            case
                when campaign ~* '_search' THEN replace(campaign, '_search', '')
@@ -61,7 +64,6 @@ from (
            end impressions,
            cabinet.date
     from (
-        select * from (
         select id,
             'yandex' source,
             campaign,
@@ -72,7 +74,6 @@ from (
             date
         from yandex_report_view
         group by id, campaign, campaign_id, date
-        ) ads
         union all
         (select id,
             'google' source,
@@ -84,6 +85,32 @@ from (
             date
         from google_report_view
         group by id, campaign, campaign_id, date
+        )
+        union all
+        (select id,
+            'vk_di' source,
+            campaign,
+            campaign_id,
+            sum(cost_) cost_,
+            sum(clicks) clicks,
+            sum(impressions) impressions,
+            date
+        from vk_report_view
+        group by id, campaign, campaign_id, date
+        )
+        union all
+        (
+            select
+                   id,
+                   'mytarget_di' source,
+                   campaign,
+                   campaign_id,
+                   cast(sum(cost_) as numeric) cost_,
+                   sum(clicks) clicks,
+                   sum(impressions) impressions,
+                   date
+            from my_target_view
+            group by id, campaign, campaign_id, date
         )
     ) cabinet
 ) cab_report;

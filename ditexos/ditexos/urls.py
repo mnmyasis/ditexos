@@ -15,5 +15,7 @@ urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
     path('account/', include('accounts.urls')),
     path('vk/', include('vk.urls')),
-    path('email-sender/', include('email_sender.urls'))
+    path('email-sender/', include('email_sender.urls')),
+    path('facebook/', include('facebook.urls')),
+    path('my-target/', include('my_target.urls'))
 ]

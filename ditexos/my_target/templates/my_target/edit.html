@@ -1,0 +1,65 @@
+{% extends 'index.html' %}
+{% block content %}
+<div id="layoutSidenav_content">
+    <main>
+        <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="card shadow-lg border-0 rounded-lg mt-5">
+                    <div class="card-header">
+                        <h3 class="text-center font-weight-light my-4">
+                        {{ context.user }}
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <p>{{form.instance.error_api}}</p>
+                        <table class="mini-table dt-head-center">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Client ID</th>
+                                    <th>Is connected</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ context.user }}</td>
+                                    <td>{{ context.client_id }}</td>
+
+                                        {% if context.access_token %}
+                                            <td class="text-center"><i class="bi bi-check-circle text-success btn"></i></td>
+                                            <td class="text-center">
+                                                <a href="#" class="btn">Отключить</a></i>
+                                            </td>
+                                        {% else %}
+                                            <td class="text-center"><i class="bi bi-x-circle text-danger btn"></i></td>
+                                            <td class="text-center">
+                                                <form method="post" action="{% url 'my_target:agency_edit' pk=context.pk %}">
+                                                    {% csrf_token %}
+                                                    {% for field in form %}
+                                                        <input class="d-none"
+                                                           id="{{ field.id_for_label }}"
+                                                           type="text"
+                                                           name="{{ field.html_name }}",
+                                                           value="{{field.value}}"
+                                                        />
+                                                    {% endfor %}
+                                                    <button class="btn" type="submit">Подключить</button></i>
+                                                </form>
+                                            </td>
+                                        {% endif %}
+                                </tr>
+                            </tbody>
+                            {% if context.access_token %}
+                                <a href="{% url 'my_target:client' pk=context.pk %}">Создать клиента</a>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

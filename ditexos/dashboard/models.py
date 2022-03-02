@@ -4,6 +4,7 @@ from django.urls import reverse_lazy
 import yandex_direct
 import google_ads
 from vk.models import Clients as ClientsVK
+from my_target.models import Clients as my_target_clients
 from yandex_direct import tasks as yandex_task
 from google_ads import tasks as google_task
 from vk import tasks as vk_task
@@ -22,38 +23,52 @@ class AgencyClients(models.Model):
         ('cl', 'CallTouch'),
         ('co_m', 'Comagic'),
     )
-    call_tracker_type = models.CharField(max_length=10,
-                                         choices=TRACKERS,
-                                         verbose_name='Тип коллтрекера',
-                                         blank=True,
-                                         null=True
-                                         )
+    call_tracker_type = models.CharField(
+        max_length=10,
+        choices=TRACKERS,
+        verbose_name='Тип коллтрекера',
+        blank=True,
+        null=True
+    )
     CRMS = (
         ('amo', 'AmoCrm'),
         ('exc', 'Excel'),
     )
-    crm_type = models.CharField(max_length=10,
-                                choices=CRMS,
-                                verbose_name='Тип crm системы',
-                                blank=True,
-                                null=True)
-    name = models.CharField(max_length=100,
-                            verbose_name='Название клиента')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE,
-                             related_name='agency_clients_user')
-    yandex_client = models.ForeignKey(yandex_direct.models.Clients,
-                                      on_delete=models.CASCADE,
-                                      verbose_name='Логин клиента в yandex direct')
-    google_client = models.ForeignKey(google_ads.models.Clients,
-                                      on_delete=models.CASCADE,
-                                      verbose_name='Логин клиента в google ads')
-    vk_client = models.ForeignKey(ClientsVK,
-                                  on_delete=models.CASCADE,
-                                  verbose_name='Логин клиента в vk ads',
-                                  blank=True,
-                                  null=True
-                                  )
+    crm_type = models.CharField(
+        max_length=10,
+        choices=CRMS,
+        verbose_name='Тип crm системы',
+        blank=True,
+        null=True)
+    name = models.CharField(
+        max_length=100,
+        verbose_name='Название клиента')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='agency_clients_user')
+    yandex_client = models.ForeignKey(
+        yandex_direct.models.Clients,
+        on_delete=models.CASCADE,
+        verbose_name='Логин клиента в yandex direct')
+    google_client = models.ForeignKey(
+        google_ads.models.Clients,
+        on_delete=models.CASCADE,
+        verbose_name='Логин клиента в google ads')
+    vk_client = models.ForeignKey(
+        ClientsVK,
+        on_delete=models.CASCADE,
+        verbose_name='Логин клиента в vk ads',
+        blank=True,
+        null=True
+    )
+    my_target_client = models.ForeignKey(
+        my_target_clients,
+        on_delete=models.CASCADE,
+        verbose_name='Логин клиента в my-target',
+        blank=True,
+        null=True
+    )
 
     def get_or_create_interval(self):
         schedule, created = IntervalSchedule.objects.get_or_create(
@@ -225,6 +240,10 @@ class ReportTypes(models.Model):
                                        verbose_name='Статистика по месяцам для NVM')
     is_campaign_nvm = models.BooleanField(default=False,
                                           verbose_name='Статистика по кампаниям для NVM')
+    is_target_nvm = models.BooleanField(default=False,
+                                        verbose_name='Статистика по таргетированной рекламе для NVM')
+    is_smm_nvm = models.BooleanField(default=False,
+                                     verbose_name='Статистика по смм для NVM')
 
     class Meta:
         db_table = 'report_types'

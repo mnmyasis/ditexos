@@ -47,7 +47,7 @@ def report_keyword(client, customer_id, start_date, end_date):
             }
             report.append(res)
     df = pd.DataFrame(report)
-    df.to_excel('google_ads_{}.xlsx'.format(datetime.now().strftime('%Y_%m_%d')))
+    # df.to_excel('google_ads_{}.xlsx'.format(datetime.now().strftime('%Y_%m_%d')))
     return df
 
 
@@ -80,7 +80,7 @@ def report_campaign(client, customer_id, start_date, end_date):
             }
             report.append(res)
     df = pd.DataFrame(report)
-    df.to_excel('google_ads_{}.xlsx'.format(datetime.now().strftime('%Y_%m_%d')))
+    # df.to_excel('google_ads_{}.xlsx'.format(datetime.now().strftime('%Y_%m_%d')))
     return df
 
 
