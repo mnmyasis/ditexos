@@ -2,16 +2,13 @@ from excel.services import generate_export_file
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.shortcuts import redirect
-from django.views.generic.edit import FormMixin, FormView, CreateView, ModelFormMixin, UpdateView, DeleteView
+from django.views.generic.edit import CreateView, DeleteView
 from django.views.generic.list import ListView
-from django.views.generic.base import TemplateView, View, ContextMixin
 from django.views.generic.detail import DetailView
 from django.urls import reverse
-import pandas as pd
-import datetime
-from .models import *
 from .forms import AgencyClientsForm
 from .proxy_models import *
+from .services.alchemy import reports
 
 
 # Create your views here.
@@ -131,26 +128,27 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             agency_client = AgencyClients.objects.get(pk=context['client_id'])
             directions = agency_client.customizabledirection_set.all()
             context['report_brand_nvm'] = []
+            new_report = reports.brand.NewReport(
+                start_date=start_date,
+                end_date=end_date,
+                agency_client_id=context['client_id']
+            )
             for direction in directions:
+                br = new_report.get(
+                    direction=direction.direction,
+                    directions=directions,
+                    is_main=direction.is_main,
+                    is_brand=True
+                ).all()
+                no_br = new_report.get(
+                    direction=direction.direction,
+                    directions=directions,
+                    is_main=direction.is_main,
+                    is_brand=False
+                ).all()
                 rep = {
-                    'brand_report': Reports.objects.get_brand_nvm(
-                        agency_client_id=context['client_id'],
-                        is_brand=True,
-                        direction_name=direction.direction,
-                        is_main=direction.is_main,
-                        directions=directions,
-                        start_date=start_date,
-                        end_date=end_date
-                    ),
-                    'no_brand_report': Reports.objects.get_brand_nvm(
-                        agency_client_id=context['client_id'],
-                        is_brand=False,
-                        direction_name=direction.direction,
-                        is_main=direction.is_main,
-                        directions=directions,
-                        start_date=start_date,
-                        end_date=end_date
-                    ),
+                    'brand_report': br,
+                    'no_brand_report': no_br,
                     'direction_name': direction.name
                 }
                 context['report_brand_nvm'].append(rep)
@@ -251,7 +249,6 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                                 exclude_keys=[
                                     'agency_client_id',
                                     'channel',
-                                    'source'
                                 ])
                             table_objects.append(brand_table)
                         if reports.get('no_brand_report'):
@@ -262,7 +259,6 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                                 exclude_keys=[
                                     'agency_client_id',
                                     'channel',
-                                    'source'
                                 ])
                             table_objects.append(no_brand_table)
             if context['report_types'].is_target_nvm:
@@ -364,3 +360,9 @@ class KeyWordsView(LoginRequiredMixin, ListView):
         context['start_date'] = start_date
         context['end_date'] = end_date
         return context
+
+
+def test_view(request):
+    new_reports = NewReports()
+    new_reports.brand()
+    return HttpResponse('OK')

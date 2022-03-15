@@ -456,7 +456,7 @@
                                         <tbody>
                                             {% for line in reports.no_brand_report %}
                                             <tr>
-                                                <td>{{ line.t_source }}</td>
+                                                <td>{{ line.source }}</td>
                                                 <td>{{ line.cost_ }} ₽</td>
                                                  <td>{{ line.impressions }}</td>
                                                  <td>{{ line.clicks }}</td>
@@ -519,7 +519,7 @@
                                         <tbody>
                                             {% for line in reports.brand_report %}
                                             <tr>
-                                                <td>{{ line.t_source }}</td>
+                                                <td>{{ line.source }}</td>
                                                 <td>{{ line.cost_ }} ₽</td>
                                                  <td>{{ line.impressions }}</td>
                                                  <td>{{ line.clicks }}</td>

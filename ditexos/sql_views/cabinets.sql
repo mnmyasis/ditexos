@@ -6,6 +6,21 @@ select
        cab_report.campaign,
        cab_report.campaign_id,
        cab_report.channel,
+       case
+           when cab_report.source = 'google' THEN 'Google Ads'
+           when cab_report.source = 'yandex' THEN 'Яндекс Директ'
+       END source_name,
+       case
+           when cab_report.channel = 'mkb' THEN ' - МКБ'
+           when cab_report.channel = 'master' THEN ' - Мастер'
+           when cab_report.channel = 'search' THEN ' - Поиск'
+           when cab_report.channel = 'network' and source = 'google' THEN ' - КМС'
+           when cab_report.channel = 'network' THEN ' - РСЯ'
+           when cab_report.channel = 'discovery' THEN ' - Discovery'
+           when cab_report.channel = 'video' THEN ' - Video'
+           when cab_report.channel = 'performance_max' THEN ' - Performance_max'
+           when cab_report.channel isnull and source = 'yandex' THEN ' - Поиск'
+       END channel_name,
        cab_report.direction,
        cab_report.is_brand,
        cab_report.cost_,

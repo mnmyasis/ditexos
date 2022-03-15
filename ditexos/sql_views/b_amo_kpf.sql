@@ -21,7 +21,13 @@ as
                when metric.utm_campaign ~* '_network' THEN 'network'
                when metric.utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
                when metric.utm_campaign ~* 'perfomance_max' and utm_source = 'google' THEN 'performance_max'
-           END channel
+           END channel,
+           case
+               when metric.utm_campaign ~* '_brand' THEN True
+               when metric.utm_campaign ~* 'brand_' THEN True
+               when metric.utm_campaign ~* '_brand_' THEN True
+           else False
+           END is_brand
     from amo_crm amo
         left join amo_crm_and_agency_client amo_and_agency on amo.id = amo_and_agency.amocrm_id
         left join amo_metrics metric on amo.id = metric.amo_id
@@ -50,7 +56,13 @@ union all
                when metric.utm_campaign ~* '_network' THEN 'network'
                when metric.utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
                when metric.utm_campaign ~* 'perfomance_max' and utm_source = 'google' THEN 'performance_max'
-           END channel
+           END channel,
+           case
+               when metric.utm_campaign ~* '_brand' THEN True
+               when metric.utm_campaign ~* 'brand_' THEN True
+               when metric.utm_campaign ~* '_brand_' THEN True
+           else False
+           END is_brand
     from amo_crm amo
         left join amo_crm_and_agency_client amo_and_agency on amo.id = amo_and_agency.amocrm_id
         left join amo_metrics metric on amo.id = metric.amo_id
@@ -80,7 +92,13 @@ union all
                when metric.utm_campaign ~* '_network' THEN 'network'
                when metric.utm_campaign ~* 'performance_max' and utm_source = 'google' THEN 'performance_max'
                when metric.utm_campaign ~* 'perfomance_max' and utm_source = 'google' THEN 'performance_max'
-           END channel
+           END channel,
+           case
+               when metric.utm_campaign ~* '_brand' THEN True
+               when metric.utm_campaign ~* 'brand_' THEN True
+               when metric.utm_campaign ~* '_brand_' THEN True
+           else False
+           END is_brand
     from amo_crm amo
         left join amo_crm_and_agency_client amo_and_agency on amo.id = amo_and_agency.amocrm_id
         left join amo_metrics metric on amo.id = metric.amo_id
