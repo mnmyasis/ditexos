@@ -3,7 +3,6 @@ import json
 from django.db import models
 from django.conf import settings
 
-
 # Create your models here.
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 
@@ -63,42 +62,15 @@ class Campaigns(models.Model):
         db_table = 'yandex_campaigns'
 
 
-class AdGroups(models.Model):
-    campaign = models.ForeignKey(Campaigns, on_delete=models.CASCADE)
-    name = models.TextField()
-    ad_group_id = models.TextField()
-
-    def __str__(self):
-        return '{} - {}'.format(self.name, self.campaign.name)
-
-    class Meta:
-        db_table = 'yandex_ad_groups'
-
-
-class KeyWords(models.Model):
-    ad_group = models.ForeignKey(AdGroups, on_delete=models.CASCADE)
-    name = models.TextField()
-    key_word_id = models.TextField()
-
-    def __str__(self):
-        return '{} - {}'.format(self.name, self.ad_group.name)
-
-    class Meta:
-        db_table = 'yandex_key_words'
-
-
 class Metrics(models.Model):
-    key_word = models.ForeignKey(KeyWords, on_delete=models.CASCADE)
+    campaign = models.ForeignKey(Campaigns, on_delete=models.CASCADE)
     clicks = models.IntegerField()
     cost = models.FloatField()
-    ctr = models.FloatField()
     impressions = models.IntegerField()
     date = models.DateField()
 
     def __str__(self):
-        return self.key_word.name
+        return self.campaign.name
 
     class Meta:
         db_table = 'yandex_metrics'
-
-

@@ -42,9 +42,13 @@ def get_reports(user_id=1, yandex_client_id=None, start_date=None, end_date=None
     ya_dir_tok = YandexDirectToken.objects.get(user__pk=user_id)
     client = Clients.objects.get(client_id=yandex_client_id, user__pk=user_id)
     if start_date is None:
-        start_date = Metrics.objects.filter(key_word__ad_group__campaign__client__pk=client.pk) \
+        start_date = Metrics.objects.filter(campaign__client__pk=client.pk) \
             .aggregate(Max('date')).get('date__max')
-        days = datetime.timedelta(days=3)
+        if start_date is None:
+            start_date = datetime.datetime.now()
+            days = datetime.timedelta(days=90)
+        else:
+            days = datetime.timedelta(days=3)
         start_date -= days
         start_date = start_date.strftime("%Y-%m-%d")
     if end_date is None:
@@ -62,10 +66,20 @@ def get_reports(user_id=1, yandex_client_id=None, start_date=None, end_date=None
     result, status = report.get_result()
     if status is False:
         if result['error']['error_code'] == '8800':
+            client_id = client.client_id
+            client_pk = client.pk
+            client_name = client.name
             client.delete()
-            return 'User delete'
+            return {
+                'client_id': client_id,
+                'client_pk': client_pk,
+                'client': client_name,
+                'msg': 'client deleted'
+            }
+    count_update = 0
+    count_create = 0
     for rep in result.iloc:
-        obj_campaign, created = Campaigns.objects.update_or_create(
+        obj_campaign, is_created = Campaigns.objects.update_or_create(
             client=client,
             campaign_id=rep.CampaignId,
             defaults={
@@ -74,34 +88,32 @@ def get_reports(user_id=1, yandex_client_id=None, start_date=None, end_date=None
                 'campaign_id': rep.CampaignId
             }
         )
-        obj_ad_group, created = AdGroups.objects.update_or_create(
+        obj_metric, is_created = Metrics.objects.update_or_create(
             campaign=obj_campaign,
-            ad_group_id=rep.AdGroupId,
-            defaults={
-                'campaign': obj_campaign,
-                'name': rep.AdGroupName,
-                'ad_group_id': rep.AdGroupId,
-            }
-        )
-        obj_key_word, created = KeyWords.objects.update_or_create(
-            ad_group=obj_ad_group,
-            key_word_id=rep.CriteriaId,
-            defaults={
-                'ad_group': obj_ad_group,
-                'name': rep.Criteria,
-                'key_word_id': rep.CriteriaId
-            }
-        )
-        Metrics.objects.update_or_create(
-            key_word=obj_key_word,
             date=rep.Date,
             defaults={
-                'key_word': obj_key_word,
+                'campaign': obj_campaign,
                 'clicks': rep.Clicks,
                 'cost': rep.Cost,
-                'ctr': rep.Ctr,
                 'impressions': rep.Impressions,
                 'date': rep.Date
             }
         )
-    return f'Success update metric start: {start_date} - end:{end_date} update for client: {client.name}'
+        if is_created:
+            count_create += 1
+        else:
+            count_update += 1
+    return {
+        'start_date': start_date,
+        'end_date': end_date,
+        'client': client.name,
+        'client_id': client.client_id,
+        'client_pk': client.pk,
+        'count_create': count_create,
+        'count_update': count_update,
+        'in_params': {
+            'user_id': user_id,
+            'yandex_client_id': yandex_client_id
+        },
+        'msg': 'Success updated'
+    }

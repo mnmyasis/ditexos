@@ -240,8 +240,7 @@ class Reports(YandexDirect):
             "DateFrom": start_date,
             "DateTo": end_date
         }
-        self.field_names = ["Clicks", "Cost", 'Ctr', 'Conversions', 'Impressions', "CampaignId", "CampaignName",
-                            'AdGroupName', 'AdGroupId', 'Criteria', 'CriteriaId', 'Date']
+        self.field_names = ["Clicks", "Cost", 'Impressions', "CampaignId", "CampaignName", 'Date']
 
     def get_api_url(self):
         return self.YANDEX_API_URL + 'reports'
@@ -261,7 +260,7 @@ class Reports(YandexDirect):
                 "Page": {
                     'Limit': 1000000,
                 },
-                "ReportName": "test5-{}".format(datetime.now()),
+                "ReportName": "ditexos-{}".format(datetime.now()),
                 "ReportType": "CUSTOM_REPORT",
                 "DateRangeType": "CUSTOM_DATE",
                 "Format": "TSV",

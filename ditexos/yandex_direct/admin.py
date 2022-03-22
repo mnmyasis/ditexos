@@ -5,6 +5,4 @@ from .models import *
 admin.site.register(YandexDirectToken)
 admin.site.register(Clients)
 admin.site.register(Campaigns)
-admin.site.register(AdGroups)
-admin.site.register(KeyWords)
 admin.site.register(Metrics)
