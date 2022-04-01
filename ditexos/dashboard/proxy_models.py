@@ -574,130 +574,76 @@ class ReportsQuerySet(models.QuerySet):
             filter_campaign = f"campaign ~* '{direction_name}'"
         cursor = connection.cursor()
         sql = f"""
-            select amo_report.agency_client_id,
-                   amo_report.source,
-                   amo_report.channel,
-                   amo_report.source_ || amo_report.channel_ t_source,
-                   round(amo_report.cost_, 2) cost_,
-                   amo_report.clicks,
-                   amo_report.impressions,
-                   amo_report.leads,
-                   amo_report.kpf,
-                   round(amo_report.clicks /
-                   case
-                       when amo_report.impressions = 0 then 1
-                       else amo_report.impressions
-                   end * 100, 2) ctr,
-                   round(amo_report.cost_ /
-                   case
-                       when amo_report.clicks = 0 then 1
-                       else amo_report.clicks
-                   end, 2) cpc,
-                   round(amo_report.leads /
-                   case
-                       when amo_report.clicks = 0 then 1
-                       else amo_report.clicks
-                   end * 100, 2) cr,
-                   round(amo_report.cost_ /
-                   case
-                       when amo_report.leads = 0 then 1
-                       else amo_report.leads
-                   end, 2) cpl,
-                   round(amo_report.cost_ /
-                   case
-                       when amo_report.kpf = 0 then 1
-                       else amo_report.kpf
-                   end, 2) kpf_cpl
-            from (
-                select cab.agency_client_id,
-                       cab.source,
-                       cab.channel,
-                       case
-                           when cab.source = 'google' THEN 'Google Ads'
-                           when cab.source = 'yandex' THEN 'Яндекс Директ'
-                       END source_,
-                       case
-                           when cab.channel ~* 'mkb' THEN ' - МКБ'
-                           when cab.channel ~* 'master' THEN ' - Мастер'
-                           when cab.channel ~* 'search' THEN ' - Поиск'
-                           when cab.channel ~* 'network' and cab.source = 'google' THEN ' - КМС'
-                           when cab.channel ~* 'network' THEN ' - РСЯ'
-                           when cab.channel ~* 'discovery' THEN ' - Discovery'
-                           when cab.channel ~* 'video' THEN ' - Video'
-                           when cab.channel ~* 'performance_max' THEN ' - Performance_max'
-                           when cab.channel isnull and cab.source = 'yandex' THEN ' - Поиск'
-                       END channel_,
-                       cab.cost_,
-                       cab.clicks,
-                       cab.impressions impressions,
-                       case when kpf.leads is NULL then 0
-                           else kpf.leads
-                       end kpf,
-                       case when lead.leads is NULL then 0
-                           else lead.leads
-                       end leads
-                from (
-                    select
-                       agency_client_id,
-                       source,
-                       channel,
-                       is_brand,
-                       sum(cost_) cost_,
-                       sum(clicks) clicks,
-                       sum(impressions) impressions
-                    from cabinets
-                    where is_brand={is_brand} and
-                    source in ('yandex', 'google') and  
-                    date between '{start_date}' and '{end_date}'
-                    and {filter_campaign}
-                    and agency_client_id={agency_client_id}
-                    group by agency_client_id, source, channel, is_brand
-                ) cab
-                left join (
-                    select
-                           agency_client_id,
-                           count(*) leads,
-                           utm_source,
-                           channel,
-                           case
-                               when utm_campaign ~* '_brand' THEN True
-                               when utm_campaign ~* 'brand_' THEN True
-                               when utm_campaign ~* '_brand_' THEN True
-                           else False
-                           END is_brand
-                    from amo_kpf where lead_type='kpf' and utm_source in ('google', 'yandex')
-                    and {filter_utm_campaign}
-                    and date between '{start_date}' and '{end_date}'
-                    and agency_client_id={agency_client_id}
-                    group by agency_client_id, utm_source, channel, is_brand
-                    ) kpf on cab.source = kpf.utm_source and
-                             cab.channel = kpf.channel and
-                             cab.agency_client_id = kpf.agency_client_id and
-                             cab.is_brand = kpf.is_brand
-                    left join (
-                        select
-                           agency_client_id,
-                           count(*) leads,
-                           utm_source,
-                           channel,
-                           case
-                               when utm_campaign ~* '_brand' THEN True
-                               when utm_campaign ~* 'brand_' THEN True
-                               when utm_campaign ~* '_brand_' THEN True
-                           else False
-                           END is_brand
-                    from amo_kpf where lead_type='leads' and utm_source in ('google', 'yandex')
-                        and {filter_utm_campaign}
-                        and date between '{start_date}' and '{end_date}'
-                        and agency_client_id={agency_client_id}
-                    group by agency_client_id, utm_source, channel, is_brand
-                    ) lead on cab.source = lead.utm_source and
-                              cab.channel = lead.channel and
-                              cab.agency_client_id = lead.agency_client_id and
-                              cab.is_brand = lead.is_brand
-              where cab.channel is not null
-            ) amo_report;
+            select br.agency_client_id,
+       br.source,
+       br.channel,
+       br.source_name || br.channel_name t_source,
+       round(br.cost_, 2)      cost_,
+       br.impressions,
+       br.clicks,
+       br.leads,
+       br.kpf,
+       round(br.clicks /
+             case
+                 when br.impressions = 0 then 1
+                 else br.impressions
+                 end * 100, 2) ctr,
+       round(br.cost_ /
+             case
+                 when br.clicks = 0 then 1
+                 else br.clicks
+                 end, 2)       cpc,
+       round(br.leads /
+             case
+                 when br.clicks = 0 then 1
+                 else br.clicks
+                 end * 100, 2) cr,
+       round(br.cost_ /
+             case
+                 when br.leads = 0 then 1
+                 else br.leads
+                 end, 2)       cpl,
+       round(br.cost_ /
+             case
+                 when br.kpf = 0 then 1
+                 else br.kpf
+                 end, 2)       kpf_cpl
+from (
+         select agency_client_id,
+                source,
+                source_name,
+                channel,
+                channel_name,
+                sum(cost_)                         cost_,
+                sum(impressions)                   impressions,
+                sum(clicks)                        clicks,
+                (select count(*)
+                 from amo_kpf
+                 where agency_client_id = {agency_client_id}
+                   and date between '{start_date}' and '{end_date}'
+                   and lead_type = 'leads'
+                   and {filter_utm_campaign}
+                   and is_brand = {is_brand}
+                   and cabinets.source = utm_source
+                   and cabinets.channel = channel) leads,
+                (select count(*)
+                 from amo_kpf
+                 where agency_client_id = {agency_client_id}
+                   and date between '{start_date}' and '{end_date}'
+                   and lead_type = 'kpf'
+                   and {filter_utm_campaign}
+                   and is_brand = {is_brand}
+                   and cabinets.source = utm_source
+                   and cabinets.channel = channel) kpf
+         from cabinets
+         where agency_client_id = {agency_client_id}
+           and date between '{start_date}' and '{end_date}'
+           and source in ('yandex', 'google')
+           and is_brand = {is_brand}
+           and {filter_campaign}
+         group by agency_client_id, source, source_name, channel, channel_name) br;
         """
+
         cursor.execute(sql)
         report = self._dictfetchall(cursor)
         return report
@@ -1179,7 +1125,7 @@ class ReportsQuerySet(models.QuerySet):
         report = self._dictfetchall(cursor)
         return report
 
-    def get_smm_nvm(self, agency_client_id: int, start_date: str, end_date:str):
+    def get_smm_nvm(self, agency_client_id: int, start_date: str, end_date: str):
         cursor = connection.cursor()
         sql = f"""
             select
