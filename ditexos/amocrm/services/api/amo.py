@@ -107,7 +107,9 @@ def get_leads(referer, access_token, start_date, end_date):
             }
             require = get(url, headers=headers)
             if require.status_code == 204:
-                break
+                break  # Выход из цикла
+            if require.status_code == 401:
+                raise ValueError('401 Unauthorized')
             result = require.json()
             for lead in result.get('_embedded').get('leads'):
                 for tag in lead.get('_embedded').get('tags'):
@@ -130,27 +132,32 @@ def get_leads(referer, access_token, start_date, end_date):
 
                         for custom_field in lead.get('custom_fields_values'):
                             print(custom_field)
-                            if custom_field.get('field_code') == 'UTM_SOURCE':
+                            if (custom_field.get('field_code') == 'UTM_SOURCE' or
+                                    custom_field.get('field_name') == 'UTM_SOURCE'):
                                 try:
                                     _lead['utm_source'] = custom_field.get('values')[0].get('value')
                                 except IndexError:
                                     pass
-                            if custom_field.get('field_code') == 'UTM_MEDIUM':
+                            if (custom_field.get('field_code') == 'UTM_MEDIUM' or
+                                    custom_field.get('field_code') == 'UTM_MEDIUM'):
                                 try:
                                     _lead['utm_medium'] = custom_field.get('values')[0].get('value')
                                 except IndexError:
                                     pass
-                            if custom_field.get('field_code') == 'UTM_CAMPAIGN':
+                            if (custom_field.get('field_code') == 'UTM_CAMPAIGN' or
+                                    custom_field.get('field_name') == 'UTM_CAMPAIGN'):
                                 try:
                                     _lead['utm_campaign'] = custom_field.get('values')[0].get('value')
                                 except IndexError:
                                     pass
-                            if custom_field.get('field_code') == 'UTM_CONTENT':
+                            if (custom_field.get('field_code') == 'UTM_CONTENT' or
+                                    custom_field.get('field_name') == 'UTM_CONTENT'):
                                 try:
                                     _lead['utm_content'] = custom_field.get('values')[0].get('value')
                                 except IndexError:
                                     pass
-                            if custom_field.get('field_code') == 'UTM_TERM':
+                            if (custom_field.get('field_code') == 'UTM_TERM' or
+                                    custom_field.get('field_name') == 'UTM_TERM'):
                                 try:
                                     _lead['utm_term'] = custom_field.get('values')[0].get('value')
                                 except IndexError:

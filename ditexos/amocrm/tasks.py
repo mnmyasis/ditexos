@@ -77,6 +77,8 @@ def amo_get_leads(user_id=1, agency_clients_ids=[], start_date=None):
         start_date=start_date,
         end_date=end_date,
     )
+    create_count = 0
+    update_count = 0
     for lead in leads:
         obj, is_created = Metrics.objects.update_or_create(
             amo=amo_crm,
@@ -97,4 +99,15 @@ def amo_get_leads(user_id=1, agency_clients_ids=[], start_date=None):
                 'is_closed': lead.get('is_closed'),
             }
         )
-    return f'Metric updated for {amo_crm.name}// {start_date} - {end_date}'
+        if is_created:
+            create_count += 1
+        else:
+            update_count += 1
+    return {
+        'amo_id': amo_crm.pk,
+        'created_count': create_count,
+        'updated_count': update_count,
+        'start_date': start_date,
+        'end_date': end_date
+
+    }
