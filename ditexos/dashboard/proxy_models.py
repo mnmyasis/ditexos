@@ -768,8 +768,9 @@ class ReportsQuerySet(models.QuerySet):
                                when source = 'mytarget_di' THEN 'MyTarget'
                            END source_,
                            case
-                               when source = 'vk_di' THEN ''
-                               when source = 'mytarget_di' THEN ''
+                               when channel = 'smm' THEN ' - SMM'
+                               when channel = 'vk_target' THEN ' - LEADGEN'
+                               when channel = 'my_target' THEN ' - LEADGEN'
                                when channel ~* 'mkb' THEN ' - МКБ'
                                when channel ~* 'master' THEN ' - Мастер'
                                when channel ~* 'search' THEN ' - Поиск'
