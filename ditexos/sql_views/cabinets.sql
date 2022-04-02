@@ -8,8 +8,13 @@ select cab_report.agency_client_id,
        case
            when cab_report.source = 'google' THEN 'Google Ads'
            when cab_report.source = 'yandex' THEN 'Яндекс Директ'
-           END source_name,
+           when cab_report.source = 'vk_di' THEN 'Вконтакте'
+           when cab_report.source = 'mytarget_di' THEN 'MyTarget'
+           END                                                         source_name,
        case
+           when cab_report.channel = 'smm' THEN ' - SMM'
+           when cab_report.channel = 'vk_target' THEN ' - LEADGEN'
+           when cab_report.channel = 'my_target' THEN ' - LEADGEN'
            when cab_report.channel = 'mkb' THEN ' - МКБ'
            when cab_report.channel = 'master' THEN ' - Мастер'
            when cab_report.channel = 'search' THEN ' - Поиск'
@@ -19,13 +24,15 @@ select cab_report.agency_client_id,
            when cab_report.channel = 'video' THEN ' - Video'
            when cab_report.channel = 'performance_max' THEN ' - Performance_max'
            when cab_report.channel isnull and source = 'yandex' THEN ' - Поиск'
-           END channel_name,
+           END                                                         channel_name,
        cab_report.direction,
        cab_report.is_brand,
        cab_report.cost_,
        cab_report.clicks,
        cab_report.impressions,
-       cab_report.date
+       cab_report.date,
+       date_trunc('week', cab_report.date)::date || ' - ' ||
+       (date_trunc('week', cab_report.date) + '6 day'::interval)::date week
 from (
          select cabinet.id agency_client_id,
                 cabinet.source,
@@ -120,4 +127,5 @@ from (
                       group by id, campaign, campaign_id, date
                   )
               ) cabinet
+         where cabinet.date is not null
      ) cab_report;

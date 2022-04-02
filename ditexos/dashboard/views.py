@@ -291,7 +291,11 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                                                                               'K', 'L', 'M'],
                                                                      change_item_key='week',
                                                                      exclude_keys=[
-                                                                         'agency_client_id'
+                                                                         'agency_client_id',
+                                                                         'source',
+                                                                         'source_name',
+                                                                         'channel',
+                                                                         'channel_name'
                                                                      ])
                     table_objects.append(week_table)
             if context['report_types'].is_month_nvm:
@@ -303,7 +307,7 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                                                                      change_item_key='month_',
                                                                      exclude_keys=[
                                                                          'agency_client_id',
-                                                                         'source'
+                                                                         'source',
                                                                      ])
                     table_objects.append(week_table)
 
