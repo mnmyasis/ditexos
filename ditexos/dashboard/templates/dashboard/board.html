@@ -1,740 +1,741 @@
 {% extends 'index.html' %}
 {% block content %}
-<div id="layoutSidenav_content">
-    <main>
-        <div class="container-fluid px-4">
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <h3 class="text-center">{{ context.name }}</h3>
-                </div>
-            </div>
-            <div class="row mt-2 mb-4">
-                <div class="col-md-2">
-                    <button type="submit"  class="btn btn-success" id="btn-export-excel">
-                        EXPORT EXCEL</button>
-                </div>
-                <div class="col-md-2 offset-md-8">
-                    <form method="get">
-                        <input type="text" name="daterange" value="{{start_date}} - {{end_date}}" />
-                    </form>
-                </div>
-            </div>
-            {% if report_types.is_common %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   Общая статистика
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="mini-table" >
-                                <thead>
-                                    <tr>
-                                        <th>Source</th>
-                                        <th>Cost</th>
-                                        <th>Impressions</th>
-                                        <th>Clicks</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                        <th>Call</th>
-                                        <th>Chat</th>
-                                        <th>Site</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Source</th>
-                                        <th>Cost</th>
-                                        <th>Impressions</th>
-                                        <th>Clicks</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                        <th>Call</th>
-                                        <th>Chat</th>
-                                        <th>Site</th>
-                                    </tr>
-                                </tfoot>
-                                <tbody>
-                                    {% for line in report_client_cabinet %}
-                                    <tr>
-                                        <td>{{ line.source }}</td>
-                                        <td>{{ line.cost_ }}</td>
-                                         <td>{{ line.impressions }}</td>
-                                         <td>{{ line.clicks }}</td>
-                                         <td>{{ line.ctr }}</td>
-                                         <td>{{ line.cpc }}</td>
-                                         <td>{{ line.cr }}</td>
-                                         <td>{{ line.cpl }}</td>
-                                         <td>{{ line.call_leads }}</td>
-                                         <td>{{ line.chat_leads }}</td>
-                                         <td>{{ line.site_leads }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+    <div id="layoutSidenav_content">
+        <main>
+            <div class="container-fluid px-4">
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <h3 class="text-center">{{ context.name }}</h3>
                     </div>
                 </div>
-            </div>
-            {% endif %}
-
-            {% if report_types.is_channel %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   Статистика по каналам
-                </div>
-                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="datatable">
-                                <thead>
-                                    <tr>
-                                        <th>Source</th>
-                                        <th>Source of impressions</th>
-                                        <th>Cost</th>
-                                        <th>Impressions</th>
-                                        <th>Clicks</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                        <th>Call</th>
-                                        <th>Chat</th>
-                                        <th>Site</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Source</th>
-                                        <th>Source of impressions</th>
-                                        <th>Cost</th>
-                                        <th>Impressions</th>
-                                        <th>Clicks</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                        <th>Call</th>
-                                        <th>Chat</th>
-                                        <th>Site</th>
-                                    </tr>
-                                </tfoot>
-                                <tbody>
-                                    {% for line in report_client_channel %}
-                                    <tr>
-                                        <td>{{ line.source }}</td>
-                                        <td>{{ line.channel }}</td>
-                                        <td>{{ line.cost_ }}</td>
-                                         <td>{{ line.impressions }}</td>
-                                         <td>{{ line.clicks }}</td>
-                                         <td>{{ line.ctr }}</td>
-                                         <td>{{ line.cpc }}</td>
-                                         <td>{{ line.cr }}</td>
-                                         <td>{{ line.cpl }}</td>
-                                         <td>{{ line.call_leads }}</td>
-                                         <td>{{ line.chat_leads }}</td>
-                                         <td>{{ line.site_leads }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="row mt-2 mb-4">
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success" id="btn-export-excel">
+                            EXPORT EXCEL
+                        </button>
                     </div>
-                 </div>
-            </div>
-            {% endif %}
-
-            {% if report_types.is_campaign %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   Статистика по кампаниям
-                </div>
-                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="datatable">
-                                <thead>
-                                    <tr>
-                                        <th>Source</th>
-                                        <th>Campaign</th>
-                                        <th>Cost</th>
-                                        <th>Impressions</th>
-                                        <th>Clicks</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                        <th>Call</th>
-                                        <th>Chat</th>
-                                        <th>Site</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Source</th>
-                                        <th>Campaign</th>
-                                        <th>Cost</th>
-                                        <th>Impressions</th>
-                                        <th>Clicks</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>CR</th>
-                                        <th>CPL</th>
-                                        <th>Call</th>
-                                        <th>Chat</th>
-                                        <th>Site</th>
-                                    </tr>
-                                </tfoot>
-                                <tbody>
-                                    {% for line in report_client_campaign %}
-                                    <tr>
-                                        <td>{{ line.source }}</td>
-                                        <td>{{ line.campaign }}</td>
-                                        <td>{{ line.cost_ }}</td>
-                                         <td>{{ line.impressions }}</td>
-                                         <td>{{ line.clicks }}</td>
-                                         <td>{{ line.ctr }}</td>
-                                         <td>{{ line.cpc }}</td>
-                                         <td>{{ line.cr }}</td>
-                                         <td>{{ line.cpl }}</td>
-                                         <td>{{ line.call_leads }}</td>
-                                         <td>{{ line.chat_leads }}</td>
-                                         <td>{{ line.site_leads }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="col-md-2 offset-md-8">
+                        <form method="get">
+                            <input type="text" name="daterange" value="{{ start_date }} - {{ end_date }}"/>
+                        </form>
                     </div>
-                 </div>
-            </div>
-            {% endif %}
-
-            {% if report_types.is_direction %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   Статистика по направлениям
                 </div>
-                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="datatable">
-                                <thead>
-                                    <tr>
-                                        <th rowspan="1">Date</th>
-                                        {% for line in report_client_direction.columns %}
-                                            <th colspan="2">{{ line }}</th>
-                                        {% endfor %}
-                                    </tr>
-
-                                    <tr>
-                                        <th></th>
-                                        {% for line in report_client_direction.columns %}
-                                        <th>Cost</th>
-                                        <th>Leads</th>
-                                        {% endfor %}
-                                    </tr>
-
-                                </thead>
-                                <tbody>
-                                {% for date, reports in report_client_direction.context %}
-                                    <tr>
-                                        <td>{{ date }}</td>
-                                        {% for costs, leads in reports %}
-                                                <td>{{ costs }}</td>
-                                                <td>{{ leads|floatformat }}</td>
-                                        {% endfor %}
-                                    </tr>
-                                 {% endfor %}
-                                </tbody>
-                            </table>
+                {% if report_types.is_common %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            Общая статистика
                         </div>
-                    </div>
-                 </div>
-            </div>
-            {% endif %}
-
-            {% if report_types.is_comagic_other %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   Статистика "Comagic other"
-                </div>
-                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="datatable">
-                                <thead>
-                                    <tr>
-                                        <th>Domain</th>
-                                        <th>Визитка Yandex</th>
-                                        <th>Визитка Google</th>
-                                        <th>Other</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for line in comagic_other_report %}
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="mini-table">
+                                        <thead>
                                         <tr>
-                                            <td>{{ line.domain_ }}</td>
-                                            <td>{{ line.ya_leads }}</td>
-                                            <td>{{ line.go_leads }}</td>
-                                            <td>{{ line.other_leads }}</td>
+                                            <th>Source</th>
+                                            <th>Cost</th>
+                                            <th>Impressions</th>
+                                            <th>Clicks</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>CR</th>
+                                            <th>CPL</th>
+                                            <th>Call</th>
+                                            <th>Chat</th>
+                                            <th>Site</th>
                                         </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                 </div>
-            </div>
-            {% endif %}
-
-            {% if report_types.is_period %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   Статистика по периодам
-                </div>
-                 <div class="card-body">
-                     <div class="row mt-2 mb-4">
-                        <div class="col-md-2">
-                            <input type="text" name="period1" value="{{p1_start_date}} - {{p1_end_date}}" />
-                        </div>
-                         <div class="col-md-2">
-                            <input type="text" name="period2" value="{{p2_start_date}} - {{p2_end_date}}" />
-                        </div>
-                         <div class="col-md-1">
-                             <button class="btn btn-primary btn-sm" id="period-button">Применить</button>
-                         </div>
-                    </div>
-                    <div class="row mb-4">
-                        <div class="col-md-12">
-                            <table class="period-table">
-                                <thead>
-                                     <tr style="background-color: rgba(51, 51, 51, 0.2)">
-                                        <th data-sortable="false">Campaign</th>
-                                        <th data-sortable="false">Period</th>
-                                        <th data-sortable="false">Cost</th>
-                                        <th data-sortable="false">Impressions</th>
-                                        <th data-sortable="false">Clicks</th>
-                                        <th data-sortable="false">CTR</th>
-                                        <th data-sortable="false">CPC</th>
-                                        <th data-sortable="false">CR</th>
-                                        <th data-sortable="false">CPL</th>
-                                        <th data-sortable="false">Leads</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    {% for line in report_client_period_campaign %}
-                                    <tr style="background-color: rgba(204, 204, 204, 0.2)">
-                                        <td rowspan="2">{{ line.campaign }}</td>
-                                        <td>{{ line.p1 }}</td>
-                                        <td>{{ line.p1_cost_ }}</td>
-                                        <td>{{ line.p1_impressions }}</td>
-                                        <td>{{ line.p1_clicks }}</td>
-                                        <td>{{ line.p1_ctr }}%</td>
-                                        <td>{{ line.p1_cpc }}</td>
-                                        <td>{{ line.p1_cr }}%</td>
-                                        <td>{{ line.p1_cpl }}</td>
-                                        <td>{{ line.p1_leads }}</td>
-                                    </tr>
-                                    <tr style="background-color: rgba(153, 153, 153, 0.2)">
-                                        <td>{{ line.p2 }}</td>
-                                        <td>{{ line.p2_cost_ }}</td>
-                                        <td>{{ line.p2_impressions }}</td>
-                                        <td>{{ line.p2_clicks }}</td>
-                                        <td>{{ line.p2_ctr }}%</td>
-                                        <td>{{ line.p2_cpc }}</td>
-                                        <td>{{ line.p2_cr }}%</td>
-                                        <td>{{ line.p2_cpl }}</td>
-                                        <td>{{ line.p2_leads }}</td>
-                                    </tr>
-                                    <tr style="background-color: rgba(153, 204, 153, 0.2)" >
-                                        <td></td>
-                                        <td></td>
-                                        {% if line.change_cost_ < 0 %}
-                                            <td class="text-danger">{{ line.change_cost_ }}%</td>
-                                        {% else %}
-                                            <td>{{ line.change_cost_ }}%</td>
-                                        {% endif %}
-                                        {% if line.change_impressions < 0 %}
-                                            <td class="text-danger">{{ line.change_impressions }}%</td>
-                                        {% else %}
-                                            <td>{{ line.change_impressions }}%</td>
-                                        {% endif %}
-                                        {% if line.change_clicks < 0 %}
-                                            <td class="text-danger">{{ line.change_clicks }}%</td>
-                                        {% else %}
-                                            <td>{{ line.change_clicks }}%</td>
-                                        {% endif %}
-                                        {% if line.change_ctr < 0 %}
-                                            <td class="text-danger">{{ line.change_ctr }}%</td>
-                                        {% else %}
-                                            <td>{{ line.change_ctr }}%</td>
-                                        {% endif %}
-                                        {% if line.change_cpc < 0 %}
-                                            <td class="text-danger">{{ line.change_cpc }}%</td>
-                                        {% else %}
-                                            <td>{{ line.change_cpc }}%</td>
-                                        {% endif %}
-                                        {% if line.change_cr < 0 %}
-                                            <td class="text-danger">{{ line.change_cr }}%</td>
-                                        {% else %}
-                                            <td>{{ line.change_cr }}%</td>
-                                        {% endif %}
-                                        {% if line.change_cpl < 0 %}
-                                            <td class="text-danger">{{ line.change_cpl }}%</td>
-                                        {% else %}
-                                            <td>{{ line.change_cpl }}%</td>
-                                        {% endif %}
-                                        {% if line.change_leads < 0 %}
-                                            <td class="text-danger">{{ line.change_leads }}%</td>
-                                        {% else %}
-                                            <td>{{ line.change_leads }}%</td>
-                                        {% endif %}
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                 </div>
-            </div>
-            {% endif %}
-
-            {% if report_types.is_brand_nvm %}
-                {% for reports in report_brand_nvm %}
-                    {% if reports.no_brand_report %}
-                        <div class="card mb-4">
-                        <div class="card-header">
-                            <i class="fas fa-table me-1"></i>
-                           Небрендовые кампании {{ reports.direction_name }}
-                        </div>
-                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <table class="datatable">
-                                        <thead>
-                                            <tr>
-                                                <th>Источник</th>
-                                                <th>Потрачено</th>
-                                                <th>Показы</th>
-                                                <th>Клики</th>
-                                                <th>CTR</th>
-                                                <th>CPC</th>
-                                                <th>КПФ</th>
-                                                <th>CPL КПФ</th>
-                                                <th>Обращения</th>
-                                                <th>CR</th>
-                                                <th>CPL</th>
-                                            </tr>
                                         </thead>
                                         <tfoot>
-                                            <tr>
-                                                <th>Источник</th>
-                                                <th>Потрачено</th>
-                                                <th>Показы</th>
-                                                <th>Клики</th>
-                                                <th>CTR</th>
-                                                <th>CPC</th>
-                                                <th>КПФ</th>
-                                                <th>CPL КПФ</th>
-                                                <th>Обращения</th>
-                                                <th>CR</th>
-                                                <th>CPL</th>
-                                            </tr>
+                                        <tr>
+                                            <th>Source</th>
+                                            <th>Cost</th>
+                                            <th>Impressions</th>
+                                            <th>Clicks</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>CR</th>
+                                            <th>CPL</th>
+                                            <th>Call</th>
+                                            <th>Chat</th>
+                                            <th>Site</th>
+                                        </tr>
                                         </tfoot>
                                         <tbody>
-                                            {% for line in reports.no_brand_report %}
+                                        {% for line in report_client_cabinet %}
                                             <tr>
-                                                <td>{{ line.t_source }}</td>
-                                                <td>{{ line.cost_ }} ₽</td>
-                                                 <td>{{ line.impressions }}</td>
-                                                 <td>{{ line.clicks }}</td>
-                                                 <td>{{ line.ctr }}%</td>
-                                                 <td>{{ line.cpc }} ₽</td>
-                                                 <td>{{ line.kpf }}</td>
-                                                 <td>{{ line.kpf_cpl }} ₽</td>
-                                                 <td>{{ line.leads }}</td>
-                                                 <td>{{ line.cr }}%</td>
-                                                 <td>{{ line.cpl }} ₽</td>
+                                                <td>{{ line.source }}</td>
+                                                <td>{{ line.cost_ }}</td>
+                                                <td>{{ line.impressions }}</td>
+                                                <td>{{ line.clicks }}</td>
+                                                <td>{{ line.ctr }}</td>
+                                                <td>{{ line.cpc }}</td>
+                                                <td>{{ line.cr }}</td>
+                                                <td>{{ line.cpl }}</td>
+                                                <td>{{ line.call_leads }}</td>
+                                                <td>{{ line.chat_leads }}</td>
+                                                <td>{{ line.site_leads }}</td>
                                             </tr>
-                                            {% endfor %}
+                                        {% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                         </div>
+                        </div>
                     </div>
-                    {% endif %}
-                    {% if reports.brand_report %}
-                        <div class="card mb-4">
+                {% endif %}
+
+                {% if report_types.is_channel %}
+                    <div class="card mb-4">
                         <div class="card-header">
                             <i class="fas fa-table me-1"></i>
-                           Брендовые кампании {{reports.direction_name}}
+                            Статистика по каналам
                         </div>
-                         <div class="card-body">
+                        <div class="card-body">
                             <div class="row">
                                 <div class="col-md-12">
                                     <table class="datatable">
                                         <thead>
-                                            <tr>
-                                                <th>Источник</th>
-                                                <th>Потрачено</th>
-                                                <th>Показы</th>
-                                                <th>Клики</th>
-                                                <th>CTR</th>
-                                                <th>CPC</th>
-                                                <th>КПФ</th>
-                                                <th>CPL КПФ</th>
-                                                <th>Обращения</th>
-                                                <th>CR</th>
-                                                <th>CPL</th>
-                                            </tr>
+                                        <tr>
+                                            <th>Source</th>
+                                            <th>Source of impressions</th>
+                                            <th>Cost</th>
+                                            <th>Impressions</th>
+                                            <th>Clicks</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>CR</th>
+                                            <th>CPL</th>
+                                            <th>Call</th>
+                                            <th>Chat</th>
+                                            <th>Site</th>
+                                        </tr>
                                         </thead>
                                         <tfoot>
-                                            <tr>
-                                                <th>Источник</th>
-                                                <th>Потрачено</th>
-                                                <th>Показы</th>
-                                                <th>Клики</th>
-                                                <th>CTR</th>
-                                                <th>CPC</th>
-                                                <th>КПФ</th>
-                                                <th>CPL КПФ</th>
-                                                <th>Обращения</th>
-                                                <th>CR</th>
-                                                <th>CPL</th>
-                                            </tr>
+                                        <tr>
+                                            <th>Source</th>
+                                            <th>Source of impressions</th>
+                                            <th>Cost</th>
+                                            <th>Impressions</th>
+                                            <th>Clicks</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>CR</th>
+                                            <th>CPL</th>
+                                            <th>Call</th>
+                                            <th>Chat</th>
+                                            <th>Site</th>
+                                        </tr>
                                         </tfoot>
                                         <tbody>
-                                            {% for line in reports.brand_report %}
+                                        {% for line in report_client_channel %}
                                             <tr>
-                                                <td>{{ line.t_source }}</td>
-                                                <td>{{ line.cost_ }} ₽</td>
-                                                 <td>{{ line.impressions }}</td>
-                                                 <td>{{ line.clicks }}</td>
-                                                 <td>{{ line.ctr }} %</td>
-                                                 <td>{{ line.cpc }} ₽</td>
-                                                 <td>{{ line.kpf }}</td>
-                                                 <td>{{ line.kpf_cpl }} ₽</td>
-                                                 <td>{{ line.leads }}</td>
-                                                 <td>{{ line.cr }}%</td>
-                                                 <td>{{ line.cpl }} ₽</td>
+                                                <td>{{ line.source }}</td>
+                                                <td>{{ line.channel }}</td>
+                                                <td>{{ line.cost_ }}</td>
+                                                <td>{{ line.impressions }}</td>
+                                                <td>{{ line.clicks }}</td>
+                                                <td>{{ line.ctr }}</td>
+                                                <td>{{ line.cpc }}</td>
+                                                <td>{{ line.cr }}</td>
+                                                <td>{{ line.cpl }}</td>
+                                                <td>{{ line.call_leads }}</td>
+                                                <td>{{ line.chat_leads }}</td>
+                                                <td>{{ line.site_leads }}</td>
                                             </tr>
-                                            {% endfor %}
+                                        {% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                         </div>
-                    </div>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-            {% if report_types.is_target_nvm %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   Таргет
-                </div>
-                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="datatable">
-                                <thead>
-                                    <tr>
-                                        <th>Источник</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>КПФ</th>
-                                        <th>CPL КПФ</th>
-                                        <th>Обращения</th>
-                                        <th>CR</th>
-                                        <th>CR КПФ</th>
-                                        <th>CPL</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Источник</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>КПФ</th>
-                                        <th>CPL КПФ</th>
-                                        <th>Обращения</th>
-                                        <th>CR</th>
-                                        <th>CR КПФ</th>
-                                        <th>CPL</th>
-                                    </tr>
-                                </tfoot>
-                                <tbody>
-                                    {% for line in report_target_nvm %}
-                                    <tr>
-                                        <td>{{ line.source }}</td>
-                                        <td>{{ line.cost_ }} ₽</td>
-                                         <td>{{ line.impressions }}</td>
-                                         <td>{{ line.clicks }}</td>
-                                         <td>{{ line.ctr }} %</td>
-                                         <td>{{ line.cpc }} ₽</td>
-                                         <td>{{ line.kpf }}</td>
-                                         <td>{{ line.kpf_cpl }} ₽</td>
-                                         <td>{{ line.leads }}</td>
-                                         <td>{{ line.cr }} %</td>
-                                         <td>{{ line.kpf_cr }} %</td>
-                                         <td>{{ line.cpl }} ₽</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
                         </div>
                     </div>
-                 </div>
-            </div>
-            {% endif %}
-            {% if report_types.is_smm_nvm %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   SMM
-                </div>
-                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="datatable">
-                                <thead>
-                                    <tr>
-                                        <th>Источник</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Источник</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                    </tr>
-                                </tfoot>
-                                <tbody>
-                                    {% for line in report_smm_nvm %}
-                                    <tr>
-                                        <td>{{ line.source }}</td>
-                                        <td>{{ line.cost_ }} ₽</td>
-                                         <td>{{ line.impressions }}</td>
-                                         <td>{{ line.clicks }}</td>
-                                         <td>{{ line.ctr }} %</td>
-                                         <td>{{ line.cpc }} ₽</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                {% endif %}
+
+                {% if report_types.is_campaign %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            Статистика по кампаниям
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="datatable">
+                                        <thead>
+                                        <tr>
+                                            <th>Source</th>
+                                            <th>Campaign</th>
+                                            <th>Cost</th>
+                                            <th>Impressions</th>
+                                            <th>Clicks</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>CR</th>
+                                            <th>CPL</th>
+                                            <th>Call</th>
+                                            <th>Chat</th>
+                                            <th>Site</th>
+                                        </tr>
+                                        </thead>
+                                        <tfoot>
+                                        <tr>
+                                            <th>Source</th>
+                                            <th>Campaign</th>
+                                            <th>Cost</th>
+                                            <th>Impressions</th>
+                                            <th>Clicks</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>CR</th>
+                                            <th>CPL</th>
+                                            <th>Call</th>
+                                            <th>Chat</th>
+                                            <th>Site</th>
+                                        </tr>
+                                        </tfoot>
+                                        <tbody>
+                                        {% for line in report_client_campaign %}
+                                            <tr>
+                                                <td>{{ line.source }}</td>
+                                                <td>{{ line.campaign }}</td>
+                                                <td>{{ line.cost_ }}</td>
+                                                <td>{{ line.impressions }}</td>
+                                                <td>{{ line.clicks }}</td>
+                                                <td>{{ line.ctr }}</td>
+                                                <td>{{ line.cpc }}</td>
+                                                <td>{{ line.cr }}</td>
+                                                <td>{{ line.cpl }}</td>
+                                                <td>{{ line.call_leads }}</td>
+                                                <td>{{ line.chat_leads }}</td>
+                                                <td>{{ line.site_leads }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                 </div>
-            </div>
-            {% endif %}
-            {% if report_types.is_week_nvm %}
-                <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   По неделям
-                </div>
-                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="datatable">
-                                <thead>
-                                    <tr>
-                                        <th>Дата</th>
-                                        <th>Площадка</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>ГК</th>
-                                        <th>CPL ГК</th>
-                                        <th>Обращения</th>
-                                        <th>CR</th>
-                                        <th>CR ГК</th>
-                                        <th>CPL</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Дата</th>
-                                        <th>Площадка</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>ГК</th>
-                                        <th>CPL ГК</th>
-                                        <th>Обращения</th>
-                                        <th>CR</th>
-                                        <th>CR ГК</th>
-                                        <th>CPL</th>
-                                    </tr>
-                                </tfoot>
-                                <tbody>
-                                    {% for line in report_week_nvm %}
-                                    <tr>
-                                        <td>{{ line.week }}</td>
-                                        <td>{{ line.channel_ }}</td>
-                                        <td>{{ line.cost_ }} ₽</td>
-                                         <td>{{ line.impressions }}</td>
-                                         <td>{{ line.clicks }}</td>
-                                         <td>{{ line.ctr }} %</td>
-                                         <td>{{ line.cpc }} ₽</td>
-                                         <td>{{ line.gk }}</td>
-                                         <td>{{ line.gk_cpl }} ₽</td>
-                                         <td>{{ line.leads }}</td>
-                                         <td>{{ line.cr }} %</td>
-                                         <td>{{ line.gk_cr }} %</td>
-                                         <td>{{ line.cpl }} ₽</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                {% endif %}
+
+                {% if report_types.is_direction %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            Статистика по направлениям
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="datatable">
+                                        <thead>
+                                        <tr>
+                                            <th rowspan="1">Date</th>
+                                            {% for line in report_client_direction.columns %}
+                                                <th colspan="2">{{ line }}</th>
+                                            {% endfor %}
+                                        </tr>
+
+                                        <tr>
+                                            <th></th>
+                                            {% for line in report_client_direction.columns %}
+                                                <th>Cost</th>
+                                                <th>Leads</th>
+                                            {% endfor %}
+                                        </tr>
+
+                                        </thead>
+                                        <tbody>
+                                        {% for date, reports in report_client_direction.context %}
+                                            <tr>
+                                                <td>{{ date }}</td>
+                                                {% for costs, leads in reports %}
+                                                    <td>{{ costs }}</td>
+                                                    <td>{{ leads|floatformat }}</td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                 </div>
-            </div>
-            {% endif %}
-            {% if report_types.is_month_nvm %}
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="fas fa-table me-1"></i>
-                       По месяцам
+                {% endif %}
+
+                {% if report_types.is_comagic_other %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            Статистика "Comagic other"
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="datatable">
+                                        <thead>
+                                        <tr>
+                                            <th>Domain</th>
+                                            <th>Визитка Yandex</th>
+                                            <th>Визитка Google</th>
+                                            <th>Other</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for line in comagic_other_report %}
+                                            <tr>
+                                                <td>{{ line.domain_ }}</td>
+                                                <td>{{ line.ya_leads }}</td>
+                                                <td>{{ line.go_leads }}</td>
+                                                <td>{{ line.other_leads }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <table class="datatable">
-                                    <thead>
+                {% endif %}
+
+                {% if report_types.is_period %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            Статистика по периодам
+                        </div>
+                        <div class="card-body">
+                            <div class="row mt-2 mb-4">
+                                <div class="col-md-2">
+                                    <input type="text" name="period1" value="{{ p1_start_date }} - {{ p1_end_date }}"/>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" name="period2" value="{{ p2_start_date }} - {{ p2_end_date }}"/>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-primary btn-sm" id="period-button">Применить</button>
+                                </div>
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <table class="period-table">
+                                        <thead>
+                                        <tr style="background-color: rgba(51, 51, 51, 0.2)">
+                                            <th data-sortable="false">Campaign</th>
+                                            <th data-sortable="false">Period</th>
+                                            <th data-sortable="false">Cost</th>
+                                            <th data-sortable="false">Impressions</th>
+                                            <th data-sortable="false">Clicks</th>
+                                            <th data-sortable="false">CTR</th>
+                                            <th data-sortable="false">CPC</th>
+                                            <th data-sortable="false">CR</th>
+                                            <th data-sortable="false">CPL</th>
+                                            <th data-sortable="false">Leads</th>
+                                        </tr>
+                                        </thead>
+
+                                        <tbody>
+                                        {% for line in report_client_period_campaign %}
+                                            <tr style="background-color: rgba(204, 204, 204, 0.2)">
+                                                <td rowspan="2">{{ line.campaign }}</td>
+                                                <td>{{ line.p1 }}</td>
+                                                <td>{{ line.p1_cost_ }}</td>
+                                                <td>{{ line.p1_impressions }}</td>
+                                                <td>{{ line.p1_clicks }}</td>
+                                                <td>{{ line.p1_ctr }}%</td>
+                                                <td>{{ line.p1_cpc }}</td>
+                                                <td>{{ line.p1_cr }}%</td>
+                                                <td>{{ line.p1_cpl }}</td>
+                                                <td>{{ line.p1_leads }}</td>
+                                            </tr>
+                                            <tr style="background-color: rgba(153, 153, 153, 0.2)">
+                                                <td>{{ line.p2 }}</td>
+                                                <td>{{ line.p2_cost_ }}</td>
+                                                <td>{{ line.p2_impressions }}</td>
+                                                <td>{{ line.p2_clicks }}</td>
+                                                <td>{{ line.p2_ctr }}%</td>
+                                                <td>{{ line.p2_cpc }}</td>
+                                                <td>{{ line.p2_cr }}%</td>
+                                                <td>{{ line.p2_cpl }}</td>
+                                                <td>{{ line.p2_leads }}</td>
+                                            </tr>
+                                            <tr style="background-color: rgba(153, 204, 153, 0.2)">
+                                                <td></td>
+                                                <td></td>
+                                                {% if line.change_cost_ < 0 %}
+                                                    <td class="text-danger">{{ line.change_cost_ }}%</td>
+                                                {% else %}
+                                                    <td>{{ line.change_cost_ }}%</td>
+                                                {% endif %}
+                                                {% if line.change_impressions < 0 %}
+                                                    <td class="text-danger">{{ line.change_impressions }}%</td>
+                                                {% else %}
+                                                    <td>{{ line.change_impressions }}%</td>
+                                                {% endif %}
+                                                {% if line.change_clicks < 0 %}
+                                                    <td class="text-danger">{{ line.change_clicks }}%</td>
+                                                {% else %}
+                                                    <td>{{ line.change_clicks }}%</td>
+                                                {% endif %}
+                                                {% if line.change_ctr < 0 %}
+                                                    <td class="text-danger">{{ line.change_ctr }}%</td>
+                                                {% else %}
+                                                    <td>{{ line.change_ctr }}%</td>
+                                                {% endif %}
+                                                {% if line.change_cpc < 0 %}
+                                                    <td class="text-danger">{{ line.change_cpc }}%</td>
+                                                {% else %}
+                                                    <td>{{ line.change_cpc }}%</td>
+                                                {% endif %}
+                                                {% if line.change_cr < 0 %}
+                                                    <td class="text-danger">{{ line.change_cr }}%</td>
+                                                {% else %}
+                                                    <td>{{ line.change_cr }}%</td>
+                                                {% endif %}
+                                                {% if line.change_cpl < 0 %}
+                                                    <td class="text-danger">{{ line.change_cpl }}%</td>
+                                                {% else %}
+                                                    <td>{{ line.change_cpl }}%</td>
+                                                {% endif %}
+                                                {% if line.change_leads < 0 %}
+                                                    <td class="text-danger">{{ line.change_leads }}%</td>
+                                                {% else %}
+                                                    <td>{{ line.change_leads }}%</td>
+                                                {% endif %}
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if report_types.is_brand_nvm %}
+                    {% for reports in report_brand_nvm %}
+                        {% if reports.no_brand_report %}
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <i class="fas fa-table me-1"></i>
+                                    Небрендовые кампании {{ reports.direction_name }}
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="datatable">
+                                                <thead>
+                                                <tr>
+                                                    <th>Источник</th>
+                                                    <th>Потрачено</th>
+                                                    <th>Показы</th>
+                                                    <th>Клики</th>
+                                                    <th>CTR</th>
+                                                    <th>CPC</th>
+                                                    <th>КПФ</th>
+                                                    <th>CPL КПФ</th>
+                                                    <th>Обращения</th>
+                                                    <th>CR</th>
+                                                    <th>CPL</th>
+                                                </tr>
+                                                </thead>
+                                                <tfoot>
+                                                <tr>
+                                                    <th>Источник</th>
+                                                    <th>Потрачено</th>
+                                                    <th>Показы</th>
+                                                    <th>Клики</th>
+                                                    <th>CTR</th>
+                                                    <th>CPC</th>
+                                                    <th>КПФ</th>
+                                                    <th>CPL КПФ</th>
+                                                    <th>Обращения</th>
+                                                    <th>CR</th>
+                                                    <th>CPL</th>
+                                                </tr>
+                                                </tfoot>
+                                                <tbody>
+                                                {% for line in reports.no_brand_report %}
+                                                    <tr>
+                                                        <td>{{ line.t_source }}</td>
+                                                        <td>{{ line.cost_ }} ₽</td>
+                                                        <td>{{ line.impressions }}</td>
+                                                        <td>{{ line.clicks }}</td>
+                                                        <td>{{ line.ctr }}%</td>
+                                                        <td>{{ line.cpc }} ₽</td>
+                                                        <td>{{ line.kpf }}</td>
+                                                        <td>{{ line.kpf_cpl }} ₽</td>
+                                                        <td>{{ line.leads }}</td>
+                                                        <td>{{ line.cr }}%</td>
+                                                        <td>{{ line.cpl }} ₽</td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if reports.brand_report %}
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <i class="fas fa-table me-1"></i>
+                                    Брендовые кампании {{ reports.direction_name }}
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <table class="datatable">
+                                                <thead>
+                                                <tr>
+                                                    <th>Источник</th>
+                                                    <th>Потрачено</th>
+                                                    <th>Показы</th>
+                                                    <th>Клики</th>
+                                                    <th>CTR</th>
+                                                    <th>CPC</th>
+                                                    <th>КПФ</th>
+                                                    <th>CPL КПФ</th>
+                                                    <th>Обращения</th>
+                                                    <th>CR</th>
+                                                    <th>CPL</th>
+                                                </tr>
+                                                </thead>
+                                                <tfoot>
+                                                <tr>
+                                                    <th>Источник</th>
+                                                    <th>Потрачено</th>
+                                                    <th>Показы</th>
+                                                    <th>Клики</th>
+                                                    <th>CTR</th>
+                                                    <th>CPC</th>
+                                                    <th>КПФ</th>
+                                                    <th>CPL КПФ</th>
+                                                    <th>Обращения</th>
+                                                    <th>CR</th>
+                                                    <th>CPL</th>
+                                                </tr>
+                                                </tfoot>
+                                                <tbody>
+                                                {% for line in reports.brand_report %}
+                                                    <tr>
+                                                        <td>{{ line.t_source }}</td>
+                                                        <td>{{ line.cost_ }} ₽</td>
+                                                        <td>{{ line.impressions }}</td>
+                                                        <td>{{ line.clicks }}</td>
+                                                        <td>{{ line.ctr }} %</td>
+                                                        <td>{{ line.cpc }} ₽</td>
+                                                        <td>{{ line.kpf }}</td>
+                                                        <td>{{ line.kpf_cpl }} ₽</td>
+                                                        <td>{{ line.leads }}</td>
+                                                        <td>{{ line.cr }}%</td>
+                                                        <td>{{ line.cpl }} ₽</td>
+                                                    </tr>
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                {% if report_types.is_target_nvm %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            Таргет
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="datatable">
+                                        <thead>
+                                        <tr>
+                                            <th>Источник</th>
+                                            <th>Потрачено</th>
+                                            <th>Показы</th>
+                                            <th>Клики</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>КПФ</th>
+                                            <th>CPL КПФ</th>
+                                            <th>Обращения</th>
+                                            <th>CR</th>
+                                            <th>CR КПФ</th>
+                                            <th>CPL</th>
+                                        </tr>
+                                        </thead>
+                                        <tfoot>
+                                        <tr>
+                                            <th>Источник</th>
+                                            <th>Потрачено</th>
+                                            <th>Показы</th>
+                                            <th>Клики</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>КПФ</th>
+                                            <th>CPL КПФ</th>
+                                            <th>Обращения</th>
+                                            <th>CR</th>
+                                            <th>CR КПФ</th>
+                                            <th>CPL</th>
+                                        </tr>
+                                        </tfoot>
+                                        <tbody>
+                                        {% for line in report_target_nvm %}
+                                            <tr>
+                                                <td>{{ line.source }}</td>
+                                                <td>{{ line.cost_ }} ₽</td>
+                                                <td>{{ line.impressions }}</td>
+                                                <td>{{ line.clicks }}</td>
+                                                <td>{{ line.ctr }} %</td>
+                                                <td>{{ line.cpc }} ₽</td>
+                                                <td>{{ line.kpf }}</td>
+                                                <td>{{ line.kpf_cpl }} ₽</td>
+                                                <td>{{ line.leads }}</td>
+                                                <td>{{ line.cr }} %</td>
+                                                <td>{{ line.kpf_cr }} %</td>
+                                                <td>{{ line.cpl }} ₽</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if report_types.is_smm_nvm %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            SMM
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="datatable">
+                                        <thead>
+                                        <tr>
+                                            <th>Источник</th>
+                                            <th>Потрачено</th>
+                                            <th>Показы</th>
+                                            <th>Клики</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                        </tr>
+                                        </thead>
+                                        <tfoot>
+                                        <tr>
+                                            <th>Источник</th>
+                                            <th>Потрачено</th>
+                                            <th>Показы</th>
+                                            <th>Клики</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                        </tr>
+                                        </tfoot>
+                                        <tbody>
+                                        {% for line in report_smm_nvm %}
+                                            <tr>
+                                                <td>{{ line.source }}</td>
+                                                <td>{{ line.cost_ }} ₽</td>
+                                                <td>{{ line.impressions }}</td>
+                                                <td>{{ line.clicks }}</td>
+                                                <td>{{ line.ctr }} %</td>
+                                                <td>{{ line.cpc }} ₽</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if report_types.is_week_nvm %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            По неделям
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="datatable">
+                                        <thead>
+                                        <tr>
+                                            <th>Дата</th>
+                                            <th>Площадка</th>
+                                            <th>Потрачено</th>
+                                            <th>Показы</th>
+                                            <th>Клики</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>ГК</th>
+                                            <th>CPL ГК</th>
+                                            <th>Обращения</th>
+                                            <th>CR</th>
+                                            <th>CR ГК</th>
+                                            <th>CPL</th>
+                                        </tr>
+                                        </thead>
+                                        <tfoot>
+                                        <tr>
+                                            <th>Дата</th>
+                                            <th>Площадка</th>
+                                            <th>Потрачено</th>
+                                            <th>Показы</th>
+                                            <th>Клики</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>ГК</th>
+                                            <th>CPL ГК</th>
+                                            <th>Обращения</th>
+                                            <th>CR</th>
+                                            <th>CR ГК</th>
+                                            <th>CPL</th>
+                                        </tr>
+                                        </tfoot>
+                                        <tbody>
+                                        {% for line in report_week_nvm %}
+                                            <tr>
+                                                <td>{{ line.week }}</td>
+                                                <td>{{ line.channel_ }}</td>
+                                                <td>{{ line.cost_ }} ₽</td>
+                                                <td>{{ line.impressions }}</td>
+                                                <td>{{ line.clicks }}</td>
+                                                <td>{{ line.ctr }} %</td>
+                                                <td>{{ line.cpc }} ₽</td>
+                                                <td>{{ line.gk }}</td>
+                                                <td>{{ line.gk_cpl }} ₽</td>
+                                                <td>{{ line.leads }}</td>
+                                                <td>{{ line.cr }} %</td>
+                                                <td>{{ line.gk_cr }} %</td>
+                                                <td>{{ line.cpl }} ₽</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if report_types.is_month_nvm %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            По месяцам
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="datatable">
+                                        <thead>
                                         <tr>
                                             <th>Месяц</th>
                                             <th>Площадка</th>
@@ -750,8 +751,8 @@
                                             <th>CR ГК</th>
                                             <th>CPL</th>
                                         </tr>
-                                    </thead>
-                                    <tfoot>
+                                        </thead>
+                                        <tfoot>
                                         <tr>
                                             <th>Месяц</th>
                                             <th>Площадка</th>
@@ -767,195 +768,195 @@
                                             <th>CR ГК</th>
                                             <th>CPL</th>
                                         </tr>
-                                    </tfoot>
-                                    <tbody>
+                                        </tfoot>
+                                        <tbody>
                                         {% for line in report_month_nvm %}
-                                        <tr>
-                                            <td>{{ line.month_ }}</td>
-                                            <td>{{ line.source_ }}</td>
-                                            <td>{{ line.cost_ }} ₽</td>
-                                             <td>{{ line.impressions }}</td>
-                                             <td>{{ line.clicks }}</td>
-                                             <td>{{ line.ctr }}%</td>
-                                             <td>{{ line.cpc }} ₽</td>
-                                             <td>{{ line.gk }}</td>
-                                             <td>{{ line.gk_cpl }} ₽</td>
-                                             <td>{{ line.leads }}</td>
-                                             <td>{{ line.cr }}%</td>
-                                             <td>{{ line.gk_cr }}%</td>
-                                             <td>{{ line.cpl }} ₽</td>
-                                        </tr>
+                                            <tr>
+                                                <td>{{ line.month_string }}</td>
+                                                <td>{{ line.source_name }}</td>
+                                                <td>{{ line.cost_ }} ₽</td>
+                                                <td>{{ line.impressions }}</td>
+                                                <td>{{ line.clicks }}</td>
+                                                <td>{{ line.ctr }}%</td>
+                                                <td>{{ line.cpc }} ₽</td>
+                                                <td>{{ line.gk }}</td>
+                                                <td>{{ line.gk_cpl }} ₽</td>
+                                                <td>{{ line.leads }}</td>
+                                                <td>{{ line.cr }}%</td>
+                                                <td>{{ line.gk_cr }}%</td>
+                                                <td>{{ line.cpl }} ₽</td>
+                                            </tr>
                                         {% endfor %}
-                                    </tbody>
-                                </table>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                     </div>
-                </div>
-            {% endif %}
-            {% if report_types.is_campaign_nvm %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <i class="fas fa-table me-1"></i>
-                   По кампаниям
-                </div>
-                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <table class="datatable">
-                                <thead>
-                                    <tr>
-                                        <th>Месяц</th>
-                                        <th>Площадка</th>
-                                        <th>Кампания</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>ГК</th>
-                                        <th>CPL ГК</th>
-                                        <th>Обращения</th>
-                                        <th>CR</th>
-                                        <th>CR ГК</th>
-                                        <th>CPL</th>
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Месяц</th>
-                                        <th>Площадка</th>
-                                        <th>Кампания</th>
-                                        <th>Потрачено</th>
-                                        <th>Показы</th>
-                                        <th>Клики</th>
-                                        <th>CTR</th>
-                                        <th>CPC</th>
-                                        <th>ГК</th>
-                                        <th>CPL ГК</th>
-                                        <th>Обращения</th>
-                                        <th>CR</th>
-                                        <th>CR ГК</th>
-                                        <th>CPL</th>
-                                    </tr>
-                                </tfoot>
-                                <tbody>
-                                    {% for line in report_campaign_nvm %}
-                                    <tr>
-                                        <td>{{ line.month_ }}</td>
-                                        <td>{{ line.source_ }}</td>
-                                        <td>{{ line.campaign }}</td>
-                                        <td>{{ line.cost_ }} ₽</td>
-                                         <td>{{ line.impressions }}</td>
-                                         <td>{{ line.clicks }}</td>
-                                         <td>{{ line.ctr }}%</td>
-                                         <td>{{ line.cpc }} ₽</td>
-                                         <td>{{ line.gk }}</td>
-                                         <td>{{ line.gk_cpl }} ₽</td>
-                                         <td>{{ line.leads }}</td>
-                                         <td>{{ line.cr }}%</td>
-                                         <td>{{ line.gk_cr }}%</td>
-                                         <td>{{ line.cpl }} ₽</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                    </div>
+                {% endif %}
+                {% if report_types.is_campaign_nvm %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            По кампаниям
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table class="datatable">
+                                        <thead>
+                                        <tr>
+                                            <th>Месяц</th>
+                                            <th>Площадка</th>
+                                            <th>Кампания</th>
+                                            <th>Потрачено</th>
+                                            <th>Показы</th>
+                                            <th>Клики</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>ГК</th>
+                                            <th>CPL ГК</th>
+                                            <th>Обращения</th>
+                                            <th>CR</th>
+                                            <th>CR ГК</th>
+                                            <th>CPL</th>
+                                        </tr>
+                                        </thead>
+                                        <tfoot>
+                                        <tr>
+                                            <th>Месяц</th>
+                                            <th>Площадка</th>
+                                            <th>Кампания</th>
+                                            <th>Потрачено</th>
+                                            <th>Показы</th>
+                                            <th>Клики</th>
+                                            <th>CTR</th>
+                                            <th>CPC</th>
+                                            <th>ГК</th>
+                                            <th>CPL ГК</th>
+                                            <th>Обращения</th>
+                                            <th>CR</th>
+                                            <th>CR ГК</th>
+                                            <th>CPL</th>
+                                        </tr>
+                                        </tfoot>
+                                        <tbody>
+                                        {% for line in report_campaign_nvm %}
+                                            <tr>
+                                                <td>{{ line.month_string }}</td>
+                                                <td>{{ line.source_ }}</td>
+                                                <td>{{ line.campaign }}</td>
+                                                <td>{{ line.cost_ }} ₽</td>
+                                                <td>{{ line.impressions }}</td>
+                                                <td>{{ line.clicks }}</td>
+                                                <td>{{ line.ctr }}%</td>
+                                                <td>{{ line.cpc }} ₽</td>
+                                                <td>{{ line.gk }}</td>
+                                                <td>{{ line.gk_cpl }} ₽</td>
+                                                <td>{{ line.leads }}</td>
+                                                <td>{{ line.cr }}%</td>
+                                                <td>{{ line.gk_cr }}%</td>
+                                                <td>{{ line.cpl }} ₽</td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                 </div>
+                {% endif %}
             </div>
-            {% endif %}
-        </div>
-    </main>
-    {% include 'footer.html' %}
-</div>
+        </main>
+        {% include 'footer.html' %}
+    </div>
 {% endblock %}
 
 {% block script %}
 
-<script>
-$(function() {
-  $('input[name="daterange"]').daterangepicker({
-    autoUpdateInput: false,
-    opens: 'left',
-    locale: {
-            format: 'YYYY-MM-DD'
-        }
-  }, function(start, end, label) {
-    let currentLocation = window.location
-    let origin = currentLocation.origin
-    let path_name = currentLocation.pathname
-    start_date = start.format('YYYY-MM-DD')
-    end_date = end.format('YYYY-MM-DD')
-    url = origin + path_name + '?start_date='+start_date+'&end_date='+end_date
-    document.location.href = url
-  });
-});
+    <script>
+        $(function () {
+            $('input[name="daterange"]').daterangepicker({
+                autoUpdateInput: false,
+                opens: 'left',
+                locale: {
+                    format: 'YYYY-MM-DD'
+                }
+            }, function (start, end, label) {
+                let currentLocation = window.location
+                let origin = currentLocation.origin
+                let path_name = currentLocation.pathname
+                start_date = start.format('YYYY-MM-DD')
+                end_date = end.format('YYYY-MM-DD')
+                url = origin + path_name + '?start_date=' + start_date + '&end_date=' + end_date
+                document.location.href = url
+            });
+        });
 
-document.getElementById("btn-export-excel").addEventListener("click", function(e){
-    let currentLocation = window.location
-    const url_old = new URL(currentLocation.href)
-    st_date = url_old.searchParams.get('start_date')
-    if(st_date == null){
-        url = currentLocation.href + '?&export=' + 1
-    }else{
-    url = currentLocation.href + '&export=' + 1
-    }
-    document.location.href = url
+        document.getElementById("btn-export-excel").addEventListener("click", function (e) {
+            let currentLocation = window.location
+            const url_old = new URL(currentLocation.href)
+            st_date = url_old.searchParams.get('start_date')
+            if (st_date == null) {
+                url = currentLocation.href + '?&export=' + 1
+            } else {
+                url = currentLocation.href + '&export=' + 1
+            }
+            document.location.href = url
 
-})
-</script>
+        })
+    </script>
 
-{% if report_types.is_period %}
-<script>
-    $(function() {
-    let p1_start_date = ''
-    let p2_start_date = ''
-    let p1_end_date = ''
-    let p2_end_date = ''
-  $('input[name="period1"]').daterangepicker({
-    opens: 'center',
-    drops: 'up',
-    locale: {
-            format: 'YYYY-MM-DD'
-        }
-  }, function(start, end, label) {
-        p1_start_date = start.format('YYYY-MM-DD')
-        p1_end_date = end.format('YYYY-MM-DD')
-  });
+    {% if report_types.is_period %}
+        <script>
+            $(function () {
+                let p1_start_date = ''
+                let p2_start_date = ''
+                let p1_end_date = ''
+                let p2_end_date = ''
+                $('input[name="period1"]').daterangepicker({
+                    opens: 'center',
+                    drops: 'up',
+                    locale: {
+                        format: 'YYYY-MM-DD'
+                    }
+                }, function (start, end, label) {
+                    p1_start_date = start.format('YYYY-MM-DD')
+                    p1_end_date = end.format('YYYY-MM-DD')
+                });
 
-  $('input[name="period2"]').daterangepicker({
-    opens: 'center',
-    drops: 'up',
-    locale: {
-            format: 'YYYY-MM-DD'
-        }
-  }, function(start, end, label) {
-        p2_start_date = start.format('YYYY-MM-DD')
-        p2_end_date = end.format('YYYY-MM-DD')
-  });
-  document.getElementById("period-button").addEventListener("click", function(e){
-    if(new Date(p1_end_date) >= new Date(p2_start_date)){
-        alert('Период 1 не может быть больше либо равен период 2')
-        return;
-    }
+                $('input[name="period2"]').daterangepicker({
+                    opens: 'center',
+                    drops: 'up',
+                    locale: {
+                        format: 'YYYY-MM-DD'
+                    }
+                }, function (start, end, label) {
+                    p2_start_date = start.format('YYYY-MM-DD')
+                    p2_end_date = end.format('YYYY-MM-DD')
+                });
+                document.getElementById("period-button").addEventListener("click", function (e) {
+                    if (new Date(p1_end_date) >= new Date(p2_start_date)) {
+                        alert('Период 1 не может быть больше либо равен период 2')
+                        return;
+                    }
 
-    let currentLocation = window.location
-    const url_old = new URL(currentLocation.href)
-    st_date = 'start_date=' + url_old.searchParams.get('start_date') + '&'
-    en_date = 'end_date=' + url_old.searchParams.get('end_date')
-    let origin = currentLocation.origin
-    let path_name = currentLocation.pathname
-    const url = new URL(
-        origin + path_name + '?' + st_date + en_date +
-        '&p1_start_date=' + p1_start_date +
-        '&p1_end_date=' + p1_end_date +
-        '&p2_start_date=' + p2_start_date +
-        '&p2_end_date=' + p2_end_date
-    )
-    document.location.href = url
-    })
-});
-</script>
-{%endif%}
+                    let currentLocation = window.location
+                    const url_old = new URL(currentLocation.href)
+                    st_date = 'start_date=' + url_old.searchParams.get('start_date') + '&'
+                    en_date = 'end_date=' + url_old.searchParams.get('end_date')
+                    let origin = currentLocation.origin
+                    let path_name = currentLocation.pathname
+                    const url = new URL(
+                        origin + path_name + '?' + st_date + en_date +
+                        '&p1_start_date=' + p1_start_date +
+                        '&p1_end_date=' + p1_end_date +
+                        '&p2_start_date=' + p2_start_date +
+                        '&p2_end_date=' + p2_end_date
+                    )
+                    document.location.href = url
+                })
+            });
+        </script>
+    {% endif %}
 {% endblock %}

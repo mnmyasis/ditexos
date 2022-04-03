@@ -304,10 +304,11 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                                                                      title='По месяцам',
                                                                      letters=['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
                                                                               'K', 'L', 'M'],
-                                                                     change_item_key='month_',
+                                                                     change_item_key='month_string',
                                                                      exclude_keys=[
                                                                          'agency_client_id',
                                                                          'source',
+                                                                         'month_'
                                                                      ])
                     table_objects.append(week_table)
 
@@ -317,8 +318,9 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                         items=context['report_campaign_nvm'],
                         exclude_keys=[
                             'agency_client_id',
-                            '_month',
-                            'source'
+                            'month_string',
+                            'source',
+                            'month_'
                         ],
                         title='Статистика по Кампаниям')
                     table_objects.append(campaign_table)

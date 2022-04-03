@@ -8,6 +8,8 @@ select amo.id,
        metric.closed_at                                                 date,
        date_trunc('week', metric.closed_at)::date || ' - ' ||
        (date_trunc('week', metric.closed_at) + '6 day'::interval)::date week,
+       date_trunc('month', metric.closed_at)                            month_,
+       to_char(date_trunc('month', metric.closed_at), 'YYYY - MONTH')   month_string,
        case
            when metric.utm_campaign ~* 'smm' and metric.utm_source = 'vk_di' THEN 'smm'
            when metric.utm_source = 'vk_di' THEN 'vk_target'
@@ -48,6 +50,8 @@ select amo.id,
        metric.created_at                                                 date,
        date_trunc('week', metric.created_at)::date || ' - ' ||
        (date_trunc('week', metric.created_at) + '6 day'::interval)::date week,
+       date_trunc('month', metric.created_at)                            month_,
+       to_char(date_trunc('month', metric.created_at), 'YYYY - MONTH')   month_string,
        case
            when metric.utm_campaign ~* 'smm' and metric.utm_source = 'vk_di' THEN 'smm'
            when metric.utm_source = 'vk_di' THEN 'vk_target'
@@ -87,6 +91,8 @@ select amo.id,
        metric.created_at                                                 date,
        date_trunc('week', metric.created_at)::date || ' - ' ||
        (date_trunc('week', metric.created_at) + '6 day'::interval)::date week,
+       date_trunc('month', metric.created_at)                            month_,
+       to_char(date_trunc('month', metric.created_at), 'YYYY - MONTH')   month_string,
        case
            when metric.utm_campaign ~* 'smm' and metric.utm_source = 'vk_di' THEN 'smm'
            when metric.utm_source = 'vk_di' THEN 'vk_target'

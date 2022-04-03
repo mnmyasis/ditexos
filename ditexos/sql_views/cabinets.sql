@@ -32,7 +32,9 @@ select cab_report.agency_client_id,
        cab_report.impressions,
        cab_report.date,
        date_trunc('week', cab_report.date)::date || ' - ' ||
-       (date_trunc('week', cab_report.date) + '6 day'::interval)::date week
+       (date_trunc('week', cab_report.date) + '6 day'::interval)::date week,
+       date_trunc('month', cab_report.date)                            month_,
+       to_char(date_trunc('month', cab_report.date), 'YYYY - MONTH')   month_string
 from (
          select cabinet.id agency_client_id,
                 cabinet.source,
