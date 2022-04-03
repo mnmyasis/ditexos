@@ -1,5 +1,10 @@
 version: '3.1'
 services:
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - 127.0.0.1:6379:6379
   rabbitmq:
     image: rabbitmq:3.8.17-alpine
     restart: always
@@ -16,7 +21,7 @@ services:
     volumes:
       - ./docker/databases:/var/lib/postgresql/data
     ports:
-    - 127.0.0.1:5432:5432
+      - 127.0.0.1:5432:5432
   ditexos:
     build:
       context: ./
@@ -29,6 +34,7 @@ services:
     depends_on:
       - db
       - rabbitmq
+      - redis
     env_file: ./ditexos/.env
   nginx:
     build:

@@ -1,20 +1,16 @@
-from excel.services import generate_export_file
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
 from django.shortcuts import redirect
-from django.views.generic.edit import FormMixin, FormView, CreateView, ModelFormMixin, UpdateView, DeleteView
-from django.views.generic.list import ListView
-from django.views.generic.base import TemplateView, View, ContextMixin
-from django.views.generic.detail import DetailView
 from django.urls import reverse
-import pandas as pd
-import datetime
-from .models import *
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import CreateView, DeleteView
+from django.views.generic.list import ListView
+from django.conf import settings
+from excel.services import generate_export_file
+import redis
+
 from .forms import AgencyClientsForm
 from .proxy_models import *
 
-
-# Create your views here.
 
 class AgencyClientsFormCreateView(LoginRequiredMixin, CreateView):
     model = AgencyClients
@@ -69,11 +65,36 @@ class ClientsView(LoginRequiredMixin, ListView):
 
 
 class ClientReportDetailView(LoginRequiredMixin, DetailView):
+    REPORT_EXPIRE = 3600
+    REDIS_INSTANCE = None
+
     slug_field = 'pk'
     slug_url_kwarg = 'client_id'
     context_object_name = 'context'
     model = AgencyClients
     template_name = 'dashboard/board.html'
+
+    def get_redis_instance(self):
+        redis_instance = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+        return redis_instance
+
+    def set_redis_instance(self):
+        self.REDIS_INSTANCE = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+
+    def get_report(self, report_obj: Reports.objects, key, **kwargs):
+        agency_client_id = kwargs.get('agency_client_id')
+        if agency_client_id is None:
+            raise ValueError(f'Does not exist agency_client_id')
+        report_key = '{}_{}_{}'.format(self.request.user.email, agency_client_id, key)
+        context = self.REDIS_INSTANCE.get(report_key)
+        if context is None:
+            context = report_obj(**kwargs)
+            self.REDIS_INSTANCE.set(report_key,
+                                    json.dumps(context, default=str),
+                                    ex=self.REPORT_EXPIRE)
+        else:
+            context = json.loads(context)
+        return context
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -86,6 +107,8 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
         context['client_id'] = self.kwargs.get(self.slug_url_kwarg)
         context['start_date'] = start_date
         context['end_date'] = end_date
+        redis_instance = self.get_redis_instance()
+        self.set_redis_instance()
         try:
             report_types = ReportTypes.objects.get(agency_client__pk=context['client_id'])
             context['report_types'] = report_types
@@ -155,17 +178,17 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                 }
                 context['report_brand_nvm'].append(rep)
         if report_types.is_week_nvm:
-            context['report_week_nvm'] = Reports.objects.get_week_nvm(
-                agency_client_id=context['client_id']
-            )
+            context['report_week_nvm'] = self.get_report(Reports.objects.get_week_nvm,
+                                                         'report_week_nvm',
+                                                         agency_client_id=context['client_id'])
         if report_types.is_month_nvm:
-            context['report_month_nvm'] = Reports.objects.get_month_nvm(
-                agency_client_id=context['client_id']
-            )
+            context['report_month_nvm'] = self.get_report(Reports.objects.get_month_nvm,
+                                                          'report_month_nvm',
+                                                          agency_client_id=context['client_id'])
         if report_types.is_campaign_nvm:
-            context['report_campaign_nvm'] = Reports.objects.get_campaign_nvm(
-                agency_client_id=context['client_id']
-            )
+            context['report_campaign_nvm'] = self.get_report(Reports.objects.get_campaign_nvm,
+                                                             'report_campaign_nvm',
+                                                             agency_client_id=context['client_id'])
         if report_types.is_target_nvm:
             context['report_target_nvm'] = Reports.objects.get_target_nvm(
                 agency_client_id=context['client_id'],

@@ -143,6 +143,9 @@ else:
         os.path.join(BASE_DIR, 'static'),
     )
 
+REDIS_HOST = env('REDIS_HOST')
+REDIS_PORT = env('REDIS_PORT')
+
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_BROKER_URL = env('BROKER_URL')
