@@ -17,5 +17,6 @@ urlpatterns = [
     path('vk/', include('vk.urls')),
     path('email-sender/', include('email_sender.urls')),
     path('facebook/', include('facebook.urls')),
-    path('my-target/', include('my_target.urls'))
+    path('my-target/', include('my_target.urls')),
+    path('sheets/', include('google_sheets.urls'))
 ]
