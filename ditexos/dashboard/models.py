@@ -200,14 +200,26 @@ class ClientProjects(models.Model):
 
 
 class CustomizableDirection(models.Model):
+
+    REPORT_TYPES = (
+        ('br', 'Brand'),
+        ('nb', 'No Brand'),
+        ('all', 'All')
+    )
+
+    only_one_type = models.CharField(max_length=10,
+                                     choices=REPORT_TYPES,
+                                     verbose_name='Выделение одного типа отчета.',
+                                     default='all'
+                                     )
     direction = models.CharField(max_length=256, default='', blank=True,
-                                 verbose_name='Название кампании, по которому выделится направление')
+                                 verbose_name='Признак направления в кампании')
     name = models.CharField(max_length=256, verbose_name='Наименование таблицы')
     agency_client = models.ForeignKey(AgencyClients, on_delete=models.CASCADE)
     is_main = models.BooleanField(default=False, verbose_name="Общее")
 
     class Meta:
-        db_table = 'customizable_direction'
+        db_table = 'selection_direction'
         ordering = ['pk']
 
     def __str__(self):

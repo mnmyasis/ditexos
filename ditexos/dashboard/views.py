@@ -168,30 +168,12 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
         if report_types.is_brand_nvm:
             agency_client = AgencyClients.objects.get(pk=context['client_id'])
             directions = agency_client.customizabledirection_set.all()
-            context['report_brand_nvm'] = []
-            for direction in directions:
-                rep = {
-                    'brand_report': Reports.objects.get_brand_nvm(
-                        agency_client_id=context['client_id'],
-                        is_brand=True,
-                        direction_name=direction.direction,
-                        is_main=direction.is_main,
-                        directions=directions,
-                        start_date=start_date,
-                        end_date=end_date
-                    ),
-                    'no_brand_report': Reports.objects.get_brand_nvm(
-                        agency_client_id=context['client_id'],
-                        is_brand=False,
-                        direction_name=direction.direction,
-                        is_main=direction.is_main,
-                        directions=directions,
-                        start_date=start_date,
-                        end_date=end_date
-                    ),
-                    'direction_name': direction.name
-                }
-                context['report_brand_nvm'].append(rep)
+            context['report_brand_nvm'] = Reports.objects.get_brand_nvm(
+                agency_client_id=context['client_id'],
+                directions=directions,
+                start_date=start_date,
+                end_date=end_date
+            )
         if report_types.is_week_nvm:
             context['report_week_nvm'] = self.get_report(Reports.objects.get_week_nvm,
                                                          'report_week_nvm',

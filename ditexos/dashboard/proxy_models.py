@@ -1,3 +1,7 @@
+from typing import List, Dict, Tuple
+
+from django.db.models import QuerySet
+
 from .models import *
 import pandas as pd
 from django.db import connection
@@ -550,103 +554,143 @@ class ReportsQuerySet(models.QuerySet):
         report = self._dictfetchall(cursor)
         return report
 
-    def get_brand_nvm(self, *args, **kwargs):
-        agency_client_id = kwargs.get('agency_client_id')
-        is_brand = kwargs.get('is_brand')
-        direction_name = kwargs.get('direction_name')
-        start_date = kwargs.get('start_date')
-        end_date = kwargs.get('end_date')
-        is_main = kwargs.get('is_main')
-        if is_main:  # Признак направлния "Общее"
-            directions = kwargs.get('directions')
-            if len(directions) == 1:  # Если нет необходимости выделять направление
-                filter_campaign = "campaign ~* ''"
-                filter_utm_campaign = "utm_campaign ~* ''"
-            else:  # Исключение выделенных направлений из общей статистики
-                filter_campaign = " and ".join(
-                    [f"campaign !~* '{line.direction}'" for line in directions if line.is_main is False]
-                )
-                filter_utm_campaign = " and ".join(
-                    [f"utm_campaign !~* '{line.direction}'" for line in directions if line.is_main is False]
-                )
-        else:  # Выделение статистики по направлению
-            filter_utm_campaign = f"utm_campaign ~* '{direction_name}'"
-            filter_campaign = f"campaign ~* '{direction_name}'"
-        cursor = connection.cursor()
-        sql = f"""
-            select br.agency_client_id,
-       br.source,
-       br.channel,
-       br.source_name || br.channel_name t_source,
-       round(br.cost_, 2)      cost_,
-       br.impressions,
-       br.clicks,
-       br.leads,
-       br.kpf,
-       round(br.clicks /
-             case
-                 when br.impressions = 0 then 1
-                 else br.impressions
-                 end * 100, 2) ctr,
-       round(br.cost_ /
-             case
-                 when br.clicks = 0 then 1
-                 else br.clicks
-                 end, 2)       cpc,
-       round(br.leads /
-             case
-                 when br.clicks = 0 then 1
-                 else br.clicks
-                 end * 100, 2) cr,
-       round(br.cost_ /
-             case
-                 when br.leads = 0 then 1
-                 else br.leads
-                 end, 2)       cpl,
-       round(br.cost_ /
-             case
-                 when br.kpf = 0 then 1
-                 else br.kpf
-                 end, 2)       kpf_cpl
-from (
-         select agency_client_id,
-                source,
-                source_name,
-                channel,
-                channel_name,
-                sum(cost_)                         cost_,
-                sum(impressions)                   impressions,
-                sum(clicks)                        clicks,
-                (select count(*)
-                 from amo_kpf
-                 where agency_client_id = {agency_client_id}
-                   and date between '{start_date}' and '{end_date}'
-                   and lead_type = 'leads'
-                   and {filter_utm_campaign}
-                   and is_brand = {is_brand}
-                   and cabinets.source = utm_source
-                   and cabinets.channel = channel) leads,
-                (select count(*)
-                 from amo_kpf
-                 where agency_client_id = {agency_client_id}
-                   and date between '{start_date}' and '{end_date}'
-                   and lead_type = 'kpf'
-                   and {filter_utm_campaign}
-                   and is_brand = {is_brand}
-                   and cabinets.source = utm_source
-                   and cabinets.channel = channel) kpf
-         from cabinets
-         where agency_client_id = {agency_client_id}
-           and date between '{start_date}' and '{end_date}'
-           and source in ('yandex', 'google')
-           and is_brand = {is_brand}
-           and {filter_campaign}
-         group by agency_client_id, source, source_name, channel, channel_name) br;
-        """
+    def __direction_filter_for_brand(self, direction_name: str) -> Tuple[str, str]:
+        """Генерирует фильтр выделения направления. Возвращает filter_campaign, filter_utm_campaign."""
+        filter_utm_campaign = f"utm_campaign ~* '{direction_name}'"
+        filter_campaign = f"campaign ~* '{direction_name}'"
+        return filter_campaign, filter_utm_campaign
 
-        cursor.execute(sql)
-        report = self._dictfetchall(cursor)
-        return report
+    def __diff_main_filter_for_brand(self, directions: QuerySet, is_brand: bool) -> Tuple[str, str]:
+        """Генерирует исключающие фильтры для таблицы Общее. Возвращает filter_campaign, filter_utm_campaign."""
+        if len(directions) == 1:  # Если нет необходимости выделять направление
+            filter_campaign = "campaign ~* ''"
+            filter_utm_campaign = "utm_campaign ~* ''"
+        else:  # Исключение выделенных направлений из общей статистики
+            select_directions = []
+            for direction in directions:
+                if direction.is_main is False:
+                    if direction.only_one_type in ('br', 'all') and is_brand:
+                        select_directions.append(direction.direction)
+                    if direction.only_one_type in ('nb', 'all') and is_brand is False:
+                        select_directions.append(direction.direction)
+            filter_campaign = ' and '.join(
+                [f"campaign !~* '{_dir}'" for _dir in select_directions]
+            )
+            filter_utm_campaign = ' and '.join(
+                [f"utm_campaign !~* '{_dir}'" for _dir in select_directions]
+            )
+        return filter_campaign, filter_utm_campaign
+
+    def __create_raw_sql_for_brand(self,
+                                   is_brand: bool,
+                                   agency_client_id: int,
+                                   filter_campaign: str,
+                                   filter_utm_campaign: str,
+                                   start_date: str,
+                                   end_date: str) -> str:
+        """Собирает sql запрос."""
+        sql = f"""
+                    select br.agency_client_id,
+               br.source,
+               br.channel,
+               br.source_name || br.channel_name t_source,
+               round(br.cost_, 2)      cost_,
+               br.impressions,
+               br.clicks,
+               br.leads,
+               br.kpf,
+               round(br.clicks /
+                     case
+                         when br.impressions = 0 then 1
+                         else br.impressions
+                         end * 100, 2) ctr,
+               round(br.cost_ /
+                     case
+                         when br.clicks = 0 then 1
+                         else br.clicks
+                         end, 2)       cpc,
+               round(br.leads /
+                     case
+                         when br.clicks = 0 then 1
+                         else br.clicks
+                         end * 100, 2) cr,
+               round(br.cost_ /
+                     case
+                         when br.leads = 0 then 1
+                         else br.leads
+                         end, 2)       cpl,
+               round(br.cost_ /
+                     case
+                         when br.kpf = 0 then 1
+                         else br.kpf
+                         end, 2)       kpf_cpl
+        from (
+                 select agency_client_id,
+                        source,
+                        source_name,
+                        channel,
+                        channel_name,
+                        sum(cost_)                         cost_,
+                        sum(impressions)                   impressions,
+                        sum(clicks)                        clicks,
+                        (select count(*)
+                         from amo_kpf
+                         where agency_client_id = {agency_client_id}
+                           and date between '{start_date}' and '{end_date}'
+                           and lead_type = 'leads'
+                           and {filter_utm_campaign}
+                           and is_brand = {is_brand}
+                           and cabinets.source = utm_source
+                           and cabinets.channel = channel) leads,
+                        (select count(*)
+                         from amo_kpf
+                         where agency_client_id = {agency_client_id}
+                           and date between '{start_date}' and '{end_date}'
+                           and lead_type = 'kpf'
+                           and {filter_utm_campaign}
+                           and is_brand = {is_brand}
+                           and cabinets.source = utm_source
+                           and cabinets.channel = channel) kpf
+                 from cabinets
+                 where agency_client_id = {agency_client_id}
+                   and date between '{start_date}' and '{end_date}'
+                   and source in ('yandex', 'google')
+                   and is_brand = {is_brand}
+                   and {filter_campaign}
+                 group by agency_client_id, source, source_name, channel, channel_name) br;
+                """
+        return sql
+
+    def get_brand_nvm(self,
+                      agency_client_id: int,
+                      directions: QuerySet,
+                      start_date: str,
+                      end_date: str) -> List[Dict]:
+        """Выгружает брендовые отчеты."""
+        brands_types = (True, False)
+        cursor = connection.cursor()
+        brand_reports = []
+        for direction in directions:
+            for is_brand in brands_types:
+                if direction.is_main:
+                    filter_campaign, filter_utm_campaign = self.__diff_main_filter_for_brand(directions, is_brand)
+                else:
+                    filter_campaign, filter_utm_campaign = self.__direction_filter_for_brand(direction.direction)
+                sql = self.__create_raw_sql_for_brand(is_brand=is_brand,
+                                                      agency_client_id=agency_client_id,
+                                                      filter_campaign=filter_campaign,
+                                                      filter_utm_campaign=filter_utm_campaign,
+                                                      start_date=start_date,
+                                                      end_date=end_date)
+                cursor.execute(sql)
+                reports = {}
+                if direction.only_one_type in ('br', 'all') and is_brand:
+                    reports['brand_report'] = self._dictfetchall(cursor)
+                if direction.only_one_type in ('nb', 'all') and is_brand is False:
+                    reports['no_brand_report'] = self._dictfetchall(cursor)
+                reports['direction_name'] = direction.name
+                brand_reports.append(reports)
+        return brand_reports
 
     def get_week_nvm(self, agency_client_id):
         cursor = connection.cursor()
