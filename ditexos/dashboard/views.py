@@ -1,3 +1,6 @@
+import datetime
+import decimal
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -64,6 +67,17 @@ class ClientsView(LoginRequiredMixin, ListView):
         return response_class
 
 
+class JSONEncoder(json.JSONEncoder):
+    """Перекодирует decimal, т.к. эксель не понимает точки."""
+
+    def default(self, obj):
+        if isinstance(obj, decimal.Decimal):
+            return float(obj)
+        if isinstance(obj, datetime.datetime):
+            return str(obj)
+        return json.JSONEncoder.default(self, obj)
+
+
 class ClientReportDetailView(LoginRequiredMixin, DetailView):
     REPORT_EXPIRE = 3600
     REDIS_INSTANCE = None
@@ -89,8 +103,9 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
         context = self.REDIS_INSTANCE.get(report_key)
         if context is None:
             context = report_obj(**kwargs)
+
             self.REDIS_INSTANCE.set(report_key,
-                                    json.dumps(context, default=str),
+                                    json.dumps(context, cls=JSONEncoder),
                                     ex=self.REPORT_EXPIRE)
         else:
             context = json.loads(context)
@@ -341,7 +356,6 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                         items=context['report_campaign_nvm'],
                         exclude_keys=[
                             'agency_client_id',
-                            'month_string',
                             'source',
                             'month_'
                         ],

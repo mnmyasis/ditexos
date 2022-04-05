@@ -890,6 +890,7 @@ from (
         sql = f"""
                     select amo_report.month_,
                                amo_report.agency_client_id,
+                               amo_report.month_string,
                                amo_report.source,
                                case
                                    when source = 'google' THEN 'Google Ads'
@@ -898,7 +899,6 @@ from (
                                    when source = 'mytarget_di' THEN 'MyTarget'
                                END source_,
                                amo_report.campaign,
-                               amo_report.month_string,
                                round(amo_report.cost_, 2) cost_,
                                amo_report.clicks,
                                amo_report.impressions,
