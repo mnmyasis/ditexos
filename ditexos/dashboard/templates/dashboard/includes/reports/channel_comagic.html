@@ -1,0 +1,64 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="fas fa-table me-1"></i>
+    Статистика по каналам
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-12">
+        <table class="datatable">
+          <thead>
+          <tr>
+            <th>Source</th>
+            <th>Source of impressions</th>
+            <th>Cost</th>
+            <th>Impressions</th>
+            <th>Clicks</th>
+            <th>CTR</th>
+            <th>CPC</th>
+            <th>CR</th>
+            <th>CPL</th>
+            <th>Call</th>
+            <th>Chat</th>
+            <th>Site</th>
+          </tr>
+          </thead>
+          <tfoot>
+          <tr>
+            <th>Source</th>
+            <th>Source of impressions</th>
+            <th>Cost</th>
+            <th>Impressions</th>
+            <th>Clicks</th>
+            <th>CTR</th>
+            <th>CPC</th>
+            <th>CR</th>
+            <th>CPL</th>
+            <th>Call</th>
+            <th>Chat</th>
+            <th>Site</th>
+          </tr>
+          </tfoot>
+          <tbody>
+          {% for line in report_client_channel %}
+            <tr>
+              <td>{{ line.source }}</td>
+              <td>{{ line.channel }}</td>
+              <td>{{ line.cost_ }}</td>
+              <td>{{ line.impressions }}</td>
+              <td>{{ line.clicks }}</td>
+              <td>{{ line.ctr }}</td>
+              <td>{{ line.cpc }}</td>
+              <td>{{ line.cr }}</td>
+              <td>{{ line.cpl }}</td>
+              <td>{{ line.call_leads }}</td>
+              <td>{{ line.chat_leads }}</td>
+              <td>{{ line.site_leads }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

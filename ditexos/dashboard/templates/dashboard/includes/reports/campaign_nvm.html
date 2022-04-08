@@ -1,0 +1,70 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="fas fa-table me-1"></i>
+    По кампаниям
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-12">
+        <table class="datatable">
+          <thead>
+          <tr>
+            <th>Месяц</th>
+            <th>Площадка</th>
+            <th>Кампания</th>
+            <th>Потрачено</th>
+            <th>Показы</th>
+            <th>Клики</th>
+            <th>CTR</th>
+            <th>CPC</th>
+            <th>ГК</th>
+            <th>CPL ГК</th>
+            <th>Обращения</th>
+            <th>CR</th>
+            <th>CR ГК</th>
+            <th>CPL</th>
+          </tr>
+          </thead>
+          <tfoot>
+          <tr>
+            <th>Месяц</th>
+            <th>Площадка</th>
+            <th>Кампания</th>
+            <th>Потрачено</th>
+            <th>Показы</th>
+            <th>Клики</th>
+            <th>CTR</th>
+            <th>CPC</th>
+            <th>ГК</th>
+            <th>CPL ГК</th>
+            <th>Обращения</th>
+            <th>CR</th>
+            <th>CR ГК</th>
+            <th>CPL</th>
+          </tr>
+          </tfoot>
+          <tbody>
+          {% for line in report_campaign_nvm %}
+            <tr>
+              <td>{{ line.month_string }}</td>
+              <td>{{ line.source_ }}</td>
+              <td>{{ line.campaign }}</td>
+              <td>{{ line.cost_ }} ₽</td>
+              <td>{{ line.impressions }}</td>
+              <td>{{ line.clicks }}</td>
+              <td>{{ line.ctr }}%</td>
+              <td>{{ line.cpc }} ₽</td>
+              <td>{{ line.gk }}</td>
+              <td>{{ line.gk_cpl }} ₽</td>
+              <td>{{ line.leads }}</td>
+              <td>{{ line.cr }}%</td>
+              <td>{{ line.gk_cr }}%</td>
+              <td>{{ line.cpl }} ₽</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

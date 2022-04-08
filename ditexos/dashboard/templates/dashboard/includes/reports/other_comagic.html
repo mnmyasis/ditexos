@@ -1,0 +1,32 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="fas fa-table me-1"></i>
+    Статистика "Comagic other"
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-12">
+        <table class="datatable">
+          <thead>
+          <tr>
+            <th>Domain</th>
+            <th>Визитка Yandex</th>
+            <th>Визитка Google</th>
+            <th>Other</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for line in comagic_other_report %}
+            <tr>
+              <td>{{ line.domain_ }}</td>
+              <td>{{ line.ya_leads }}</td>
+              <td>{{ line.go_leads }}</td>
+              <td>{{ line.other_leads }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

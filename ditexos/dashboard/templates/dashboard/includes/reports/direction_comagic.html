@@ -1,0 +1,42 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="fas fa-table me-1"></i>
+    Статистика по направлениям
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-12">
+        <table class="datatable">
+          <thead>
+          <tr>
+            <th rowspan="1">Date</th>
+            {% for line in report_client_direction.columns %}
+              <th colspan="2">{{ line }}</th>
+            {% endfor %}
+          </tr>
+
+          <tr>
+            <th></th>
+            {% for line in report_client_direction.columns %}
+              <th>Cost</th>
+              <th>Leads</th>
+            {% endfor %}
+          </tr>
+
+          </thead>
+          <tbody>
+          {% for date, reports in report_client_direction.context %}
+            <tr>
+              <td>{{ date }}</td>
+              {% for costs, leads in reports %}
+                <td>{{ costs }}</td>
+                <td>{{ leads|floatformat }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,67 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="fas fa-table me-1"></i>
+    По неделям
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-12">
+        <table class="datatable">
+          <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Площадка</th>
+            <th>Потрачено</th>
+            <th>Показы</th>
+            <th>Клики</th>
+            <th>CTR</th>
+            <th>CPC</th>
+            <th>ГК</th>
+            <th>CPL ГК</th>
+            <th>Обращения</th>
+            <th>CR</th>
+            <th>CR ГК</th>
+            <th>CPL</th>
+          </tr>
+          </thead>
+          <tfoot>
+          <tr>
+            <th>Дата</th>
+            <th>Площадка</th>
+            <th>Потрачено</th>
+            <th>Показы</th>
+            <th>Клики</th>
+            <th>CTR</th>
+            <th>CPC</th>
+            <th>ГК</th>
+            <th>CPL ГК</th>
+            <th>Обращения</th>
+            <th>CR</th>
+            <th>CR ГК</th>
+            <th>CPL</th>
+          </tr>
+          </tfoot>
+          <tbody>
+          {% for line in report_week_nvm %}
+            <tr>
+              <td>{{ line.week }}</td>
+              <td>{{ line.channel_ }}</td>
+              <td>{{ line.cost_ }} ₽</td>
+              <td>{{ line.impressions }}</td>
+              <td>{{ line.clicks }}</td>
+              <td>{{ line.ctr }} %</td>
+              <td>{{ line.cpc }} ₽</td>
+              <td>{{ line.gk }}</td>
+              <td>{{ line.gk_cpl }} ₽</td>
+              <td>{{ line.leads }}</td>
+              <td>{{ line.cr }} %</td>
+              <td>{{ line.gk_cr }} %</td>
+              <td>{{ line.cpl }} ₽</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

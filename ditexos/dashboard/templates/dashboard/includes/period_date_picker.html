@@ -1,50 +1,50 @@
 <script>
-            $(function () {
-                let p1_start_date = ''
-                let p2_start_date = ''
-                let p1_end_date = ''
-                let p2_end_date = ''
-                $('input[name="period1"]').daterangepicker({
-                    opens: 'center',
-                    drops: 'up',
-                    locale: {
-                        format: 'YYYY-MM-DD'
-                    }
-                }, function (start, end, label) {
-                    p1_start_date = start.format('YYYY-MM-DD')
-                    p1_end_date = end.format('YYYY-MM-DD')
-                });
+    $(function () {
+        let p1_start_date = ''
+        let p2_start_date = ''
+        let p1_end_date = ''
+        let p2_end_date = ''
+        $('input[name="period1"]').daterangepicker({
+            opens: 'center',
+            drops: 'up',
+            locale: {
+                format: 'YYYY-MM-DD'
+            }
+        }, function (start, end, label) {
+            p1_start_date = start.format('YYYY-MM-DD')
+            p1_end_date = end.format('YYYY-MM-DD')
+        });
 
-                $('input[name="period2"]').daterangepicker({
-                    opens: 'center',
-                    drops: 'up',
-                    locale: {
-                        format: 'YYYY-MM-DD'
-                    }
-                }, function (start, end, label) {
-                    p2_start_date = start.format('YYYY-MM-DD')
-                    p2_end_date = end.format('YYYY-MM-DD')
-                });
-                document.getElementById("period-button").addEventListener("click", function (e) {
-                    if (new Date(p1_end_date) >= new Date(p2_start_date)) {
-                        alert('Период 1 не может быть больше либо равен период 2')
-                        return;
-                    }
+        $('input[name="period2"]').daterangepicker({
+            opens: 'center',
+            drops: 'up',
+            locale: {
+                format: 'YYYY-MM-DD'
+            }
+        }, function (start, end, label) {
+            p2_start_date = start.format('YYYY-MM-DD')
+            p2_end_date = end.format('YYYY-MM-DD')
+        });
+        document.getElementById("period-button").addEventListener("click", function (e) {
+            if (new Date(p1_end_date) >= new Date(p2_start_date)) {
+                alert('Период 1 не может быть больше либо равен период 2')
+                return;
+            }
 
-                    let currentLocation = window.location
-                    const url_old = new URL(currentLocation.href)
-                    st_date = 'start_date=' + url_old.searchParams.get('start_date') + '&'
-                    en_date = 'end_date=' + url_old.searchParams.get('end_date')
-                    let origin = currentLocation.origin
-                    let path_name = currentLocation.pathname
-                    const url = new URL(
-                        origin + path_name + '?' + st_date + en_date +
-                        '&p1_start_date=' + p1_start_date +
-                        '&p1_end_date=' + p1_end_date +
-                        '&p2_start_date=' + p2_start_date +
-                        '&p2_end_date=' + p2_end_date
-                    )
-                    document.location.href = url
-                })
-            });
-        </script>
+            let currentLocation = window.location
+            const url_old = new URL(currentLocation.href)
+            st_date = 'start_date=' + url_old.searchParams.get('start_date') + '&'
+            en_date = 'end_date=' + url_old.searchParams.get('end_date')
+            let origin = currentLocation.origin
+            let path_name = currentLocation.pathname
+            const url = new URL(
+                origin + path_name + '?' + st_date + en_date +
+                '&p1_start_date=' + p1_start_date +
+                '&p1_end_date=' + p1_end_date +
+                '&p2_start_date=' + p2_start_date +
+                '&p2_end_date=' + p2_end_date
+            )
+            document.location.href = url
+        })
+    });
+</script>

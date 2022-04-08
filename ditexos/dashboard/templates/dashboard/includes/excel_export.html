@@ -1,0 +1,14 @@
+<script>
+    document.getElementById("btn-export-excel").addEventListener("click", function (e) {
+        let currentLocation = window.location
+        const url_old = new URL(currentLocation.href)
+        st_date = url_old.searchParams.get('start_date')
+        if (st_date == null) {
+            url = currentLocation.href + '?&export=' + 1
+        } else {
+            url = currentLocation.href + '&export=' + 1
+        }
+        document.location.href = url
+
+    })
+</script>

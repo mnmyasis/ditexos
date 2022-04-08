@@ -1,0 +1,111 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="fas fa-table me-1"></i>
+    Статистика по периодам
+  </div>
+  <div class="card-body">
+    <div class="row mt-2 mb-4">
+      <div class="col-md-2">
+        <input type="text" name="period1" value="{{ p1_start_date }} - {{ p1_end_date }}"/>
+      </div>
+      <div class="col-md-2">
+        <input type="text" name="period2" value="{{ p2_start_date }} - {{ p2_end_date }}"/>
+      </div>
+      <div class="col-md-1">
+        <button class="btn btn-primary btn-sm" id="period-button">Применить</button>
+      </div>
+    </div>
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <table class="period-table">
+          <thead>
+          <tr style="background-color: rgba(51, 51, 51, 0.2)">
+            <th data-sortable="false">Campaign</th>
+            <th data-sortable="false">Period</th>
+            <th data-sortable="false">Cost</th>
+            <th data-sortable="false">Impressions</th>
+            <th data-sortable="false">Clicks</th>
+            <th data-sortable="false">CTR</th>
+            <th data-sortable="false">CPC</th>
+            <th data-sortable="false">CR</th>
+            <th data-sortable="false">CPL</th>
+            <th data-sortable="false">Leads</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          {% for line in report_client_period_campaign %}
+            <tr style="background-color: rgba(204, 204, 204, 0.2)">
+              <td rowspan="2">{{ line.campaign }}</td>
+              <td>{{ line.p1 }}</td>
+              <td>{{ line.p1_cost_ }}</td>
+              <td>{{ line.p1_impressions }}</td>
+              <td>{{ line.p1_clicks }}</td>
+              <td>{{ line.p1_ctr }}%</td>
+              <td>{{ line.p1_cpc }}</td>
+              <td>{{ line.p1_cr }}%</td>
+              <td>{{ line.p1_cpl }}</td>
+              <td>{{ line.p1_leads }}</td>
+            </tr>
+            <tr style="background-color: rgba(153, 153, 153, 0.2)">
+              <td>{{ line.p2 }}</td>
+              <td>{{ line.p2_cost_ }}</td>
+              <td>{{ line.p2_impressions }}</td>
+              <td>{{ line.p2_clicks }}</td>
+              <td>{{ line.p2_ctr }}%</td>
+              <td>{{ line.p2_cpc }}</td>
+              <td>{{ line.p2_cr }}%</td>
+              <td>{{ line.p2_cpl }}</td>
+              <td>{{ line.p2_leads }}</td>
+            </tr>
+            <tr style="background-color: rgba(153, 204, 153, 0.2)">
+              <td></td>
+              <td></td>
+              {% if line.change_cost_ < 0 %}
+                <td class="text-danger">{{ line.change_cost_ }}%</td>
+              {% else %}
+                <td>{{ line.change_cost_ }}%</td>
+              {% endif %}
+              {% if line.change_impressions < 0 %}
+                <td class="text-danger">{{ line.change_impressions }}%</td>
+              {% else %}
+                <td>{{ line.change_impressions }}%</td>
+              {% endif %}
+              {% if line.change_clicks < 0 %}
+                <td class="text-danger">{{ line.change_clicks }}%</td>
+              {% else %}
+                <td>{{ line.change_clicks }}%</td>
+              {% endif %}
+              {% if line.change_ctr < 0 %}
+                <td class="text-danger">{{ line.change_ctr }}%</td>
+              {% else %}
+                <td>{{ line.change_ctr }}%</td>
+              {% endif %}
+              {% if line.change_cpc < 0 %}
+                <td class="text-danger">{{ line.change_cpc }}%</td>
+              {% else %}
+                <td>{{ line.change_cpc }}%</td>
+              {% endif %}
+              {% if line.change_cr < 0 %}
+                <td class="text-danger">{{ line.change_cr }}%</td>
+              {% else %}
+                <td>{{ line.change_cr }}%</td>
+              {% endif %}
+              {% if line.change_cpl < 0 %}
+                <td class="text-danger">{{ line.change_cpl }}%</td>
+              {% else %}
+                <td>{{ line.change_cpl }}%</td>
+              {% endif %}
+              {% if line.change_leads < 0 %}
+                <td class="text-danger">{{ line.change_leads }}%</td>
+              {% else %}
+                <td>{{ line.change_leads }}%</td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

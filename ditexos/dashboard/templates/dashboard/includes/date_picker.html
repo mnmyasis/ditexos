@@ -1,61 +1,48 @@
 <script>
-        LOCAL = {
-            format: 'YYYY-MM-DD',
-            "applyLabel": "Ок",
-            "cancelLabel": "Отмена",
-            "fromLabel": "От",
-            "toLabel": "До",
-            firstDay: 1,
-            "daysOfWeek": [
-                "Вс",
-                "Пн",
-                "Вт",
-                "Ср",
-                "Чт",
-                "Пт",
-                "Сб"
-            ],
-            "monthNames": [
-                "Январь",
-                "Февраль",
-                "Март",
-                "Апрель",
-                "Май",
-                "Июнь",
-                "Июль",
-                "Август",
-                "Сентябрь",
-                "Октябрь",
-                "Ноябрь",
-                "Декабрь"
-            ],
-        }
-        $(function () {
-            $('input[name="daterange"]').daterangepicker({
-                autoUpdateInput: false,
-                opens: 'left',
-                locale: LOCAL
-            }, function (start, end, label) {
-                let currentLocation = window.location
-                let origin = currentLocation.origin
-                let path_name = currentLocation.pathname
-                start_date = start.format('YYYY-MM-DD')
-                end_date = end.format('YYYY-MM-DD')
-                url = origin + path_name + '?start_date=' + start_date + '&end_date=' + end_date
-                document.location.href = url
-            });
-        });
-
-        document.getElementById("btn-export-excel").addEventListener("click", function (e) {
+    LOCAL = {
+        format: 'YYYY-MM-DD',
+        "applyLabel": "Ок",
+        "cancelLabel": "Отмена",
+        "fromLabel": "От",
+        "toLabel": "До",
+        firstDay: 1,
+        "daysOfWeek": [
+            "Вс",
+            "Пн",
+            "Вт",
+            "Ср",
+            "Чт",
+            "Пт",
+            "Сб"
+        ],
+        "monthNames": [
+            "Январь",
+            "Февраль",
+            "Март",
+            "Апрель",
+            "Май",
+            "Июнь",
+            "Июль",
+            "Август",
+            "Сентябрь",
+            "Октябрь",
+            "Ноябрь",
+            "Декабрь"
+        ],
+    }
+    $(function () {
+        $('input[name="daterange"]').daterangepicker({
+            autoUpdateInput: false,
+            opens: 'left',
+            locale: LOCAL
+        }, function (start, end, label) {
             let currentLocation = window.location
-            const url_old = new URL(currentLocation.href)
-            st_date = url_old.searchParams.get('start_date')
-            if (st_date == null) {
-                url = currentLocation.href + '?&export=' + 1
-            } else {
-                url = currentLocation.href + '&export=' + 1
-            }
+            let origin = currentLocation.origin
+            let path_name = currentLocation.pathname
+            start_date = start.format('YYYY-MM-DD')
+            end_date = end.format('YYYY-MM-DD')
+            url = origin + path_name + '?start_date=' + start_date + '&end_date=' + end_date
             document.location.href = url
-
-        })
-    </script>
+        });
+    });
+</script>
