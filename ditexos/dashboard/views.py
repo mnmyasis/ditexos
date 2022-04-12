@@ -1,18 +1,21 @@
 import datetime
 import decimal
 
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView
 from django.views.generic.list import ListView
-from django.conf import settings
-from excel.services import generate_export_file
+
 import redis
 
+from excel.services import generate_export_file
 from .forms import AgencyClientsForm
 from .proxy_models import *
+from .reports.all import MonthReport, NotSetWeekReport
 
 
 class AgencyClientsFormCreateView(LoginRequiredMixin, CreateView):
@@ -88,10 +91,6 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
     model = AgencyClients
     template_name = 'dashboard/board.html'
 
-    def get_redis_instance(self):
-        redis_instance = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-        return redis_instance
-
     def set_redis_instance(self):
         self.REDIS_INSTANCE = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
@@ -122,13 +121,20 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
         context['client_id'] = self.kwargs.get(self.slug_url_kwarg)
         context['start_date'] = start_date
         context['end_date'] = end_date
-        redis_instance = self.get_redis_instance()
         self.set_redis_instance()
+        total_enable = True
+        if self.request.GET.get('export') == str(1):
+            total_enable = False
         try:
             report_types = ReportTypes.objects.get(agency_client__pk=context['client_id'])
             context['report_types'] = report_types
         except ReportTypes.DoesNotExist:
-            return context
+            raise Http404('У клиента не настроены типы отчетов.')
+
+        if report_types.is_not_set_week:
+            context['not_set_week_report'] = NotSetWeekReport(agency_client_id=12,
+                                                              cache_enable=True,
+                                                              total_enable=total_enable)
         if report_types.is_common:
             context['report_client_cabinet'] = Reports.objects.get_report_client_cabinet(
                 agency_client_id=context['client_id'],
@@ -203,8 +209,8 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             context['p1_end_date'] = self.request.GET.get('p1_end_date')
             context['p2_start_date'] = self.request.GET.get('p2_start_date')
             context['p2_end_date'] = self.request.GET.get('p2_end_date')
-            if context['p1_start_date'] and context['p1_end_date'] and context['p2_start_date'] and context[
-                'p2_end_date']:
+            if (context['p1_start_date'] and context['p1_end_date'] and context['p2_start_date'] and
+                    context['p2_end_date']):
                 context['report_client_period_campaign'] = Reports.objects.get_client_period_campaign(
                     agency_client_id=context['client_id'],
                     p1_start_date=context['p1_start_date'],
@@ -317,6 +323,14 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
                                                                          'channel',
                                                                          'channel_name'
                                                                      ])
+                    table_objects.append(week_table)
+            if context['report_types'].is_not_set_week:
+                if context['not_set_week_report']:
+                    week_table = generate_export_file.NVMCustomTable(items=context['not_set_week_report'],
+                                                                     title='NOT SET',
+                                                                     letters=['C', 'D', 'E'],
+                                                                     change_item_key='week',
+                                                                     exclude_keys=[])
                     table_objects.append(week_table)
             if context['report_types'].is_month_nvm:
                 if context['report_month_nvm']:

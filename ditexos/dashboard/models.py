@@ -107,73 +107,73 @@ class AgencyClients(models.Model):
             arguments=arguments
         )
 
-    def save(self, *args, **kwargs):
-        super().save(args, kwargs)
-
-        """Создание задач для рекламных кабинетов"""
-
-        """Одноразовый запуск для сбора статистики за 3 месяца(яндекс, гугл, вк)"""
-        self.history_report_one_off(
-            task_func=yandex_task.get_reports,
-            arguments={
-                'user_id': self.user.pk,
-                'yandex_client_id': self.yandex_client.client_id
-            }
-        )
-        self.history_report_one_off(
-            task_func=google_task.reports,
-            arguments={
-                'user_id': self.user.pk,
-                'client_google_id': self.google_client.google_id
-            }
-        )
-        if self.vk_client:
-            self.history_report_one_off(
-                task_func=vk_task.campaigns,
-                arguments={
-                    'user_id': self.user.pk,
-                    'client_id': self.vk_client.pk,
-                }
-            )
-            self.history_report_one_off(
-                task_func=vk_task.metrics,
-                arguments={
-                    'user_id': self.user.pk,
-                    'vk_client_id': self.vk_client.client_id,
-                    'vk_account_id': self.vk_client.account.account_id,
-                }
-            )
-        """Переодинческие задачи для обновления статистики(яндекс,гугл)"""
-        self.update_report(
-            task_name='get_yandex_reports',
-            arguments={
-                'user_id': self.user.pk,
-                'yandex_client_id': self.yandex_client.client_id
-            }
-        )
-        self.update_report(
-            task_name='get_google_reports',
-            arguments={
-                'user_id': self.user.pk,
-                'client_google_id': self.google_client.google_id
-            }
-        )
-        if self.vk_client:
-            self.update_report(
-                task_name='vk_campaigns',
-                arguments={
-                    'user_id': self.user.pk,
-                    'client_id': self.vk_client.pk,
-                }
-            )
-            self.update_report(
-                task_name='vk_metrics',
-                arguments={
-                    'user_id': self.user.pk,
-                    'vk_client_id': self.vk_client.client_id,
-                    'vk_account_id': self.vk_client.account.account_id,
-                }
-            )
+    # def save(self, *args, **kwargs):
+    #     super().save(args, kwargs)
+    #
+    #     """Создание задач для рекламных кабинетов"""
+    #
+    #     """Одноразовый запуск для сбора статистики за 3 месяца(яндекс, гугл, вк)"""
+    #     self.history_report_one_off(
+    #         task_func=yandex_task.get_reports,
+    #         arguments={
+    #             'user_id': self.user.pk,
+    #             'yandex_client_id': self.yandex_client.client_id
+    #         }
+    #     )
+    #     self.history_report_one_off(
+    #         task_func=google_task.reports,
+    #         arguments={
+    #             'user_id': self.user.pk,
+    #             'client_google_id': self.google_client.google_id
+    #         }
+    #     )
+    #     if self.vk_client:
+    #         self.history_report_one_off(
+    #             task_func=vk_task.campaigns,
+    #             arguments={
+    #                 'user_id': self.user.pk,
+    #                 'client_id': self.vk_client.pk,
+    #             }
+    #         )
+    #         self.history_report_one_off(
+    #             task_func=vk_task.metrics,
+    #             arguments={
+    #                 'user_id': self.user.pk,
+    #                 'vk_client_id': self.vk_client.client_id,
+    #                 'vk_account_id': self.vk_client.account.account_id,
+    #             }
+    #         )
+    #     """Переодинческие задачи для обновления статистики(яндекс,гугл)"""
+    #     self.update_report(
+    #         task_name='get_yandex_reports',
+    #         arguments={
+    #             'user_id': self.user.pk,
+    #             'yandex_client_id': self.yandex_client.client_id
+    #         }
+    #     )
+    #     self.update_report(
+    #         task_name='get_google_reports',
+    #         arguments={
+    #             'user_id': self.user.pk,
+    #             'client_google_id': self.google_client.google_id
+    #         }
+    #     )
+    #     if self.vk_client:
+    #         self.update_report(
+    #             task_name='vk_campaigns',
+    #             arguments={
+    #                 'user_id': self.user.pk,
+    #                 'client_id': self.vk_client.pk,
+    #             }
+    #         )
+    #         self.update_report(
+    #             task_name='vk_metrics',
+    #             arguments={
+    #                 'user_id': self.user.pk,
+    #                 'vk_client_id': self.vk_client.client_id,
+    #                 'vk_account_id': self.vk_client.account.account_id,
+    #             }
+    #         )
 
     def delete(self, using=None, keep_parents=False):
         PeriodicTask.objects.filter(name__regex=f'-{self.pk}').delete()
@@ -256,6 +256,7 @@ class ReportTypes(models.Model):
                                         verbose_name='Статистика по таргетированной рекламе для NVM')
     is_smm_nvm = models.BooleanField(default=False,
                                      verbose_name='Статистика по смм для NVM')
+    is_not_set_week = models.BooleanField(default=False, verbose_name='Статистика всё, что не попало в отчеты')
 
     class Meta:
         db_table = 'report_types'

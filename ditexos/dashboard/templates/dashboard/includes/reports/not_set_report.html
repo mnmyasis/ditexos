@@ -1,0 +1,53 @@
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="fas fa-table me-1"></i>
+    NOT SET
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-12">
+        <table class="datatable">
+          <thead>
+          <tr>
+            <th>Неделя</th>
+            <th>Канал</th>
+            <th>Обращения</th>
+            <th>ГК</th>
+            <th>КПФ</th>
+          </tr>
+          </thead>
+          <tfoot>
+          <tr>
+            <th>Неделя</th>
+            <th>Канал</th>
+            <th>Обращения</th>
+            <th>ГК</th>
+            <th>КПФ</th>
+          </tr>
+          </tfoot>
+          <tbody>
+          {% for line in not_set_week_report %}
+            {% if line.total %}
+              <tr class="bg-success p-2 text-dark bg-opacity-10">
+                <td>{{ line.week }}</td>
+                <td>{{ line.total }}</td>
+                <td>{{ line.leads }}</td>
+                <td>{{ line.gk }}</td>
+                <td>{{ line.kpf }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td>{{ line.week }}</td>
+                <td>{{ line.channel }}</td>
+                <td>{{ line.leads }}</td>
+                <td>{{ line.gk }}</td>
+                <td>{{ line.kpf }}</td>
+              </tr>
+            {% endif %}
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
