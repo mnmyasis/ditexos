@@ -61,40 +61,12 @@ class Campaigns(models.Model):
         db_table = 'google_campaigns'
 
 
-class AdGroups(models.Model):
-    campaign = models.ForeignKey(Campaigns, on_delete=models.CASCADE)
-    name = models.TextField()
-    ad_group_id = models.TextField()
-
-    def __str__(self):
-        return '{} - {}'.format(self.name, self.campaign.name)
-
-    class Meta:
-        db_table = 'google_ad_groups'
-
-
-class KeyWords(models.Model):
-    ad_group = models.ForeignKey(AdGroups, on_delete=models.CASCADE)
-    name = models.TextField()
-    key_word_id = models.TextField()
-
-    def __str__(self):
-        return '{} - {}'.format(self.name, self.ad_group.name)
-
-    class Meta:
-        db_table = 'google_key_words'
-
-
 class Metrics(models.Model):
-    key_word = models.ForeignKey(KeyWords, on_delete=models.CASCADE, blank=True, null=True)
     campaign = models.ForeignKey(Campaigns, on_delete=models.CASCADE, blank=True, null=True)
     clicks = models.IntegerField()
     cost_micros = models.BigIntegerField()
     impressions = models.IntegerField()
     date = models.DateField()
-
-    def __str__(self):
-        return '{} - {}'.format(self.date, self.key_word.name)
 
     class Meta:
         db_table = 'google_metrics'

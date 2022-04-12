@@ -1,10 +1,7 @@
 from django.contrib import admin
-from .models import *
+from .models import GoogleAdsToken, Clients, Campaigns, Metrics
 
-# Register your models here.
 admin.site.register(GoogleAdsToken)
 admin.site.register(Clients)
 admin.site.register(Campaigns)
-admin.site.register(AdGroups)
-admin.site.register(KeyWords)
 admin.site.register(Metrics)

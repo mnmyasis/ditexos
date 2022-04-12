@@ -1,15 +1,14 @@
 import datetime
-import json
-import os
-import pandas as pd
+
 from django.db.models import Max
-from google.ads.googleads.client import GoogleAdsClient
-from .models import GoogleAdsToken, Clients, Campaigns, AdGroups, KeyWords, Metrics
-from celery import shared_task
-from .services.api import google_ads
-from .services.api import create_ads_client as google_ads_auth
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from google.ads.googleads.client import GoogleAdsClient
+from celery import shared_task
+
+from .models import GoogleAdsToken, Clients, Campaigns, Metrics
+from .services.api import google_ads
+from .services.api import create_ads_client as google_ads_auth
 
 
 @shared_task(name='google_clients')
@@ -40,7 +39,10 @@ def clients(user_id):
                 'google_id': client['id']
             }
         )
-    return 'Success clients update for user: {}'.format(user.email)
+    return {
+        'user': user.email,
+        'user_pk': user.pk
+    }
 
 
 @shared_task(name='get_google_reports')
@@ -56,8 +58,7 @@ def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
     google_ads_client = GoogleAdsClient.load_from_dict(credentials)
     customer = Clients.objects.get(google_id=client_google_id)
     if start_date is None:
-        start_date = Metrics.objects.filter(campaign__client__pk=customer.pk) \
-            .aggregate(Max('date')).get('date__max')
+        start_date = Metrics.objects.filter(campaign__client__pk=customer.pk).aggregate(Max('date')).get('date__max')
         days = datetime.timedelta(days=3)
         start_date -= days
         start_date = start_date.strftime("%Y-%m-%d")
@@ -71,6 +72,8 @@ def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
         start_date,
         end_date
     )
+    created_count = 0
+    updated_count = 0
     for res in df.iloc:
         """Запись"""
         obj_campaign, created = Campaigns.objects.update_or_create(
@@ -82,51 +85,31 @@ def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
                 'campaign_id': res.campaign_id
             }
         )
-        if res.get('ad_group_id'):
-            obj_ad_group, created = AdGroups.objects.update_or_create(
-                campaign=obj_campaign,
-                ad_group_id=res.ad_group_id,
-                defaults={
-                    'campaign': obj_campaign,
-                    'name': res.ad_group_name,
-                    'ad_group_id': res.ad_group_id
-                }
-            )
-            obj_key_word, created = KeyWords.objects.update_or_create(
-                ad_group=obj_ad_group,
-                key_word_id=res.ad_group_criterion_criterion_id,
-                defaults={
-                    'ad_group': obj_ad_group,
-                    'name': res.ad_group_criterion_keyword_text,
-                    'key_word_id': res.ad_group_criterion_criterion_id
-                }
-            )
-            metric, updated = Metrics.objects.update_or_create(
-                campaign=obj_campaign,
-                key_word=obj_key_word,
-                date=res.segments_date,
-                defaults={
-                    'campaign': obj_campaign,
-                    'key_word': obj_key_word,
-                    'clicks': res.metrics_clicks,
-                    'cost_micros': res.metrics_cost_micros,
-                    'impressions': res.metrics_impressions,
-                    'date': res.segments_date
-                }
-            )
+
+        metric, is_created = Metrics.objects.update_or_create(
+            campaign=obj_campaign,
+            date=res.segments_date,
+            defaults={
+                'campaign': obj_campaign,
+                'clicks': res.metrics_clicks,
+                'cost_micros': res.metrics_cost_micros,
+                'impressions': res.metrics_impressions,
+                'date': res.segments_date
+            }
+        )
+        if is_created:
+            created_count += 1
         else:
-            metric, updated = Metrics.objects.update_or_create(
-                campaign=obj_campaign,
-                date=res.segments_date,
-                defaults={
-                    'campaign': obj_campaign,
-                    'clicks': res.metrics_clicks,
-                    'cost_micros': res.metrics_cost_micros,
-                    'impressions': res.metrics_impressions,
-                    'date': res.segments_date
-                }
-            )
-    return f'Success metric start: {start_date} - end:{end_date}  update for client: {customer.name}'
+            updated_count += 1
+    return {
+        'client_pk': customer.pk,
+        'client': customer.name,
+        'client_google_id': customer.google_id,
+        'start_date': start_date,
+        'end_date': end_date,
+        'created_count': created_count,
+        'updated_count': updated_count
+    }
 
 
 @shared_task(name='update_google_token')
@@ -138,8 +121,7 @@ def update_google_token(user_id):
     google_token.access_token = google_require['access_token']
     google_token.refresh_token = google_require['refresh_token']
     google_token.save()
-    return f"Token updated for user - {user.email}"
-
-
-if __name__ == '__main__':
-    pass
+    return {
+        'user': user.email,
+        'user_pk': user.pk
+    }
