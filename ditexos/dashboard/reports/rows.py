@@ -204,13 +204,18 @@ class NotSetWeekRow(MetaRow):
     KEY_KPF = 'kpf'
     KEY_GK = 'gk'
 
+    STRANGE_CHANNEL_NAME = 'Канал под названием ""'
+
     @property
     def week(self):
         return self.data_line.get(self.KEY_WEEK)
 
     @property
     def channel(self):
-        return self.data_line.get(self.KEY_CHANNEL)
+        value = self.data_line.get(self.KEY_CHANNEL)
+        if not value:
+            value = self.STRANGE_CHANNEL_NAME
+        return value
 
     @property
     def leads(self):
