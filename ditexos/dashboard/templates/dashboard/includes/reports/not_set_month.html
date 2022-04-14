@@ -1,12 +1,12 @@
 <div class="card mb-4">
   <div class="card-header">
     <i class="fas fa-table me-1"></i>
-    NOT SET
+    NOT SET по месяцам
   </div>
   <div class="card-body">
     <div class="row">
       <div class="col-md-12">
-        <table class="datatable">
+        <table class="datatable-scrolling">
           <thead>
           <tr>
             <th>Неделя</th>
@@ -26,10 +26,10 @@
           </tr>
           </tfoot>
           <tbody>
-          {% for line in not_set_week_report %}
+          {% for line in not_set_month_report %}
             {% if line.total %}
               <tr class="bg-success p-2 text-dark bg-opacity-10">
-                <td>{{ line.week }}</td>
+                <td>{{ line.month }}</td>
                 <td>{{ line.total }}</td>
                 <td>{{ line.leads }}</td>
                 <td>{{ line.gk }}</td>
@@ -37,7 +37,7 @@
               </tr>
             {% else %}
               <tr>
-                <td>{{ line.week }}</td>
+                <td>{{ line.month }}</td>
                 <td>{{ line.source }}</td>
                 <td>{{ line.leads }}</td>
                 <td>{{ line.gk }}</td>

@@ -19,6 +19,7 @@ from .reports.target import TargetReport
 from .reports.smm import SmmReport
 from .reports.week import WeekReport
 from .reports.campaign import CampaignReport
+from .reports.not_set_month import NotSetMonthReport
 from .reports.brand import BrandReport, direction_filter_for_brand, diff_main_filter_for_brand
 
 
@@ -176,6 +177,10 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             context['not_set_week_report'] = NotSetWeekReport(agency_client_id=context[self.AGENCY_CLIENT_ID_KEY],
                                                               cache_enable=self.CACHE_ENABLE,
                                                               total_enable=self.TOTAL_ROW_ENABLE)
+        if report_types.is_not_set_month:
+            context['not_set_month_report'] = NotSetMonthReport(agency_client_id=context[self.AGENCY_CLIENT_ID_KEY],
+                                                                cache_enable=self.CACHE_ENABLE,
+                                                                total_enable=self.TOTAL_ROW_ENABLE)
         if report_types.is_campaign_nvm:
             context['report_campaign_nvm'] = CampaignReport(agency_client_id=context[self.AGENCY_CLIENT_ID_KEY],
                                                             cache_enable=self.CACHE_ENABLE)
@@ -218,12 +223,17 @@ class ClientReportDetailView(LoginRequiredMixin, DetailView):
             if context['report_types'].is_not_set_week:
                 if context['not_set_week_report']:
                     not_set_table = generate_export_file.DefaultTable(items=context['not_set_week_report'],
-                                                                      title='NOT SET')
+                                                                      title='NOT SET по неделям')
                     table_objects.append(not_set_table)
             if context['report_types'].is_month_nvm:
                 if context['report_month_nvm']:
                     month_table = generate_export_file.DefaultTable(items=context['report_month_nvm'],
                                                                     title='По месяцам')
+                    table_objects.append(month_table)
+            if context['report_types'].is_not_set_month:
+                if context['not_set_month_report']:
+                    month_table = generate_export_file.DefaultTable(items=context['not_set_month_report'],
+                                                                    title='NOT SET по месяцам')
                     table_objects.append(month_table)
             if context['report_types'].is_campaign_nvm:
                 if context['report_campaign_nvm']:

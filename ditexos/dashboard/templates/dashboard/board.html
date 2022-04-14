@@ -43,7 +43,6 @@
         {% if report_types.is_period %}
           {% include 'dashboard/includes/reports/period_comagic.html' %}
         {% endif %}
-
         {% if report_types.is_brand_nvm %}
           {% include 'dashboard/includes/reports/brand_nvm.html' %}
         {% endif %}
@@ -56,11 +55,14 @@
         {% if report_types.is_week_nvm %}
           {% include 'dashboard/includes/reports/week_nvm.html' %}
         {% endif %}
+        {% if report_types.is_not_set_week %}
+          {% include 'dashboard/includes/reports/not_set_week.html' %}
+        {% endif %}
         {% if report_types.is_month_nvm %}
           {% include 'dashboard/includes/reports/month_nvm.html' %}
         {% endif %}
-        {% if report_types.is_not_set_week %}
-          {% include 'dashboard/includes/reports/not_set_report.html' %}
+        {% if report_types.is_not_set_month %}
+          {% include 'dashboard/includes/reports/not_set_month.html' %}
         {% endif %}
         {% if report_types.is_campaign_nvm %}
           {% include 'dashboard/includes/reports/campaign_nvm.html' %}
