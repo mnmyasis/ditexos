@@ -142,7 +142,7 @@ class DefaultTable(GenerateExcelFile):
         skip_row = 3  # Отступ
         title_format = self.get_title_format()
         header_format = self.get_header_format()  # header table
-        cell_format = self.get_cell_format()
+
         worksheet.merge_range(start_row - 2, col, start_row - 1, col + 4, title, title_format)
         start_row += 2
         for key in keys:
@@ -150,9 +150,12 @@ class DefaultTable(GenerateExcelFile):
                 worksheet.write(start_row, col, key, header_format)
                 col += 1
         start_row += 1
-
         for item in items:
             col = 0
+            if item.get('total'):
+                cell_format = self.get_total_format()
+            else:
+                cell_format = self.get_cell_format()
             for key in keys:
                 if key not in exclude_keys:
                     worksheet.write(start_row, col, item[key], cell_format)
@@ -203,7 +206,7 @@ class NVMTable(GenerateExcelFile):
                     worksheet.write(start_row, col, item[key], cell_format)
                     col += 1
             start_row += 1
-        # letters = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
+        letters = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
         for letter in letters:
             formula = '+'.join([f'{letter}{x}' for x in range(tmp_row, start_row + 1)])
             worksheet.write_formula(f'{letter}{start_row + 1}', f'={formula}', self.get_total_format())

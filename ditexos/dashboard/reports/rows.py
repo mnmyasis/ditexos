@@ -3,6 +3,7 @@ from typing import Union, Dict
 
 
 class MetaRow:
+    SLICE_DATE = 19
     MONTHS_RUS = {
         1: 'Январь',
         2: 'Февраль',
@@ -17,6 +18,7 @@ class MetaRow:
         11: 'Ноябрь',
         12: 'Декабрь'
     }
+    PATTERN_DATE_CONVERT = '%Y-%m-%d %H:%M:%S'
 
     KEY_COST = 'cost_'
     KEY_IMPRESSIONS = 'impressions'
@@ -32,6 +34,9 @@ class MetaRow:
         self.data_line = data_line
 
     def __getitem__(self, item):
+        return getattr(self, item)
+
+    def get(self, item):
         return getattr(self, item)
 
     def keys(self):
@@ -69,13 +74,20 @@ class MetaRow:
             value = cost
         return float(value)
 
+    def get_rus_month(self, date: Union[str, datetime.datetime]):
+        """Месяц на русском."""
+        date_to_string = str(date)[:self.SLICE_DATE]
+        date_ = datetime.datetime.strptime(date_to_string, self.PATTERN_DATE_CONVERT)
+        year_month = f'{date_.year} {self.MONTHS_RUS.get(date_.month)}'
+        return year_month
+
     @property
     def cost_(self) -> float:
         """Св-во Стоимость."""
         value = self.data_line.get(self.KEY_COST)
         if value is None:
             value = self.NULL_VALUE
-        return float(value)
+        return round(float(value), self.ROUND_COUNT)
 
     @property
     def impressions(self) -> int:
@@ -97,143 +109,3 @@ class MetaRow:
     def total(self) -> str:
         """Строка Всего."""
         return self.data_line.get(self.KEY_TOTAL)
-
-
-class MonthRow(MetaRow):
-    SLICE_DATE = 19
-
-    KEY_SOURCE_NAME = 'source_name'
-    KEY_MONTH = 'month_string'
-    KEY_GK = 'gk'
-    KEY_KPF = 'kpf'
-    KEY_LEADS = 'leads'
-
-    PATTERN_DATE_CONVERT = '%Y-%m-%d %H:%M:%S'
-    SOURCE_NONE_NAME = 'NOT SET'
-
-    KEYS = [
-        'month_string',
-        'source_name',
-        'cost_',
-        'impressions',
-        'clicks',
-        'gk',
-        'leads',
-        'ctr',
-        'cpc',
-        'gk_cpl',
-        'cr',
-        'gk_cr',
-        'cpl'
-    ]
-
-    @property
-    def source_name(self) -> str:
-        """Св-во имя источника"""
-        value = self.data_line.get(self.KEY_SOURCE_NAME)
-        if value is None:
-            value = self.SOURCE_NONE_NAME
-        return str(value)
-
-    @property
-    def month_string(self) -> str:
-        """Св-во название месяца."""
-        date_string = str(self.data_line.get(self.KEY_MONTH))[:self.SLICE_DATE]
-        date = datetime.datetime.strptime(date_string, self.PATTERN_DATE_CONVERT)
-        year_month = f'{date.year} {self.MONTHS_RUS.get(date.month)}'
-        return year_month
-
-    @property
-    def gk(self) -> int:
-        """Св-во горячий клиент."""
-        value = self.data_line.get(self.KEY_GK)
-        if value is None:
-            value = 0
-        return int(value)
-
-    @property
-    def leads(self) -> int:
-        """Св-во все лиды."""
-        value = self.data_line.get(self.KEY_LEADS)
-        if value is None:
-            value = 0
-        return int(value)
-
-    @property
-    def ctr(self) -> float:
-        """Св-во CTR."""
-        return self.get_ctr(clicks=self.clicks, impressions=self.impressions)
-
-    @property
-    def cpc(self) -> float:
-        """Св-во CPC."""
-        return self.get_cpc(cost=self.cost_, clicks=self.clicks)
-
-    @property
-    def gk_cpl(self) -> float:
-        """Св-во горячий клиент CPL."""
-        return self.get_cpl(cost=self.cost_, leads=self.gk)
-
-    @property
-    def cr(self) -> float:
-        """Св-во CR."""
-        return self.get_cr(lead=self.leads, clicks=self.clicks)
-
-    @property
-    def gk_cr(self) -> float:
-        """Св-во горячий клиент CR."""
-        return self.get_cr(lead=self.gk, clicks=self.clicks)
-
-    @property
-    def cpl(self) -> float:
-        """Св-во CPL."""
-        return self.get_cpl(cost=self.cost_, leads=self.leads)
-
-
-class NotSetWeekRow(MetaRow):
-    KEYS = [
-        'week',
-        'channel',
-        'leads',
-        'kpf',
-        'gk',
-    ]
-    KEY_CHANNEL = 'channel'
-    KEY_WEEK = 'week'
-    KEY_LEADS = 'leads'
-    KEY_KPF = 'kpf'
-    KEY_GK = 'gk'
-
-    STRANGE_CHANNEL_NAME = 'Канал под названием ""'
-
-    @property
-    def week(self):
-        return self.data_line.get(self.KEY_WEEK)
-
-    @property
-    def channel(self):
-        value = self.data_line.get(self.KEY_CHANNEL)
-        if not value:
-            value = self.STRANGE_CHANNEL_NAME
-        return value
-
-    @property
-    def leads(self):
-        value = self.data_line.get(self.KEY_LEADS)
-        if value is None:
-            value = self.NULL_VALUE
-        return value
-
-    @property
-    def kpf(self):
-        value = self.data_line.get(self.KEY_KPF)
-        if value is None:
-            value = self.NULL_VALUE
-        return value
-
-    @property
-    def gk(self):
-        value = self.data_line.get(self.KEY_GK)
-        if value is None:
-            value = self.NULL_VALUE
-        return value

@@ -41,19 +41,35 @@
               </tfoot>
               <tbody>
               {% for line in reports.no_brand_report %}
-                <tr>
-                  <td>{{ line.t_source }}</td>
-                  <td>{{ line.cost_ }} ₽</td>
-                  <td>{{ line.impressions }}</td>
-                  <td>{{ line.clicks }}</td>
-                  <td>{{ line.ctr }}%</td>
-                  <td>{{ line.cpc }} ₽</td>
-                  <td>{{ line.kpf }}</td>
-                  <td>{{ line.kpf_cpl }} ₽</td>
-                  <td>{{ line.leads }}</td>
-                  <td>{{ line.cr }}%</td>
-                  <td>{{ line.cpl }} ₽</td>
-                </tr>
+                {% if line.total %}
+                  <tr class="bg-success p-2 text-dark bg-opacity-10">
+                    <td>{{ line.total }}</td>
+                    <td>{{ line.cost_ }} ₽</td>
+                    <td>{{ line.impressions }}</td>
+                    <td>{{ line.clicks }}</td>
+                    <td>{{ line.ctr }}%</td>
+                    <td>{{ line.cpc }} ₽</td>
+                    <td>{{ line.kpf }}</td>
+                    <td>{{ line.kpf_cpl }} ₽</td>
+                    <td>{{ line.leads }}</td>
+                    <td>{{ line.cr }}%</td>
+                    <td>{{ line.cpl }} ₽</td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td>{{ line.channel }}</td>
+                    <td>{{ line.cost_ }} ₽</td>
+                    <td>{{ line.impressions }}</td>
+                    <td>{{ line.clicks }}</td>
+                    <td>{{ line.ctr }}%</td>
+                    <td>{{ line.cpc }} ₽</td>
+                    <td>{{ line.kpf }}</td>
+                    <td>{{ line.kpf_cpl }} ₽</td>
+                    <td>{{ line.leads }}</td>
+                    <td>{{ line.cr }}%</td>
+                    <td>{{ line.cpl }} ₽</td>
+                  </tr>
+                {% endif %}
               {% endfor %}
               </tbody>
             </table>
@@ -104,19 +120,35 @@
               </tfoot>
               <tbody>
               {% for line in reports.brand_report %}
-                <tr>
-                  <td>{{ line.t_source }}</td>
-                  <td>{{ line.cost_ }} ₽</td>
-                  <td>{{ line.impressions }}</td>
-                  <td>{{ line.clicks }}</td>
-                  <td>{{ line.ctr }} %</td>
-                  <td>{{ line.cpc }} ₽</td>
-                  <td>{{ line.kpf }}</td>
-                  <td>{{ line.kpf_cpl }} ₽</td>
-                  <td>{{ line.leads }}</td>
-                  <td>{{ line.cr }}%</td>
-                  <td>{{ line.cpl }} ₽</td>
-                </tr>
+                {% if line.total %}
+                  <tr class="bg-success p-2 text-dark bg-opacity-10">
+                    <td>{{ line.total }}</td>
+                    <td>{{ line.cost_ }} ₽</td>
+                    <td>{{ line.impressions }}</td>
+                    <td>{{ line.clicks }}</td>
+                    <td>{{ line.ctr }}%</td>
+                    <td>{{ line.cpc }} ₽</td>
+                    <td>{{ line.kpf }}</td>
+                    <td>{{ line.kpf_cpl }} ₽</td>
+                    <td>{{ line.leads }}</td>
+                    <td>{{ line.cr }}%</td>
+                    <td>{{ line.cpl }} ₽</td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td>{{ line.channel }}</td>
+                    <td>{{ line.cost_ }} ₽</td>
+                    <td>{{ line.impressions }}</td>
+                    <td>{{ line.clicks }}</td>
+                    <td>{{ line.ctr }} %</td>
+                    <td>{{ line.cpc }} ₽</td>
+                    <td>{{ line.kpf }}</td>
+                    <td>{{ line.kpf_cpl }} ₽</td>
+                    <td>{{ line.leads }}</td>
+                    <td>{{ line.cr }}%</td>
+                    <td>{{ line.cpl }} ₽</td>
+                  </tr>
+                {% endif %}
               {% endfor %}
               </tbody>
             </table>

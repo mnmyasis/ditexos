@@ -1,4 +1,4 @@
-SELECT SUB_DATE.utm_source channel,
+SELECT SUB_DATE.utm_source source,
        SUB_DATE.week       week,
        CASE
            WHEN SUB_LEADS.leads ISNULL THEN 0

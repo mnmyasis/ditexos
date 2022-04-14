@@ -1,24 +1,27 @@
-select agency_client_id,
-       source,
-       month_ as                   month_string,
-       source_name,
-       sum(impressions)::int       impressions,
-       round(sum(cost_), 2)::float cost_,
-       sum(clicks)::int            clicks,
+SELECT agency_client_id,
+       source                      src,
+       month_                      month_string,
+       source_name                 source,
+       SUM(impressions)::int       impressions,
+       ROUND(SUM(cost_), 2)::float cost_,
+       SUM(clicks)::int            clicks,
        month_,
        (
-           select count(*)
-           from amo_kpf
-           where agency_client_id = {agency_client_id} and lead_type = 'leads' and cabinets.source = utm_source and cabinets.month_ = month_ ) leads,
+           SELECT COUNT(*)
+           FROM amo_kpf
+           WHERE agency_client_id = {agency_client_id}
+           AND lead_type = 'leads'
+           AND cabinets.source = utm_source
+           AND cabinets.month_ = month_ ) leads,
     (
-select count(*)
-from amo_kpf
-where agency_client_id = {agency_client_id}
-  and lead_type = 'gk'
-  and cabinets.source = utm_source
-  and cabinets.month_ = month_
+SELECT count(*)
+FROM amo_kpf
+WHERE agency_client_id = {agency_client_id}
+  AND lead_type = 'gk'
+  AND cabinets.source = utm_source
+  AND cabinets.month_ = month_
     ) gk
-from cabinets
-where agency_client_id = {agency_client_id}
-group by agency_client_id, source, source_name, month_, month_string
-order by month_ desc;
+FROM cabinets
+WHERE agency_client_id = {agency_client_id}
+GROUP BY agency_client_id, source, source_name, month_, month_string
+ORDER BY month_ DESC;

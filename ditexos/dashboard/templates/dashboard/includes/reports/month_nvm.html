@@ -43,21 +43,39 @@
           </tfoot>
           <tbody>
           {% for line in report_month_nvm %}
-            <tr>
-              <td>{{ line.month_string }}</td>
-              <td>{{ line.source_name }}</td>
-              <td>{{ line.cost_ }} ₽</td>
-              <td>{{ line.impressions }}</td>
-              <td>{{ line.clicks }}</td>
-              <td>{{ line.ctr }}%</td>
-              <td>{{ line.cpc }} ₽</td>
-              <td>{{ line.gk }}</td>
-              <td>{{ line.gk_cpl }} ₽</td>
-              <td>{{ line.leads }}</td>
-              <td>{{ line.cr }}%</td>
-              <td>{{ line.gk_cr }}%</td>
-              <td>{{ line.cpl }} ₽</td>
-            </tr>
+            {% if line.total %}
+              <tr class="bg-success p-2 text-dark bg-opacity-10">
+                <td>{{ line.month_string }}</td>
+                <td>{{ line.total }}</td>
+                <td>{{ line.cost_ }} ₽</td>
+                <td>{{ line.impressions }}</td>
+                <td>{{ line.clicks }}</td>
+                <td>{{ line.ctr }}%</td>
+                <td>{{ line.cpc }} ₽</td>
+                <td>{{ line.gk }}</td>
+                <td>{{ line.gk_cpl }} ₽</td>
+                <td>{{ line.leads }}</td>
+                <td>{{ line.cr }}%</td>
+                <td>{{ line.gk_cr }}%</td>
+                <td>{{ line.cpl }} ₽</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td>{{ line.month_string }}</td>
+                <td>{{ line.source }}</td>
+                <td>{{ line.cost_ }} ₽</td>
+                <td>{{ line.impressions }}</td>
+                <td>{{ line.clicks }}</td>
+                <td>{{ line.ctr }}%</td>
+                <td>{{ line.cpc }} ₽</td>
+                <td>{{ line.gk }}</td>
+                <td>{{ line.gk_cpl }} ₽</td>
+                <td>{{ line.leads }}</td>
+                <td>{{ line.cr }}%</td>
+                <td>{{ line.gk_cr }}%</td>
+                <td>{{ line.cpl }} ₽</td>
+              </tr>
+            {% endif %}
           {% endfor %}
           </tbody>
         </table>

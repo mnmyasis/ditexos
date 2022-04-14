@@ -6,8 +6,6 @@ from django.db import connection
 from django.conf import settings
 import redis
 
-from .rows import MonthRow, NotSetWeekRow
-
 
 class MetaReport:
     DATA: List[Dict[str, Union[str, int, float]]]
@@ -16,12 +14,11 @@ class MetaReport:
     TOTAL_REPORT_ATTRIBUTES: Dict[str, Union[str, int, float]] = {
         'impressions': 0,
         'clicks': 0,
-        'cost_': 0,
-        'leads': 0,
-        'gk': 0
+        'cost_': 0
     }
     TOTAL_ROW_KEY = 'total'
     TOTAL_ROW_VALUE = 'Всего'
+    SOURCE_KEY = 'source'
     PATH_SQL_QUERY = []
     REDIS_HOST: str = settings.REDIS_HOST
     REDIS_PORT: int = settings.REDIS_PORT
@@ -91,7 +88,7 @@ class MetaReport:
         sql = self.generate_query_sql()
         self.CURSOR.execute(sql)
 
-    def __sum_total_attributes(self, data_line: Dict[str, Union[str, int, float]]) -> None:
+    def _sum_total_attributes(self, data_line: Dict[str, Union[str, int, float]]) -> None:
         """Суммирование атрибутов отчетов, для total строки."""
         for key, value in data_line.items():
             if key in self.TOTAL_REPORT_ATTRIBUTES:
@@ -101,29 +98,39 @@ class MetaReport:
                     raise TypeError(f'{key} {value} cannot be str or None')
                 self.TOTAL_REPORT_ATTRIBUTES[key] += value
 
-    def __reset_total_attributes(self, data_line: Dict[str, Union[str, int, float]]) -> None:
+    def _reset_total_attributes(self, data_line: Dict[str, Union[str, int, float]]) -> None:
         """Обнуляет total атрибуты."""
         for key in data_line:
             if key in self.TOTAL_REPORT_ATTRIBUTES:
                 self.TOTAL_REPORT_ATTRIBUTES[key] = 0
+
+    def __create_total_row(self, month: str):
+        """Создание строки total."""
+        total_row = {self.KEY_COLUMN_FOR_TOTAL_ROW: month,
+                     self.TOTAL_ROW_KEY: self.TOTAL_ROW_VALUE,
+                     self.SOURCE_KEY: self.TOTAL_ROW_VALUE}
+        total_row.update(self.TOTAL_REPORT_ATTRIBUTES)
+        return total_row
 
     def generate_total_raw(self) -> None:
         """Вставка строки total в таблицу отчета."""
         data = self.DATA
         if len(data) > 0:
             tmp_month = data[0][self.KEY_COLUMN_FOR_TOTAL_ROW]
+            month = data[0][self.KEY_COLUMN_FOR_TOTAL_ROW]
             result_data = []
             for data_line in data:
                 month = data_line.get(self.KEY_COLUMN_FOR_TOTAL_ROW)
-                if month != tmp_month:
-                    add_in_total = {self.KEY_COLUMN_FOR_TOTAL_ROW: tmp_month, self.TOTAL_ROW_KEY: self.TOTAL_ROW_VALUE}
-                    add_in_total.update(self.TOTAL_REPORT_ATTRIBUTES)
-                    result_data.append(add_in_total)
-                    self.__reset_total_attributes(data_line)
-                    tmp_month = month
-                self.__sum_total_attributes(data_line)
+                if month != tmp_month:  # Произошел переход на следующий месяц
+                    total_row = self.__create_total_row(tmp_month)
+                    result_data.append(total_row)
+                    tmp_month = month  # Сверяемый месяц получает месяц текущего
+                    self._reset_total_attributes(data_line)
+                self._sum_total_attributes(data_line)
                 result_data.append(data_line)
-            self.__reset_total_attributes(data[0])
+            total_row = self.__create_total_row(month)
+            result_data.append(total_row)
+            self._reset_total_attributes(data[0])
             self.DATA = result_data
 
     def generate_query_sql(self) -> str:
@@ -137,55 +144,15 @@ class MetaReport:
     def orchestrator(self) -> None:
         """Оркестратор генерации отчета."""
         cache_data = None
-        if self.cache_enable:
+        if self.cache_enable:  # Если включено кэширование
             cache_data = self.__get_redis_cache()
-        if cache_data:
+        if cache_data:  # Если кэширование включено, проверяет есть ли кэш
             self.DATA = cache_data
-        else:
+        else:  # Если кэша нет
             self.__set_cursor()
             self.__execute()
             self.DATA = self.__dictfetchall()
+        if self.cache_enable:  # Запись в кэш, если кэширование включено
             self.__set_redis_cache()
-        if self.total_enable:
+        if self.total_enable:  # Добавление строки total в результат.
             self.generate_total_raw()
-
-
-class MonthReport(MetaReport):
-    KEY_COLUMN_FOR_TOTAL_ROW: str = 'month_string'
-    PATH_SQL_QUERY = ['dashboard', 'reports', 'sql', 'month.sql']
-
-    def __getitem__(self, item):
-        return MonthRow(self.DATA[item])
-
-    def __next__(self):
-        if self.n < self.max:
-            row = self.DATA[self.n]
-            self.n += 1
-            return MonthRow(row)
-        else:
-            raise StopIteration
-
-
-class NotSetWeekReport(MetaReport):
-    KEY_COLUMN_FOR_TOTAL_ROW = 'week'
-    PATH_SQL_QUERY = ['dashboard', 'reports', 'sql', 'not_set_week.sql']
-
-    TOTAL_REPORT_ATTRIBUTES: Dict[str, Union[str, int, float]] = {
-        'impressions': 0,
-        'clicks': 0,
-        'cost_': 0,
-        'leads': 0,
-        'gk': 0,
-        'kpf': 0,
-    }
-
-    def __getitem__(self, item):
-        return NotSetWeekRow(self.DATA[item])
-
-    def __next__(self):
-        if self.n < self.max:
-            row = self.DATA[self.n]
-            self.n += 1
-            return NotSetWeekRow(row)
-        else:
-            raise StopIteration

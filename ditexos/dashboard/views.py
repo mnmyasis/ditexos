@@ -1,7 +1,6 @@
 import datetime
-import decimal
+from typing import List, Dict
 
-from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.shortcuts import redirect
@@ -10,12 +9,17 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView
 from django.views.generic.list import ListView
 
-import redis
-
 from excel.services import generate_export_file
 from .forms import AgencyClientsForm
-from .proxy_models import *
-from .reports.all import MonthReport, NotSetWeekReport
+from .proxy_models import Reports
+from .models import AgencyClients, ReportTypes
+from .reports.month import MonthReport
+from .reports.not_set_week import NotSetWeekReport
+from .reports.target import TargetReport
+from .reports.smm import SmmReport
+from .reports.week import WeekReport
+from .reports.campaign import CampaignReport
+from .reports.brand import BrandReport, direction_filter_for_brand, diff_main_filter_for_brand
 
 
 class AgencyClientsFormCreateView(LoginRequiredMixin, CreateView):
@@ -70,305 +74,175 @@ class ClientsView(LoginRequiredMixin, ListView):
         return response_class
 
 
-class JSONEncoder(json.JSONEncoder):
-    """Перекодирует decimal, т.к. эксель не понимает точки."""
-
-    def default(self, obj):
-        if isinstance(obj, decimal.Decimal):
-            return float(obj)
-        if isinstance(obj, datetime.datetime):
-            return str(obj)
-        return json.JSONEncoder.default(self, obj)
+def get_brand_nvm(agency_client_id: int,
+                  start_date: str,
+                  end_date: str,
+                  total_enable: bool) -> List[Dict]:
+    """Выгружает брендовые отчеты."""
+    brands_types = (True, False)
+    result = []
+    agency_client = AgencyClients.objects.get(pk=agency_client_id)
+    directions = agency_client.customizabledirection_set.all()
+    for direction in directions:
+        for is_brand in brands_types:
+            if direction.is_main:
+                filter_campaign, filter_utm_campaign = diff_main_filter_for_brand(directions, is_brand)
+            else:
+                filter_campaign, filter_utm_campaign = direction_filter_for_brand(direction.direction)
+            brand_report = BrandReport(agency_client_id=agency_client_id,
+                                       start_date=start_date,
+                                       end_date=end_date,
+                                       filter_campaign=filter_campaign,
+                                       filter_utm_campaign=filter_utm_campaign,
+                                       is_brand=is_brand,
+                                       total_enable=total_enable)
+            reports = {}
+            if direction.only_one_type in ('br', 'all') and is_brand:
+                reports['brand_report'] = brand_report
+            if direction.only_one_type in ('nb', 'all') and is_brand is False:
+                reports['no_brand_report'] = brand_report
+            reports['direction_name'] = direction.name
+            result.append(reports)
+    return result
 
 
 class ClientReportDetailView(LoginRequiredMixin, DetailView):
-    REPORT_EXPIRE = 3600
-    REDIS_INSTANCE = None
+    """Дополнительные настройки view."""
+    DATE_PATTERN = '%Y-%m-%d'
+    AGENCY_CLIENT_ID_KEY = 'client_id'
+    MESSAGE_NOT_REPORT_TYPE = 'У клиента не настроены типы отчетов.'
 
+    """Настройки выгрузки."""
+    CACHE_ENABLE = True
+    TOTAL_ROW_ENABLE = True
+
+    """Настройки генерации эксель файла."""
+    TITLE_FONT_SIZE = 24
+    HEADER_FONT_SIZE = 12
+    SUB_HEADER_FONT_SIZE = 12
+    CELL_FONT_SIZE = 8
+    FONT = 'calibri'
+    START_ROW = 7
+    LOGO_IMAGE = 'DI.png'
+
+    """Переменные django view."""
     slug_field = 'pk'
     slug_url_kwarg = 'client_id'
     context_object_name = 'context'
     model = AgencyClients
     template_name = 'dashboard/board.html'
 
-    def set_redis_instance(self):
-        self.REDIS_INSTANCE = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
-
-    def get_report(self, report_obj: Reports.objects, key, **kwargs):
-        agency_client_id = kwargs.get('agency_client_id')
-        if agency_client_id is None:
-            raise ValueError(f'Does not exist agency_client_id')
-        report_key = '{}_{}_{}'.format(self.request.user.email, agency_client_id, key)
-        context = self.REDIS_INSTANCE.get(report_key)
-        if context is None:
-            context = report_obj(**kwargs)
-
-            self.REDIS_INSTANCE.set(report_key,
-                                    json.dumps(context, cls=JSONEncoder),
-                                    ex=self.REPORT_EXPIRE)
-        else:
-            context = json.loads(context)
-        return context
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         start_date = self.request.GET.get('start_date')
         end_date = self.request.GET.get('end_date')
         if start_date is None and end_date is None or start_date == 'null' and end_date == 'null':
-            start_date = datetime.datetime.now().strftime('%Y-%m-%d')
-            end_date = datetime.datetime.now().strftime('%Y-%m-%d')
+            start_date = datetime.datetime.now().strftime(self.DATE_PATTERN)
+            end_date = datetime.datetime.now().strftime(self.DATE_PATTERN)
 
-        context['client_id'] = self.kwargs.get(self.slug_url_kwarg)
+        context[self.AGENCY_CLIENT_ID_KEY] = self.kwargs.get(self.slug_url_kwarg)
         context['start_date'] = start_date
         context['end_date'] = end_date
-        self.set_redis_instance()
-        total_enable = True
-        if self.request.GET.get('export') == str(1):
-            total_enable = False
         try:
-            report_types = ReportTypes.objects.get(agency_client__pk=context['client_id'])
+            report_types = ReportTypes.objects.get(agency_client__pk=context[self.AGENCY_CLIENT_ID_KEY])
             context['report_types'] = report_types
         except ReportTypes.DoesNotExist:
-            raise Http404('У клиента не настроены типы отчетов.')
+            raise Http404(self.MESSAGE_NOT_REPORT_TYPE)
+        if report_types.is_target_nvm:
+            context['report_target_nvm'] = TargetReport(agency_client_id=context[self.AGENCY_CLIENT_ID_KEY],
+                                                        start_date=start_date,
+                                                        end_date=end_date,
+                                                        total_enable=self.TOTAL_ROW_ENABLE)
+        if report_types.is_smm_nvm:
+            context['report_smm_nvm'] = SmmReport(agency_client_id=context[self.AGENCY_CLIENT_ID_KEY],
+                                                  start_date=start_date,
+                                                  end_date=end_date,
+                                                  total_enable=self.TOTAL_ROW_ENABLE)
+        if report_types.is_brand_nvm:
+            context['report_brand_nvm'] = get_brand_nvm(agency_client_id=context[self.AGENCY_CLIENT_ID_KEY],
+                                                        start_date=start_date,
+                                                        end_date=end_date,
+                                                        total_enable=self.TOTAL_ROW_ENABLE)
+        if report_types.is_month_nvm:
+            context['report_month_nvm'] = MonthReport(agency_client_id=context[self.AGENCY_CLIENT_ID_KEY],
+                                                      total_enable=self.TOTAL_ROW_ENABLE,
+                                                      cache_enable=self.CACHE_ENABLE)
+        if report_types.is_week_nvm:
+            context['report_week_nvm'] = WeekReport(agency_client_id=context[self.AGENCY_CLIENT_ID_KEY],
+                                                    total_enable=self.TOTAL_ROW_ENABLE,
+                                                    cache_enable=self.CACHE_ENABLE)
 
         if report_types.is_not_set_week:
-            context['not_set_week_report'] = NotSetWeekReport(agency_client_id=12,
-                                                              cache_enable=True,
-                                                              total_enable=total_enable)
-        if report_types.is_common:
-            context['report_client_cabinet'] = Reports.objects.get_report_client_cabinet(
-                agency_client_id=context['client_id'],
-                start_date=start_date,
-                end_date=end_date
-            )
-        if report_types.is_channel:
-            context['report_client_channel'] = Reports.objects.get_client_channel(
-                agency_client_id=context['client_id'],
-                start_date=start_date,
-                end_date=end_date
-            )
-        if report_types.is_campaign:
-            context['report_client_campaign'] = Reports.objects.get_client_campaign(
-                agency_client_id=context['client_id'],
-                start_date=start_date,
-                end_date=end_date
-            )
-        if report_types.is_direction:
-            context['report_client_direction'] = Reports.objects.get_client_direction(
-                agency_client_id=context['client_id'],
-                start_date=start_date,
-                end_date=end_date
-            )
-        if report_types.is_comagic_other:
-            context['comagic_other_report'] = Reports.objects.get_comagic_other_report(
-                agency_client_id=context['client_id'],
-                start_date=start_date,
-                end_date=end_date
-            )
-        if report_types.is_direction:
-            context['report_direction_for_export'] = Reports.objects.get_direction_for_export(
-                agency_client_id=context['client_id'],
-                start_date=start_date,
-                end_date=end_date
-            )
-        if report_types.is_brand_nvm:
-            agency_client = AgencyClients.objects.get(pk=context['client_id'])
-            directions = agency_client.customizabledirection_set.all()
-            context['report_brand_nvm'] = Reports.objects.get_brand_nvm(
-                agency_client_id=context['client_id'],
-                directions=directions,
-                start_date=start_date,
-                end_date=end_date
-            )
-        if report_types.is_week_nvm:
-            context['report_week_nvm'] = self.get_report(Reports.objects.get_week_nvm,
-                                                         'report_week_nvm',
-                                                         agency_client_id=context['client_id'])
-        if report_types.is_month_nvm:
-            context['report_month_nvm'] = self.get_report(Reports.objects.get_month_nvm,
-                                                          'report_month_nvm',
-                                                          agency_client_id=context['client_id'])
+            context['not_set_week_report'] = NotSetWeekReport(agency_client_id=context[self.AGENCY_CLIENT_ID_KEY],
+                                                              cache_enable=self.CACHE_ENABLE,
+                                                              total_enable=self.TOTAL_ROW_ENABLE)
         if report_types.is_campaign_nvm:
-            context['report_campaign_nvm'] = self.get_report(Reports.objects.get_campaign_nvm,
-                                                             'report_campaign_nvm',
-                                                             agency_client_id=context['client_id'])
-        if report_types.is_target_nvm:
-            context['report_target_nvm'] = Reports.objects.get_target_nvm(
-                agency_client_id=context['client_id'],
-                start_date=start_date,
-                end_date=end_date
-            )
-        if report_types.is_smm_nvm:
-            context['report_smm_nvm'] = Reports.objects.get_smm_nvm(
-                agency_client_id=context['client_id'],
-                start_date=start_date,
-                end_date=end_date
-            )
-        if report_types.is_period:
-            context['p1_start_date'] = self.request.GET.get('p1_start_date')
-            context['p1_end_date'] = self.request.GET.get('p1_end_date')
-            context['p2_start_date'] = self.request.GET.get('p2_start_date')
-            context['p2_end_date'] = self.request.GET.get('p2_end_date')
-            if (context['p1_start_date'] and context['p1_end_date'] and context['p2_start_date'] and
-                    context['p2_end_date']):
-                context['report_client_period_campaign'] = Reports.objects.get_client_period_campaign(
-                    agency_client_id=context['client_id'],
-                    p1_start_date=context['p1_start_date'],
-                    p1_end_date=context['p1_end_date'],
-                    p2_start_date=context['p2_start_date'],
-                    p2_end_date=context['p2_end_date']
-                )
-            else:
-                context['p1_start_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
-                context['p1_end_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
-                context['p2_start_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
-                context['p2_end_date'] = datetime.datetime.now().strftime('%Y-%m-%d')
+            context['report_campaign_nvm'] = CampaignReport(agency_client_id=context[self.AGENCY_CLIENT_ID_KEY],
+                                                            cache_enable=self.CACHE_ENABLE)
         return context
 
     def render_to_response(self, context, **response_kwargs):
         if self.request.GET.get('export') == str(1):
             table_objects = []
-            if context['report_types'].is_common:
-                if context['report_client_cabinet']:
-                    cabinet_table = generate_export_file.DefaultTable(items=context['report_client_cabinet'],
-                                                                      title='Общая статистика')
-                    table_objects.append(cabinet_table)
-            if context['report_types'].is_channel:
-                if context['report_client_channel']:
-                    channel_table = generate_export_file.DefaultTable(items=context['report_client_channel'],
-                                                                      title='Статистика по каналам')
-                    table_objects.append(channel_table)
-            if context['report_types'].is_campaign:
-                if context['report_client_campaign']:
-                    campaign_table = generate_export_file.DefaultTable(items=context['report_client_campaign'],
-                                                                       title='Статистика по кампаниям',
-                                                                       exclude_keys=[
-                                                                           'agency_client_id',
-                                                                           'campaign_id'
-                                                                       ])
-                    table_objects.append(campaign_table)
-
-            if context['report_types'].is_direction:
-                if context['report_direction_for_export'] is not None:
-                    direction_table = generate_export_file.DirectionTable(items=context['report_direction_for_export'],
-                                                                          title='Статистика по направлениям')
-                    table_objects.append(direction_table)
-
-            if context['report_types'].is_comagic_other:
-                if context['comagic_other_report']:
-                    other_table = generate_export_file.DefaultTable(items=context['comagic_other_report'],
-                                                                    title='Статистика "Comagic other"')
-                    table_objects.append(other_table)
-
-            if context['report_types'].is_period:
-                if context.get('report_client_period_campaign') and context['report_client_period_campaign']:
-                    period_table = generate_export_file.PeriodTable(items=context['report_client_period_campaign'],
-                                                                    title='Статистика по периодам')
-                    table_objects.append(period_table)
             if context['report_types'].is_brand_nvm:
                 if context['report_brand_nvm']:
                     for reports in context['report_brand_nvm']:
                         direction_name = reports.get("direction_name")
                         if reports.get('brand_report'):
-                            brand_table = generate_export_file.NVMTable(
+                            brand_table = generate_export_file.DefaultTable(
                                 items=reports['brand_report'],
-                                title=f'Брендовые кампании {direction_name}',
-                                letters=['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
-                                exclude_keys=[
-                                    'agency_client_id',
-                                    'channel',
-                                    'source'
-                                ])
+                                title=f'Брендовые кампании {direction_name}')
                             table_objects.append(brand_table)
                         if reports.get('no_brand_report'):
-                            no_brand_table = generate_export_file.NVMTable(
+                            no_brand_table = generate_export_file.DefaultTable(
                                 items=reports['no_brand_report'],
-                                title=f'Небрендовые кампании {direction_name}',
-                                letters=['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
-                                exclude_keys=[
-                                    'agency_client_id',
-                                    'channel',
-                                    'source'
-                                ])
+                                title=f'Небрендовые кампании {direction_name}')
                             table_objects.append(no_brand_table)
             if context['report_types'].is_target_nvm:
                 if context['report_target_nvm']:
-                    target_table = generate_export_file.NVMTable(
+                    target_table = generate_export_file.DefaultTable(
                         items=context['report_target_nvm'],
-                        title='Таргет',
-                        exclude_keys=['agency_client_id'],
-                        letters=['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
-                    )
+                        title='Таргет')
                     table_objects.append(target_table)
             if context['report_types'].is_smm_nvm:
                 if context['report_smm_nvm']:
-                    smm_table = generate_export_file.NVMTable(
+                    smm_table = generate_export_file.DefaultTable(
                         items=context['report_smm_nvm'],
-                        title='SMM',
-                        exclude_keys=['agency_client_id'],
-                        letters=['B', 'C', 'D', 'E', 'F']
-                    )
+                        title='SMM')
                     table_objects.append(smm_table)
             if context['report_types'].is_week_nvm:
                 if context['report_week_nvm']:
-                    week_table = generate_export_file.NVMCustomTable(items=context['report_week_nvm'],
-                                                                     title='По неделям',
-                                                                     letters=['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-                                                                              'K', 'L', 'M'],
-                                                                     change_item_key='week',
-                                                                     exclude_keys=[
-                                                                         'agency_client_id',
-                                                                         'source',
-                                                                         'source_name',
-                                                                         'channel',
-                                                                         'channel_name'
-                                                                     ])
+                    week_table = generate_export_file.DefaultTable(items=context['report_week_nvm'],
+                                                                   title='По неделям')
                     table_objects.append(week_table)
             if context['report_types'].is_not_set_week:
                 if context['not_set_week_report']:
-                    week_table = generate_export_file.NVMCustomTable(items=context['not_set_week_report'],
-                                                                     title='NOT SET',
-                                                                     letters=['C', 'D', 'E'],
-                                                                     change_item_key='week',
-                                                                     exclude_keys=[])
-                    table_objects.append(week_table)
+                    not_set_table = generate_export_file.DefaultTable(items=context['not_set_week_report'],
+                                                                      title='NOT SET')
+                    table_objects.append(not_set_table)
             if context['report_types'].is_month_nvm:
                 if context['report_month_nvm']:
-                    week_table = generate_export_file.NVMCustomTable(items=context['report_month_nvm'],
-                                                                     title='По месяцам',
-                                                                     letters=['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-                                                                              'K', 'L', 'M'],
-                                                                     change_item_key='month_string',
-                                                                     exclude_keys=[
-                                                                         'agency_client_id',
-                                                                         'source',
-                                                                         'month_'
-                                                                     ])
-                    table_objects.append(week_table)
-
+                    month_table = generate_export_file.DefaultTable(items=context['report_month_nvm'],
+                                                                    title='По месяцам')
+                    table_objects.append(month_table)
             if context['report_types'].is_campaign_nvm:
                 if context['report_campaign_nvm']:
                     campaign_table = generate_export_file.DefaultTable(
                         items=context['report_campaign_nvm'],
-                        exclude_keys=[
-                            'agency_client_id',
-                            'source',
-                            'month_'
-                        ],
                         title='Статистика по Кампаниям')
                     table_objects.append(campaign_table)
 
             gen_report = generate_export_file.GenerateReport(
-                title_font_size=24,
-                header_font_size=12,
-                sub_header_font_size=12,
-                cell_font_size=8,
-                font_name='calibri'
+                title_font_size=self.TITLE_FONT_SIZE,
+                header_font_size=self.HEADER_FONT_SIZE,
+                sub_header_font_size=self.SUB_HEADER_FONT_SIZE,
+                cell_font_size=self.CELL_FONT_SIZE,
+                font_name=self.FONT
             )
             response = gen_report.generate_report(
                 table_objects=table_objects,
-                start_row=7,
-                logo_image='DI.png',
+                start_row=self.START_ROW,
+                logo_image=self.LOGO_IMAGE,
                 report_file_name=self.object.name
             )
             return response
