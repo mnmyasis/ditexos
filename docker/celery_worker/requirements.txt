@@ -23,13 +23,7 @@ django-celery-results==2.1.0
 django-timezone-field==4.1.2
 et-xmlfile==1.1.0
 filelock==3.0.12
-google==3.0.0
-google-ads==11.0.2
-google-api-core==1.28.0
-google-auth==1.30.1
-google-auth-oauthlib==0.4.4
-googleads==28.0.0
-googleapis-common-protos==1.53.0
+google-ads==15.1.1
 grpcio==1.38.0
 idna==2.10
 isodate==0.6.0
@@ -76,3 +70,9 @@ gunicorn==20.0.4
 python-environ==0.4.54
 django-environment==0.3.8
 redis==4.2.1
+flake8-import-order
+flake8-broken-line
+flake8-return
+flake8-isort
+pep8-naming
+pytest

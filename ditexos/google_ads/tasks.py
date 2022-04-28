@@ -10,6 +10,13 @@ from .models import GoogleAdsToken, Clients, Campaigns, Metrics
 from .services.api import google_ads
 from .services.api import create_ads_client as google_ads_auth
 
+CREDENTIALS = {
+    "developer_token": settings.GOOGLE_DEVELOPER_TOKEN,
+    "client_id": settings.GOOGLE_APP_ID,
+    "client_secret": settings.GOOGLE_APP_PASSWORD,
+    "use_proto_plus": True
+}
+
 
 @shared_task(name='google_clients')
 def clients(user_id):
@@ -17,13 +24,9 @@ def clients(user_id):
     user = custom_user.objects.get(pk=user_id)
     customer_id = user.google_customer
     refresh_token = GoogleAdsToken.objects.get(user=user).refresh_token
-    credentials = {
-        "developer_token": settings.GOOGLE_DEVELOPER_TOKEN,
-        "refresh_token": refresh_token,
-        "client_id": settings.GOOGLE_APP_ID,
-        "client_secret": settings.GOOGLE_APP_PASSWORD,
-        "login_customer_id": customer_id
-    }
+    credentials = CREDENTIALS
+    credentials['refresh_token'] = refresh_token
+    credentials['login_customer_id'] = customer_id
     google_ads_client = GoogleAdsClient.load_from_dict(credentials)
     if user.account_type == 'ag':
         level = 1
@@ -48,13 +51,9 @@ def clients(user_id):
 @shared_task(name='get_google_reports')
 def reports(user_id=1, client_google_id=None, start_date=None, end_date=None):
     google_ads_token = GoogleAdsToken.objects.get(user__pk=user_id)
-    credentials = {
-        "developer_token": settings.GOOGLE_DEVELOPER_TOKEN,
-        "refresh_token": google_ads_token.refresh_token,
-        "client_id": settings.GOOGLE_APP_ID,
-        "client_secret": settings.GOOGLE_APP_PASSWORD,
-        "login_customer_id": google_ads_token.user.google_customer
-    }
+    credentials = CREDENTIALS
+    credentials['refresh_token'] = google_ads_token.refresh_token
+    credentials['login_customer_id'] = google_ads_token.user.google_customer
     google_ads_client = GoogleAdsClient.load_from_dict(credentials)
     customer = Clients.objects.get(google_id=client_google_id)
     if start_date is None:

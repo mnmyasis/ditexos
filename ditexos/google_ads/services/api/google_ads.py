@@ -5,11 +5,12 @@ from google.ads.googleads.errors import GoogleAdsException
 import pandas as pd
 
 PAGE_SIZE = 100
+VERSION = 'v10'
 
 
 def report_keyword(client, customer_id, start_date, end_date):
     report = []
-    ga_service = client.get_service("GoogleAdsService", version="v7")
+    ga_service = client.get_service("GoogleAdsService", version=VERSION)
     query = """
             SELECT
                 ad_group.id,
@@ -53,7 +54,7 @@ def report_keyword(client, customer_id, start_date, end_date):
 
 def report_campaign(client, customer_id, start_date, end_date):
     report = []
-    ga_service = client.get_service("GoogleAdsService", version="v7")
+    ga_service = client.get_service("GoogleAdsService", version=VERSION)
     query = f"""
             SELECT
               campaign.id,
@@ -62,12 +63,11 @@ def report_campaign(client, customer_id, start_date, end_date):
               metrics.clicks,
               metrics.cost_micros,
               segments.date
-            FROM campaign WHERE segments.date >= '{start_date}' AND segments.date <= '{end_date}'
+            FROM campaign 
+            WHERE segments.date >= '{start_date}'
+            AND segments.date <= '{end_date}'
             """
-    search_request = client.get_type("SearchGoogleAdsStreamRequest")
-    search_request.customer_id = customer_id
-    search_request.query = query
-    response = ga_service.search_stream(search_request)
+    response = ga_service.search_stream(customer_id=customer_id, query=query)
     for batch in response:
         for row in batch.results:
             res = {
@@ -86,7 +86,7 @@ def report_campaign(client, customer_id, start_date, end_date):
 
 def clients(client, customer_id, customer_client_level):
     result = []
-    googleads_service = client.get_service("GoogleAdsService")
+    googleads_service = client.get_service("GoogleAdsService", version=VERSION)
     query = f"""
             SELECT
               customer_client.client_customer,
@@ -105,8 +105,6 @@ def clients(client, customer_id, customer_client_level):
     )
     for googleads_row in response:
         customer_client = googleads_row.customer_client
-        print(customer_client)
-        print(customer_client.descriptive_name)
         result.append({
             'name': customer_client.descriptive_name,
             'id': customer_client.id
