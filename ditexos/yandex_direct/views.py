@@ -1,22 +1,24 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import DeleteView, TemplateView
 from django.conf import settings
-from .services.api.direct_api import token
+
 from .models import YandexDirectToken
+from core.yandex_direct_api.direct import token
 
 
-# Create your views here.
 @login_required
 def get_token(request):
     """Ловит Callback от yandex"""
     custom_user = get_user_model()
     user_email = custom_user.objects.get(email=request.GET.get('state'))
     code = request.GET.get('code')
-    req = token(code)
+    req = token(code=code,
+                client_id=settings.YANDEX_APP_ID,
+                client_secret=settings.YANDEX_APP_PASSWORD)
     access_token = req.get('access_token')
     refresh_token = req.get('refresh_token')
     obj, created = YandexDirectToken.objects.update_or_create(
@@ -27,7 +29,6 @@ def get_token(request):
             'refresh_token': refresh_token
         }
     )
-    obj.set_periodic_task('yandex_clients')
     return redirect('yandex_direct:allow_access')
 
 

@@ -1,0 +1,4 @@
+
+
+class Write:
+    pass

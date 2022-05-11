@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'vk',
     'facebook',
     'my_target',
-    'google_sheets'
+    'google_sheets',
+    'core'
 
 ]
 

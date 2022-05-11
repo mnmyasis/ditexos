@@ -1,31 +1,35 @@
 import datetime
 
-from celery import shared_task
-from .services.api.direct_api import AgencyClients, YandexDir, Reports
-from .services.api.direct_api import Client as ApiYandexClient
-from django.db.models import Max
-from .models import *
 import pandas as pd
+from celery import shared_task
+from core.yandex_direct_api.direct import (AgencyClientAccount, ClientAccount,
+                                           CustomReportCampaign)
+from django.db.models import Max
+
+from .models import Campaigns, Clients, Metrics, YandexDirectToken
+
+FIRST_START_DAY_INTERVAL = 90
+EVERY_DAY_UPDATE_INTERVAL = 30
+PATTERN_DATE = '%Y-%m-%d'
 
 
 @shared_task(name='yandex_clients')
-def clients(user_id=1):
+def clients(user_id: int) -> dict:
+    """Список клиентов."""
     ya_dir_tok = YandexDirectToken.objects.get(user__pk=user_id)
     access_token = ya_dir_tok.access_token
     if ya_dir_tok.user.account_type == 'ag':
         """Для агентского аккаунта"""
-        ag_clients = AgencyClients(token=access_token)
+        direct_account = AgencyClientAccount(access_token=access_token)
     else:
         """Юзерского аккаунта"""
-        ag_clients = ApiYandexClient(token=access_token)
-    director = YandexDir()
-    director.agency_get(ag_clients)
-    res = ag_clients.get_result()
-    if res.get('error'):
-        return res.get('error')
+        direct_account = ClientAccount(access_token=access_token)
+    res = direct_account.get_result()
     df = pd.DataFrame(res.get('result').get('Clients'))
+    count_update = 0
+    count_create = 0
     for client in df.iloc:
-        Clients.objects.update_or_create(
+        obj, is_created = Clients.objects.update_or_create(
             user=ya_dir_tok.user,
             client_id=client.ClientId,
             defaults={
@@ -34,48 +38,42 @@ def clients(user_id=1):
                 'client_id': client.ClientId
             }
         )
-    return 'Success clients update for user {}'.format(ya_dir_tok.user.email)
+        if is_created:
+            count_create += 1
+        else:
+            count_update += 1
+    return {
+        'user': ya_dir_tok.user.email,
+        'count_create': count_create,
+        'count_update': count_update
+    }
 
 
-@shared_task(name='get_yandex_reports')
-def get_reports(user_id=1, yandex_client_id=None, start_date=None, end_date=None):
+@shared_task(name='yandex_reports')
+def get_reports(user_id: int, yandex_client_id: int, start_date: str = None, end_date: str = None) -> dict:
+    """Сбор метрик."""
     ya_dir_tok = YandexDirectToken.objects.get(user__pk=user_id)
     client = Clients.objects.get(client_id=yandex_client_id, user__pk=user_id)
     if start_date is None:
-        start_date = Metrics.objects.filter(campaign__client__pk=client.pk) \
-            .aggregate(Max('date')).get('date__max')
+        start_date = Metrics.objects.filter(campaign__client__pk=client.pk).aggregate(Max('date')).get('date__max')
         if start_date is None:
             start_date = datetime.datetime.now()
-            days = datetime.timedelta(days=90)
+            days = datetime.timedelta(days=FIRST_START_DAY_INTERVAL)
         else:
-            days = datetime.timedelta(days=3)
+            days = datetime.timedelta(days=EVERY_DAY_UPDATE_INTERVAL)
         start_date -= days
-        start_date = start_date.strftime("%Y-%m-%d")
+        start_date = start_date.strftime(PATTERN_DATE)
     if end_date is None:
         d = datetime.datetime.now()
-        end_date = d.strftime('%Y-%m-%d')
+        end_date = d.strftime(PATTERN_DATE)
 
-    report = Reports(
-        token=ya_dir_tok.access_token,
+    report_campaign = CustomReportCampaign(
+        access_token=ya_dir_tok.access_token,
         client_login=client.name,
         start_date=start_date,
         end_date=end_date
     )
-    director = YandexDir()
-    director.agency_get(report)
-    result, status = report.get_result()
-    if status is False:
-        if result['error']['error_code'] == '8800':
-            client_id = client.client_id
-            client_pk = client.pk
-            client_name = client.name
-            client.delete()
-            return {
-                'client_id': client_id,
-                'client_pk': client_pk,
-                'client': client_name,
-                'msg': 'client deleted'
-            }
+    result = report_campaign.get_result()
     count_update = 0
     count_create = 0
     for rep in result.iloc:
