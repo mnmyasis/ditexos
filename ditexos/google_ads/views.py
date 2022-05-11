@@ -38,6 +38,12 @@ def allow_access(request):
 
 class AllowErrorView(LoginRequiredMixin, TemplateView):
     template_name = 'google_ads/error.html'
+    context_object_name = 'context'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['back_url'] = reverse('google_ads:allow_access')
+        return context
 
 
 class DeleteTokenView(LoginRequiredMixin, DeleteView):
