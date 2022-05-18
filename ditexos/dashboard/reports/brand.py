@@ -34,6 +34,7 @@ def diff_main_filter_for_brand(directions: QuerySet, is_brand: bool) -> Tuple[st
         filter_utm_campaign = ' and '.join(
             [f"utm_campaign !~* '{_dir}'" for _dir in select_directions]
         )
+        filter_utm_campaign = f'({filter_utm_campaign} or utm_campaign isnull)'
     return filter_campaign, filter_utm_campaign
 
 
