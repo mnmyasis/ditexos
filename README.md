@@ -70,7 +70,7 @@ EMAIL_HOST_PASSWORD=password
  
  Запуск контейнеров:
  ```
- docker compose up
+ docker-compose up
  ```
  
 # Кастомные команды manage.py:
